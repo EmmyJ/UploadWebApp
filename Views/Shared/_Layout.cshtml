@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>@ViewBag.Title</title>
+        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
+        <meta name="viewport" content="width=device-width" />
+        @Styles.Render("~/Content/css")
+        @Styles.Render("~/Content/dropzone.css")
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/modernizr")
+        @Scripts.Render("~/bundles/dropzonescripts")
+    </head>
+    <body>
+        <header>
+            <div class="content-wrapper">
+                <div class="float-right">
+                    <section id="login">
+                        @Html.Partial("_LoginPartial")
+                    </section>
+                    </div>
+                <div class="float-left">
+                    <p class="site-title"><a href="@Url.Action("Index", "Home")"><img src="~/Images/Icos_Logo_RGB_Regular%20ETC.png" style="height:100px" /></a></p>
+                </div>
+                <div class="float-left site-title" style="margin-top:5px">Leaf Area Index Tool
+                    </div>
+                <div class="float-right">
+                    @*<section id="login">
+                        @Html.Partial("_LoginPartial")
+                    </section>*@
+                    <nav>
+                        <ul id="menu">
+                           @* <li>@Html.ActionLink("Calculate LAI", "Index", "Home")</li>
+                            <li>@Html.ActionLink("Upload File", "FileUpload", "Home")</li>*@
+                            <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                            <li>@Html.ActionLink("Overview", "Overview", "Home")</li>
+                            <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <div id="body">
+            @RenderSection("featured", required: false)
+            <section class="content-wrapper main-content clear-fix">
+                @RenderBody()
+            </section>
+        </div>
+        <footer>
+            <div class="content-wrapper">
+                <div class="float-left">
+                    @*<p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</p>*@
+
+                </div>
+            </div>
+        </footer>
+
+        @Scripts.Render("~/bundles/jquery")
+        @RenderSection("scripts", required: false)
+    </body>
+</html>

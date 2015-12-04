@@ -1,0 +1,9 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="UploadWebapp.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="UploadWebapp_usersitesservice_UserSiteService" Type="(Web Service URL)" Scope="Application">
+      <Value Profile="(Default)">http://gaia.agraria.unitus.it/UserSiteService.asmx</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

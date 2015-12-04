@@ -1,0 +1,89 @@
+﻿@model IEnumerable<UploadWebapp.Models.UploadSet>
+
+@{
+    ViewBag.Title = "Overview";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Overview</h2>
+
+@*<p>
+    @Html.ActionLink("Create New", "Create")
+</p>*@
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.siteID)
+        </th>
+        @*<th>
+            @Html.DisplayNameFor(model => model.userID)
+        </th>*@
+        <th>
+            @Html.DisplayNameFor(model => model.person)
+        </th>
+        @*<th>
+            @Html.DisplayNameFor(model => model.slope)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.slopeAspect)
+        </th>*@
+        <th>
+            @Html.DisplayNameFor(model => model.uploadTime)
+        </th>
+        @*<th>
+            @Html.DisplayNameFor(model => model.resultsSet.processed)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.resultsSet.LAI)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.resultsSet.LAI_SD)
+        </th>*@
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.siteCode)
+        </td>
+        @*<td>
+            @Html.DisplayFor(modelItem => item.userID)
+        </td>*@
+        <td>
+            @Html.DisplayFor(modelItem => item.person)
+        </td>
+        @*<td>
+            @Html.DisplayFor(modelItem => item.slope)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.slopeAspect)
+        </td>*@
+        <td>
+            @Html.DisplayFor(modelItem => item.uploadTime)
+        </td>
+        @*<td>
+            @if (item.resultsSet.processed == true)
+        {<text>Yes</text>}
+        else
+            {<text>No</text>      }
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.resultsSet.LAI)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.resultsSet.LAI_SD)
+        </td>*@
+        <td>
+            @*@Html.ActionLink("Edit", "Edit", new { id=item.ID }) |*@
+            @Html.ActionLink("Detail", "SetDetails", new { setID=item.ID }) 
+            @if (item.hasDataLogs)
+            {
+            @Html.ActionLink("Download results", "SetDownload", new { setID=item.ID })
+            }
+@*            @Html.ActionLink("Delete", "Delete", new { id=item.ID })*@
+        </td>
+    </tr>
+}
+
+</table>

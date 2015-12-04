@@ -1,0 +1,341 @@
+﻿@model UploadWebapp.Models.UploadSet
+
+@{
+    ViewBag.Title = "PictureUploadResult";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    $(document).ready(function () {
+        $("#toolongdiv").hide();
+        $("#resultdiv").hide();
+        
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetResultsSet",
+            data: {setid: @(Model.ID.ToString())},
+            contentType: "application/json; charset=utf-8",
+            success: function (data, status) {
+                $("#loadingdiv").hide();
+                if (data[0].resultsSet.processed) {
+                    $("#resultdiv").show();
+
+                    for(i=0;i<data.length;i++)
+                    {
+                        //LAI
+                        $("#resultdiv" + data[i].plotname).append("<h4>LAI: " + data[i].resultsSet.LAI + "</h4>")
+                        //datalog
+                        $("#resultdiv" + data[i].plotname).append("<h4>Data: </h4>")
+                        if(data[i].resultsSet.data != null && data[i].resultsSet.data.indexOf("\n") != -1)
+                        {
+                            var substring = data[i].resultsSet.data.substr(data[i].resultsSet.data.indexOf("\n"))
+                            $("#resultdiv" + data[i].plotname).append("<table class='datatable'><tr> <th style='width:75px;'>Image</th> <th>Ridler Calvard Threshold</th> <th>Lang Xiang Clumping</th><th>LAI with Optimization</th> <th>Edge Detection Threshold</th> <th>Lang Xiang Clumping</th><th>LAI with Optimization</th></tr> <td>" + substring.split(";").join("</td><td>").split("\n").join("</td></tr><tr><td>") + "</td></table>")
+                        }
+                        else
+                            $("#resultdiv" + data[i].plotname).append("<p>No data available.</p>")
+                        //logfile
+                        if(data[i].resultsSet.resultLog != null){
+                            $("#resultdiv" + data[i].plotname).append("<br /><div class='display-label logheading'>+ Result Log </div>")
+                            $("#resultdiv" + data[i].plotname).append("<div class='display-field line-breaks logcontent'>" + data[i].resultsSet.resultLog + "</div>")}
+                        else{
+                            $("#resultdiv" + data[i].plotname).append("<br /><div class='display-label'>Result Log </div>")
+                            $("#resultdiv" + data[i].plotname).append("<div class='display-field'>No log available.</div>")}
+                    }
+                }
+            
+                else{
+                
+                    $.ajax({
+                        type: "GET",
+                        url: "/Home/GetETA",
+                        data: {setID: @(Model.ID.ToString())},
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data, status) {
+                        //debugger;
+                        if(status == "success")
+                            $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
+                        else
+                            $("#toolongdiv").html("<p>LAI is now being calculated. This can take a while. You can check the results by refreshing this page or going to the Overview page.</p>")
+                        $("#toolongdiv").show();
+                    
+                    }
+                });
+
+                function sucFunc(data, status) {
+                    //debugger;
+                    if(status == "success")
+                        $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
+                    else
+                        $("#toolongdiv").html("<p>LAI is now being calculated. This can take a while. You can check the results by refreshing this page or going to the Overview page.</p>")
+                    $("#toolongdiv").show();
+                    
+                }
+
+                
+            }
+                //alert(data);
+                $(".logcontent").hide();
+                $(".logheading").click(function () {
+                    $(this).next(".logcontent").slideToggle(500);
+                });
+            }
+            //error: errorFunc
+        });
+
+        function successFunc(data, status) {
+            $("#loadingdiv").hide();
+            if (data[0].resultsSet.processed) {
+                $("#resultdiv").show();
+
+                for(i=0;i<data.length;i++)
+                {
+                    //LAI
+                    $("#resultdiv" + data[i].plotname).append("<h4>LAI: " + data[i].resultsSet.LAI + "</h4>")
+                    //datalog
+                    $("#resultdiv" + data[i].plotname).append("<h4>Data: </h4>")
+                    if(data[i].resultsSet.data != null && data[i].resultsSet.data.indexOf("\n") != -1)
+                    {
+                        var substring = data[i].resultsSet.data.substr(data[i].resultsSet.data.indexOf("\n"))
+                        $("#resultdiv" + data[i].plotname).append("<table class='datatable'><tr> <th style='width:75px;'>Image</th> <th>Ridler Calvard Threshold</th> <th>Lang Xiang Clumping</th><th>LAI with Optimization</th> <th>Edge Detection Threshold</th> <th>Lang Xiang Clumping</th><th>LAI with Optimization</th></tr> <td>" + substring.split(";").join("</td><td>").split("\n").join("</td></tr><tr><td>") + "</td></table>")
+                    }
+                    else
+                        $("#resultdiv" + data[i].plotname).append("<p>No data available.</p>")
+                    //logfile
+                    if(data[i].resultsSet.resultLog != null){
+                        $("#resultdiv" + data[i].plotname).append("<br /><div class='display-label logheading'>+ Result Log </div>")
+                        $("#resultdiv" + data[i].plotname).append("<div class='display-field line-breaks logcontent'>" + data[i].resultsSet.resultLog + "</div>")}
+                    else{
+                        $("#resultdiv" + data[i].plotname).append("<br /><div class='display-label'>Result Log </div>")
+                        $("#resultdiv" + data[i].plotname).append("<div class='display-field'>No log available.</div>")}
+                }
+            }
+            
+            else{
+                
+                $.ajax({
+                    type: "GET",
+                    url: "/Home/GetETA",
+                    data: {setID: @(Model.ID.ToString())},
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data, status) {
+                        //debugger;
+                        if(status == "success")
+                            $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
+                        else
+                            $("#toolongdiv").html("<p>LAI is now being calculated. This can take a while. You can check the results by refreshing this page or going to the Overview page.</p>")
+                        $("#toolongdiv").show();
+                    
+                    }
+                });
+
+                //function sucFunc(data, status) {
+                //    debugger;
+                //    if(status == "success")
+                //        $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
+                //    else
+                //        $("#toolongdiv").html("<p>LAI is now being calculated. This can take a while. You can check the results by refreshing this page or going to the Overview page.</p>")
+                //    $("#toolongdiv").show();
+                    
+                //}
+
+                
+            }
+            //alert(data);
+            $(".logcontent").hide();
+            $(".logheading").click(function () {
+                $(this).next(".logcontent").slideToggle(500);
+            });
+        }
+
+        function errorFunc() {
+            alert('error');
+        }
+    });
+</script>
+
+<h2>Upload Succesfull</h2>
+<br />
+<fieldset>
+    <legend>UploadSet</legend>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.siteID)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.siteID)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.userID)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.userID)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.person)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.person)
+    </div>
+
+    @* <div class="display-label">
+        @Html.DisplayNameFor(model => model.slope)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.slope)
+    </div>*@
+
+    @*<div class="display-label">
+        @Html.DisplayNameFor(model => model.slopeAspect)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.slopeAspect)
+    </div>*@
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.uploadTime)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.uploadTime)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.cameraType)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.cameraType)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.cameraSerial)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.cameraSerial)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensType)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensType)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensSerial)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensSerial)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensX)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensX)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensY)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensY)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensA)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensA)
+    </div>
+
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.cameraSetup.lensB)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.cameraSetup.lensB)
+    </div>
+    <br />
+    <br />
+
+
+    @foreach (var plotSet in Model.plotSets)
+    {
+        <h1>Plot @Html.DisplayFor(modelItem => plotSet.plot.name)</h1>
+        <div class="display-label">
+            @Html.DisplayNameFor(model => plotSet.plot.slope)
+        </div>
+        <div class="display-field">
+            @Html.DisplayFor(model => plotSet.plot.slope)
+        </div>
+        <div class="display-label">
+            @Html.DisplayNameFor(model => plotSet.plot.slopeAspect)
+        </div>
+        <div class="display-field">
+            @Html.DisplayFor(model => plotSet.plot.slopeAspect)
+        </div>
+        <table>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.plotSets[0].images[0].filename)
+                </th>
+                @*<th>
+            @Html.DisplayNameFor(model => model.images[0].path)
+        </th>*@
+                <th>
+                    @Html.DisplayNameFor(model => model.plotSets[0].images[0].dngFilename)
+                </th>
+                @*<th>
+            @Html.DisplayNameFor(model => model.images[0].dngPath)
+        </th>*@
+
+            </tr>
+            @*<tr>
+        <th>
+            @Html.DisplayFor(modelItem => plot.plotname)</th></tr>*@
+
+            @foreach (var item in plotSet.images)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.filename)
+                    </td>
+                    @*<td>
+            @Html.DisplayFor(modelItem => item.path)
+        </td>*@
+                    <td>
+                        @Html.DisplayFor(modelItem => item.dngFilename)
+                    </td>
+                    @*<td>
+            @Html.DisplayFor(modelItem => item.dngPath)
+        </td>*@
+                    @*<td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ID })
+        </td>*@
+                </tr>
+   
+        
+            }
+        </table>
+        <div id="resultdiv@(plotSet.plot.name)"></div>
+    }
+
+</fieldset>
+@*<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>*@
+<div id="loadingdiv">
+    Calculating LAI now...
+    <img src="~/Images/loader.gif" style="width: 30px" />
+</div>
+<div id="toolongdiv">
+    <p>Calculation is taking longer then expected, come back later to check your results.</p>
+</div>
+@*<div id="resultdiv">
+    LAI: <span id="lai"></span><br />
+    LAI_SD: <span id="laisd"></span><br />
+    Log: <span id="lailog" class="line-breaks"></span>
+</div>*@

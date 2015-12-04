@@ -1,0 +1,26 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Index</h2>
+<h3>Choose your action:</h3>
+@*@Html.ActionLink("Upload Hemispherical Pictures", "PictureUpload")
+@Html.ActionLink("Upload Data Files", "FileUpload")*@
+<style>
+    .button {
+        margin: 50px 20px 50px 20px;
+        
+    }
+        .button:hover {
+        text-decoration:none;
+        }
+</style>
+<center>
+<a href="@Url.Action("PictureUpload")">
+<img src="~/Images/hemButton.png" class="button" />
+</a>
+@*<a href="@Url.Action("FileUpload")">
+<img src="~/Images/ancButton.png" class="button"/>
+</a>*@
+    </center>
