@@ -279,3 +279,12 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+Web.config
+Web.Debug.config
+Web.Release.config
+Web References/usersitesservice/Reference.cs
+Web References/usersitesservice/Reference.map
+Web References/usersitesservice/SiteData.datasource
+Web References/usersitesservice/UserData.datasource
+Web References/usersitesservice/UserSiteService.disco
+Web References/usersitesservice/UserSiteService.wsdl
