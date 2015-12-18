@@ -337,6 +337,7 @@
                 }
             }
             if (filenamesok) {
+                $("#wrongfilenames").hide();
                 //myDropzone.options.params["siteID"] = $("#selectedSite").val();
                 //myDropzone.options.params["person"] = $("#uploadSet_person").val();
                 ////myDropzone.options.params["slope"] = $("#uploadSet_slope").val();
@@ -365,6 +366,7 @@
             else {
                 $("#wrongfilenames").show();
             }
+            $(".emptyfields").hide();
         }
     };
     document.querySelector("#actions .cancel").onclick = function () {

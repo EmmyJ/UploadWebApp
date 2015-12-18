@@ -207,6 +207,8 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\dropzone.css" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Content\local_style.css" />
+    <Content Include="Content\style.css" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -266,7 +268,14 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="Content\fonts\icomoon.eot" />
+    <Content Include="Content\fonts\icomoon.ttf" />
+    <Content Include="Content\fonts\icomoon.woff" />
     <None Include="Properties\PublishProfiles\UploadWebApp.pubxml" />
+    <Content Include="Images\icon_home.svg" />
+    <Content Include="Images\icon_home_active.png" />
+    <Content Include="Images\icon_home_active.svg" />
+    <Content Include="Images\Icos_Logo_RGB_White_ETC.png" />
     <Content Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -356,6 +365,8 @@
     <Content Include="Views\Home\FileUpload.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Web References\usersitesservice\UserSiteService.wsdl" />
+    <Content Include="Views\Home\PictureUploadCopy.cshtml" />
+    <Content Include="Views\Home\PictureUploadMinCopy.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

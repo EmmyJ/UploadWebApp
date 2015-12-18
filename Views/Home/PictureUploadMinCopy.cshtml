@@ -2,8 +2,8 @@
 @{
     ViewBag.Title = "Upload Hemispherical Pictures";
 }
-<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
-<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+@*<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />*@
 <script>
     //var Dropzone = require("enyo-dropzone");
     Dropzone.autoDiscover = false;
@@ -77,7 +77,7 @@
 
 
 <div id="emptyfields" class="emptyfields">
-    <h3>Please complete all fields.</h3>
+    <p>Please complete all fields.</p>
 </div>
 
 <div class="container" id="container">
@@ -115,9 +115,9 @@
         </tr>
     </table>
     <div id="emptyfields2" class="emptyfields">
-        <h3>Please complete all fields.</h3>
+        <p>Please complete all fields.</p>
     </div>
-    <div id="actions" class="row">
+    <div id="actions" class="row clearfix">
         <div class="col-lg-7">
             <!-- The fileinput-button span is used to style the file input field as button -->
             <span class="btn btn-success fileinput-button">
@@ -135,14 +135,14 @@
         </div>
         <div class="col-lg-10">
             <div id="wrongfilenames" class="wrongfilenames">
-                <h3>Incorrect filenames:
+                <p>Incorrect filenames:
                     <br />
-                </h3>
+                </p>
             </div>
 
         </div>
 
-        <div class="col-lg-5">
+        <div class="col-lg-5 row clearfix">
             <!-- The global file processing state -->
             <span class="fileupload-process">
                 <div id="total-progress" class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -152,23 +152,24 @@
         </div>
     </div>
 
-    <div class="table table-striped" class="files" id="previews">
+    <div class="table table-striped row clearfix files" id="previews" style="width:100%">
         <div id="template" class="file-row">
-            <div>
+            @*<div>
                 <span class="preview">
                     <img data-dz-thumbnail /></span>
-            </div>
+            </div>*@
             <div>
                 <p class="name" data-dz-name></p>
                 <strong class="error text-danger" data-dz-errormessage></strong>
             </div>
-            <div>
-                <p class="size" data-dz-size></p>
+            <div class="size" data-dz-size></div>
+            <div style="width:300px;">
+                @*<span class="size" data-dz-size></span>*@
                 <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="progress-bar progress-bar-success" style="width: 0%;" data-dz-uploadprogress></div>
                 </div>
             </div>
-            <div>
+            <div style="width:150px;">
                 @*<button class="btn btn-primary start">
                     <i class="glyphicon glyphicon-upload"></i>
                     <span>Start</span>
@@ -177,10 +178,10 @@
                     <i class="glyphicon glyphicon-ban-circle"></i>
                     <span>Cancel</span>
                 </button>
-                <button data-dz-remove class="btn btn-danger delete">
+                @*<button data-dz-remove class="btn btn-danger delete">
                     <i class="glyphicon glyphicon-trash"></i>
                     <span>Delete</span>
-                </button>
+                </button>*@
             </div>
         </div>
     </div>
@@ -363,6 +364,7 @@
                 //myDropzone.options.params["plots"] = plots;
 
                 //myDropzone.enqueueFiles(files);
+                $("#wrongfilenames").hide();
             }
             else {
                 $("#wrongfilenames").show();

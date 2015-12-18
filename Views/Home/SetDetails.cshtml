@@ -13,183 +13,233 @@
         });
     });
 </script>
-<h2>Details</h2>
+<h1>Upload Set Details</h1>
 <br />
 <div class="container" id="container">
-
-    <fieldset>
-        <legend>UploadSet</legend>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.siteID)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.siteID)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.userID)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.userID)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.person)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.person)
-        </div>
-        @*<div class="display-label">
-            @Html.DisplayNameFor(model => model.slope)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.slope)
-        </div>
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.slopeAspect)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.slopeAspect)
-        </div>*@
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.uploadTime)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.uploadTime)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.siteCode)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.siteCode)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.cameraType)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.cameraType)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.cameraSerial)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.cameraSerial)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensType)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensType)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensSerial)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensSerial)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensX)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensX)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensY)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensY)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensA)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensA)
-        </div>
-
-        <div class="display-label">
-            @Html.DisplayNameFor(model => model.cameraSetup.lensB)
-        </div>
-        <div class="display-field">
-            @Html.DisplayFor(model => model.cameraSetup.lensB)
-        </div>
-        <br />
-        <br />
-        @foreach (var plotSet in Model.plotSets)
-        {
-            <h1>Plot @(plotSet.plot.name)</h1>
-            
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.plot.slope)
+    <div class="row">
+        <div class="col-md-6 ">
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.siteID)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.siteID)
+                </div>
             </div>
-            <div class="display-field">
-                @Html.DisplayFor(model => plotSet.plot.slope)
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.siteCode)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.siteCode)
+                </div>
             </div>
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.plot.slopeAspect)
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.userID)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.userID)
+                </div>
             </div>
-            <div class="display-field">
-                @Html.DisplayFor(model => plotSet.plot.slopeAspect)
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.person)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.person)
+                </div>
             </div>
-            
-            <table>
-                <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.plotSets[0].images[0].filename)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.plotSets[0].images[0].dngFilename)
-                    </th>
-                </tr>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.uploadTime)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.uploadTime)
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 ">
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.cameraType)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.cameraType)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.cameraSerial)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.cameraSerial)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensType)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensType)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensSerial)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensSerial)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensX)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensX)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensY)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensY)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensA)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensA)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.lensB)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.lensB)
+                </div>
+            </div>
+        </div>
+    </div>
 
-                @foreach (var item in plotSet.images)
-                {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.filename)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.dngFilename)
-                        </td>
-                    </tr>
-                }
-            </table>
-            <br />
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.resultsSet.processed)
-            </div>
-            <div class="display-field">
-                @*@Html.DisplayFor(model => model.resultsSet.processed)*@
-                @if (plotSet.resultsSet.processed == true)
-                {<text>Yes</text>}
-                else
-                {<text>No</text>      }
+    @foreach (var plotSet in Model.plotSets)
+    {
+        <h1>Plot @(plotSet.plot.name)</h1>
+        <div class="row clearfix">
+            <div class="col-md-6">
+                <table class="ovv" style="width:90%">
+                    <thead>
+                        <tr>
+                            <th>
+                                @*@Html.DisplayNameFor(model => model.plotSets[0].images[0].filename)*@
+                                Uploaded Pictures
+                            </th>
+                            @*<th>
+                                @Html.DisplayNameFor(model => model.plotSets[0].images[0].dngFilename)
+                            </th>*@
+                        </tr>
+                    </thead>
 
+                    @foreach (var item in plotSet.images)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.filename)
+                            </td>
+                            @*<td>
+                                @Html.DisplayFor(modelItem => item.dngFilename)
+                            </td>*@
+                        </tr>
+                    }
+                </table>
             </div>
-            <br />
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.resultsSet.LAI)
+            <div class="col-md-6 ">
+                <div class="row clearfix">
+                    <div class="col-md-4">
+                        <label class="display-label">
+                            @Html.DisplayNameFor(model => plotSet.plot.slope)
+                        </label>
+                    </div>
+                    <div class="display-field col-md-8">
+                        @Html.DisplayFor(model => plotSet.plot.slope)
+                    </div>
+                </div>
+                <div class="row clearfix">
+                    <div class="col-md-4">
+                        <label class="display-label">
+                            @Html.DisplayNameFor(model => plotSet.plot.slopeAspect)
+                        </label>
+                    </div>
+                    <div class="display-field col-md-8">
+                        @Html.DisplayFor(model => plotSet.plot.slopeAspect)
+                    </div>
+                </div>
+                <div class="row clearfix">
+                    <div class="col-md-4">
+                        <label class="display-label">
+                            @Html.DisplayNameFor(model => plotSet.resultsSet.processed)
+                        </label>
+                    </div>
+                    <div class="display-field col-md-8">
+                        @if (plotSet.resultsSet.processed == true)
+                        {<text>Yes</text>}
+                        else
+                        {<text>No</text>      }
+                    </div>
+                </div>
+                <div class="row clearfix">
+                    <div class="col-md-4">
+                        <label class="display-label">
+                            @Html.DisplayNameFor(model => plotSet.resultsSet.LAI)
+                        </label>
+                    </div>
+                    <div class="display-field col-md-8">
+                        <h5 class="text-highlight">@Html.DisplayFor(model => plotSet.resultsSet.LAI)</h5>
+                    </div>
+                </div>
             </div>
-            <div class="display-field">
-                @Html.DisplayFor(model => plotSet.resultsSet.LAI)
-            </div>
-            <br />
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.resultsSet.data)
-            </div>
+        </div><br />
+        <div class="row clearfix">
+            <div class="col-md-12">
+            <label class="display-label">
+                @*@Html.DisplayNameFor(model => plotSet.resultsSet.data)*@
+                Calculation Data:
+            </label>
             <div class="display-field">
                 @if (plotSet.resultsSet.data != null && plotSet.resultsSet.data.IndexOf("\n") != -1)
                 {            
-                    <table class="datatable">
+                    <table class="datatable ovv">
                         <tr>
                             <th style="width: 75px;">Image</th>
                             <th>Ridler Calvard Threshold</th>
@@ -199,40 +249,42 @@
                             <th>Lang Xiang Clumping</th>
                             <th>LAI with Optimization</th>
                         </tr>
-                        <td>
+                        <tr>
+                            <td>
+                                @Html.Raw(plotSet.resultsSet.data.Remove(plotSet.resultsSet.data.Length - 1).Substring(plotSet.resultsSet.data.IndexOf("\n") + 1).Replace(";", "</td><td>").Replace("\n", "</td></tr><tr><td>"))
 
-                            @Html.Raw(plotSet.resultsSet.data.Substring(plotSet.resultsSet.data.IndexOf("\n")).Replace(";", "</td><td>").Replace("\n", "</td></tr><tr><td>"))
-                        
-                        </td>
+                            </td>
+                        </tr>
                     </table>
                 }
                 else
                 {
                     <text>No data available.</text>}
-            </div>
-            <br />
+            </div></div>
+        </div>
+        <br />
             
-            if (!string.IsNullOrEmpty(plotSet.resultsSet.resultLog))
+                if (!string.IsNullOrEmpty(plotSet.resultsSet.resultLog))
                 {
-            <div class="display-label logheading">
-                + @Html.DisplayNameFor(model => plotSet.resultsSet.resultLog)
-            </div>
-            <div class="display-field line-breaks logcontent">
-                @Html.DisplayFor(model => plotSet.resultsSet.resultLog)
-            </div>
+        <div class="display-label logheading">
+            + @Html.DisplayNameFor(model => plotSet.resultsSet.resultLog)
+        </div>
+        <div class="display-field line-breaks logcontent">
+            @Html.DisplayFor(model => plotSet.resultsSet.resultLog)
+        </div>
                 }
                 else
                 {
-            <div class="display-label">
-                @Html.DisplayNameFor(model => plotSet.resultsSet.resultLog)
-            </div>
-            <div class="display-field">
-                No log available.
-            </div>
+        <label class="display-label">
+            @Html.DisplayNameFor(model => plotSet.resultsSet.resultLog)
+        </label>
+        <div class="display-field">
+            No log available.
+        </div>
                 }
-        }
+    }
 
-    </fieldset>
+
     <p>
         @Html.ActionLink("Back to List", "Overview")
     </p>

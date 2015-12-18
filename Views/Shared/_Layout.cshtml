@@ -1,19 +1,83 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>@ViewBag.Title</title>
-        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-        <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
-        <meta name="viewport" content="width=device-width" />
-        @Styles.Render("~/Content/css")
-        @Styles.Render("~/Content/dropzone.css")
-        @Scripts.Render("~/bundles/jquery")
-        @Scripts.Render("~/bundles/modernizr")
-        @Scripts.Render("~/bundles/dropzonescripts")
-    </head>
-    <body>
-        <header>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width" />
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/dropzonecss")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/dropzonescripts")
+</head>
+<body>
+    <header>
+
+        <div class="header">
+            <div class="tint-container" style="background-image: url(/Images/bg9.png)">
+                <div class="tint -header"></div>
+                <div class="container">
+                    <div class="flag">&nbsp;&nbsp;&nbsp;Leaf Area Index Tool &nbsp;&nbsp;&nbsp;</div>
+
+                    <div class="account ">
+                        <section id="login" class="text-white ">@Html.Partial("_LoginPartial")</section>
+                    </div>
+                    <a href="/Home">
+                        <h1 class="logo">ICOS</h1>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="fill-sub">
+            <div class="container">
+                <nav class="hidden-xs">
+                    <ul class="inline-list">
+                        <li class="inline-list-item">@Html.ActionLink("Home", "Index", "Home", null, new { @class = "text-white nav-link -home" })</li>
+                        <li class="inline-list-item">@Html.ActionLink("Overview", "Overview", "Home", null, new { @class = "text-white nav-link " })</li>
+                        <li class="inline-list-item">@Html.ActionLink("Contact", "Contact", "Home", null, new { @class = "text-white nav-link " })</li>
+
+
+                        @*<li class="inline-list-item"><a href="index.html" class="text-white nav-link -home">Home</a></li>
+                        <li class="inline-list-item"><a href="organisation.html" class="text-white nav-link">Organisation</a></li>
+                        <li class="inline-list-item"><a href="infrastructure.html" class="text-white nav-link">Belgian Network</a></li>
+                        <li class="inline-list-item"><a href="etc.html" class="text-white nav-link">ETC-Antwerp</a></li>
+                        <li class="inline-list-item"><a href="agenda.html" class="text-white nav-link -active">Agenda</a></li>
+                        <li class="inline-list-item"><a href="partners.html" class="text-white nav-link">Partners & Funding</a></li>
+                        <li class="inline-list-item"><a href="news.html" class="text-white nav-link">News</a></li>
+                        <li class="inline-list-item"><a href="links.html" class="text-white nav-link">Links</a></li>
+                        <li class="inline-list-item"><a href="contact.html" class="text-white nav-link">Contact</a></li>*@
+                    </ul>
+                </nav>
+                @*<nav class="visible-xs">
+                    <a class="menu-toggle left collapse" data-target="menu-list" data-active="open" data-inactive="close">Menu</a>
+                    <h1 class="menu-title text-title-box text-white text-centered">ICOS Belgium Home</h1>
+                    <ul class="unstyled-list" style="display: none" id="menu-list">
+                        <li class=""><a href="index.html" class="text-white nav-link -active">Home</a></li>
+                        <li class=""><a href="organisation.html" class="text-white nav-link">Organisation</a></li>
+                        <li class="">
+                            <a href="infrastructure.html" class="text-white nav-link">Belgian Network</a>
+                            <ul class="unstyled-list text-centered">
+                                <li class=""><a href="infrastructure.html" class="subnav-link text-white">Overview</a></li>
+                                <li class=""><a href="inf_ecosystem.html" class="subnav-link text-white">Ecosystem Component</a></li>
+                                <li class=""><a href="inf_oceanic.html" class="subnav-link text-white">Ocean Component</a></li>
+                            </ul>
+                        </li>
+                        <li class=""><a href="etc.html" class="text-white nav-link">ETC-Antwerp</a></li>
+                        <li class=""><a href="agenda.html" class="text-white nav-link">Agenda</a></li>
+                        <li class=""><a href="partners.html" class="text-white nav-link">Partners & Funding</a></li>
+                        <li class=""><a href="news.html" class="text-white nav-link">News</a></li>
+                        <li class=""><a href="links.html" class="text-white nav-link">Links</a></li>
+                        <li class=""><a href="contact.html" class="text-white nav-link">Contact</a></li>
+                    </ul>
+                </nav>*@
+            </div>
+        </div>
+
+    </header>
+    @*<header>
             <div class="content-wrapper">
                 <div class="float-right">
                     <section id="login">
@@ -28,35 +92,77 @@
                 <div class="float-right">
                     @*<section id="login">
                         @Html.Partial("_LoginPartial")
-                    </section>*@
+                    </section>
                     <nav>
-                        <ul id="menu">
-                           @* <li>@Html.ActionLink("Calculate LAI", "Index", "Home")</li>
+                        <ul id="menu">*@
+    @* <li>@Html.ActionLink("Calculate LAI", "Index", "Home")</li>
                             <li>@Html.ActionLink("Upload File", "FileUpload", "Home")</li>*@
-                            <li>@Html.ActionLink("Home", "Index", "Home")</li>
+    @*<li>@Html.ActionLink("Home", "Index", "Home")</li>
                             <li>@Html.ActionLink("Overview", "Overview", "Home")</li>
                             <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
                         </ul>
                     </nav>
                 </div>
             </div>
-        </header>
-        <div id="body">
-            @RenderSection("featured", required: false)
-            <section class="content-wrapper main-content clear-fix">
-                @RenderBody()
-            </section>
-        </div>
-        <footer>
-            <div class="content-wrapper">
-                <div class="float-left">
-                    @*<p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</p>*@
+        </header>*@
+    <div id="main">
+        <div class="bg-grad-white-bottomleft section">
+            <div class="container">
+                <div class="row clearfix">
+
+                    @RenderSection("featured", required: false)
+                    <section class="content-wrapper main-content clear-fix">
+                        @RenderBody()
+                    </section>
 
                 </div>
             </div>
-        </footer>
+        </div>
+    </div>
 
-        @Scripts.Render("~/bundles/jquery")
-        @RenderSection("scripts", required: false)
-    </body>
+    <footer>
+        <div class="fill-sub section">
+            <div class="container">
+                <div class="row clearfix">
+                    
+                    <div class="col-sm-6">
+                        <h5 class="text-uppercase text-white">ICOS ETC Antwerp</h5>
+                        <p>
+                            University of Antwerp, Department of Biology<br />
+                            Campus Drie Eiken, D.B.020<br />
+                            Universiteitsplein 1<br />
+                            B-2610 Wilrijk<br />
+							@*E. <a href="mailto:Reinhart.Ceulemans@uantwerpen.be">Reinhart.Ceulemans@uantwerpen.be</a>*@
+                        </p>
+                    </div>
+                    <div class="col-sm-3">
+                        <h5 class="text-uppercase text-white">ICOS Central Facilities</h5>
+                        <p>
+                            <a href="mailto:database@unitus.it"><span></span></a><a href="http://www.icos-ri.eu/" target="_blank"><span class="icon-arrow-right"></span>ICOS Head Office</a><br />
+                            <span><a href="https://icos-atc-demo.lsce.ipsl.fr" target="_blank"><span class="icon-arrow-right"></span>The atmospheric Thematic Centre</a></span>
+                            <br />
+                            <span class=""><a href="" target=" originalAttribute="href" originalPath="" target=" originalAttribute="href" originalPath="" target=" originalAttribute="href" originalPath="" target="_blank"><span class="icon-arrow-right"></span>The Central Analytical Laboratory</a></span> 
+<span class=""><a href="http://www.europe-fluxdata.eu/icos/home" target="_blank"><span class="icon-arrow-right"></span>The Ecosystem Thematic Centre</a></span>
+                            <span><a href="http://www.icos-otc.eu/" target="_blank"><span class="icon-arrow-right"></span>The Ocean Thematic Centre</a></span>
+                        </p>
+                    </div>
+                    <div class="col-sm-3" style="padding-right: 0px;">
+                        <h5 class="text-uppercase text-white">Carbon Portal</h5>
+                        <p><a href="http://www.icos-cp.eu/" class="button rounded fill-main">Visit Carbon Portal</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="background-color: #ffffff;">
+            <div class="container">
+                <div class="clearfix">
+                    <p class="col-sm-12 text-small box">Copyright &copy; ICOS Research Infrastructure &amp; European Research Infrastructure Consortium.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @RenderSection("scripts", required: false)
+</body>
 </html>

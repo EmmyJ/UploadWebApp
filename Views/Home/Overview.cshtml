@@ -4,13 +4,19 @@
     ViewBag.Title = "Overview";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h2>Overview</h2>
+<style>
+     /*.ovv td, .ovv th {border: thin solid #c0c0c0;padding-top: 6pt; padding-bottom:3px; padding-left:6pt; text-indent: 0pt; text-align: left;width:80px;}
+    .ovv th {
+    text-align:center;
+    }*/
+    /*td:first-child{text-align: left;padding-left: 11pt;width:400px;}*/
+</style>
+<h1>Overview</h1>
 
 @*<p>
     @Html.ActionLink("Create New", "Create")
 </p>*@
-<table>
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
             @Html.DisplayNameFor(model => model.siteID)
@@ -39,13 +45,14 @@
         <th>
             @Html.DisplayNameFor(model => model.resultsSet.LAI_SD)
         </th>*@
-        <th></th>
+        <th>Detail</th>
+        <th style="width:200px">Download Results</th>
     </tr>
 
 @foreach (var item in Model) {
     <tr>
         <td>
-            @Html.DisplayFor(modelItem => item.siteCode)
+            <h6>@Html.DisplayFor(modelItem => item.siteCode)</h6>
         </td>
         @*<td>
             @Html.DisplayFor(modelItem => item.userID)
@@ -74,12 +81,14 @@
         <td>
             @Html.DisplayFor(modelItem => item.resultsSet.LAI_SD)
         </td>*@
-        <td>
+        <td style="text-align:center">
             @*@Html.ActionLink("Edit", "Edit", new { id=item.ID }) |*@
-            @Html.ActionLink("Detail", "SetDetails", new { setID=item.ID }) 
+            @Html.ActionLink("Detail", "SetDetails", new { setID = item.ID })
+        </td>
+        <td style="text-align:center">
             @if (item.hasDataLogs)
             {
-            @Html.ActionLink("Download results", "SetDownload", new { setID=item.ID })
+                @Html.ActionLink("Download results", "SetDownload", new { setID = item.ID })
             }
 @*            @Html.ActionLink("Delete", "Delete", new { id=item.ID })*@
         </td>
