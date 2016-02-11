@@ -25,10 +25,10 @@
                 @Html.PasswordFor(m => m.Password)
                 @Html.ValidationMessageFor(m => m.Password)
             </div>
-            <div class="form-group">
+            @*<div class="form-group">
                 @Html.CheckBoxFor(m => m.RememberMe)
                 @Html.LabelFor(m => m.RememberMe, new { @class = "checkbox" })
-            </div>
+            </div>*@
         
         <input type="submit" value="Log in" />
     </form>

@@ -16,6 +16,7 @@ namespace UploadWebapp.Models
         public int lensY { get; set; }
         public double lensA { get; set; }
         public double lensB { get; set; }
+        public int? maxRadius { get; set; }
 
         public string title { get; set; }
     }

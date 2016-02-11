@@ -109,6 +109,8 @@
         @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup" })<br />
         @Html.Label("Lens Type Projectionfunction B Parameter: ")<br />
         @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup" })<br />
+        @Html.Label("Lens Maximum Radius: ")<br />
+        @Html.TextBoxFor(m => m.uploadSet.cameraSetup.maxRadius, new { @class = "numericOnly camsetup" })<br />
     </fieldset>
     <table>
         <tr id="plotTable">
@@ -318,6 +320,7 @@
             $.trim($("#uploadSet_cameraSetup_lensY").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensA").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensB").val()) == '' ||
+            $.trim($("#uploadSet_cameraSetup_maxRadius").val()) == '' ||
             empty > 0)
             //alert("Please enter a value for each field");
             $(".emptyfields").show();
@@ -444,6 +447,7 @@
                     $("#uploadSet_cameraSetup_lensY").val(data.lensY);
                     $("#uploadSet_cameraSetup_lensA").val(data.lensA);
                     $("#uploadSet_cameraSetup_lensB").val(data.lensB);
+                    $("#uploadSet_cameraSetup_maxRadius").val(data.maxRadius);
                 }
             });
 

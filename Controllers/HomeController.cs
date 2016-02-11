@@ -280,6 +280,12 @@ namespace UploadWebapp.Controllers
         }
 
         [HttpPost]
+        public ActionResult CreateSite(CreateSiteModel model)
+        {
+            return null;
+        }
+
+        [HttpPost]
         public ActionResult SaveUploadedPhoto()
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
@@ -302,6 +308,7 @@ namespace UploadWebapp.Controllers
                 uploadSet.cameraSetup.lensY = int.Parse(Request.Params["lensY"]);
                 uploadSet.cameraSetup.lensA = double.Parse(Request.Params["lensA"]);
                 uploadSet.cameraSetup.lensB = double.Parse(Request.Params["lensB"]);
+                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);
                 //uploadSet.images = new List<Image>();
                 uploadSet.plotSets = new List<PlotSet>();
                 uploadSet.uploadTime = DateTime.Now;
@@ -351,13 +358,13 @@ namespace UploadWebapp.Controllers
                         //string pathString = Server.MapPath("~/Uploads/" + site.siteCode);
                         //string outPathString = Server.MapPath("~/Uploads/" + site.siteCode + "/Converted");
                         string pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + site.siteCode + "/LAI"; //+ "/" + plotname;
-                        string outPathString = pathString + "/Converted";
-                        string outFileName = Path.GetFileNameWithoutExtension(file.FileName) + ".dng";
+                        //string outPathString = pathString + "/Converted";
+                        //string outFileName = Path.GetFileNameWithoutExtension(file.FileName) + ".dng";
 
                         //Tiff
                         //string outPathString = pathString;// +"/Converted";
                         //string outFileName = Path.GetFileNameWithoutExtension(file.FileName) + ".tiff";
-                        string outFilePath = outPathString + "/" + outFileName;
+                        //string outFilePath = outPathString + "/" + outFileName;
 
                         var fileName1 = Path.GetFileName(file.FileName);
 
@@ -365,9 +372,9 @@ namespace UploadWebapp.Controllers
                         if (!isExists)
                             System.IO.Directory.CreateDirectory(pathString);
 
-                        isExists = System.IO.Directory.Exists(outPathString);
-                        if (!isExists)
-                            System.IO.Directory.CreateDirectory(outPathString);
+                        //isExists = System.IO.Directory.Exists(outPathString);
+                        //if (!isExists)
+                        //    System.IO.Directory.CreateDirectory(outPathString);
 
                         var path = string.Format("{0}/{1}", pathString, file.FileName);
                         file.SaveAs(path);
@@ -377,17 +384,17 @@ namespace UploadWebapp.Controllers
                         image.path = path;
 
 
-                        Process proc = new Process
-                        {
-                            StartInfo = new ProcessStartInfo
-                            {
-                                FileName = "\"C:\\Program Files (x86)\\Adobe\\AdobeDNGConverter.exe\"",
-                                Arguments = "-c -d \"" + outPathString + "\" \"" + path + "\"",
-                                UseShellExecute = false,
-                                RedirectStandardOutput = true,
-                                CreateNoWindow = true
-                            }
-                        };
+                        //Process proc = new Process
+                        //{
+                        //    StartInfo = new ProcessStartInfo
+                        //    {
+                        //        FileName = "\"C:\\Program Files (x86)\\Adobe\\AdobeDNGConverter.exe\"",
+                        //        Arguments = "-c -d \"" + outPathString + "\" \"" + path + "\"",
+                        //        UseShellExecute = false,
+                        //        RedirectStandardOutput = true,
+                        //        CreateNoWindow = true
+                        //    }
+                        //};
 
                         //tiff
                         //Process proc = new Process
@@ -403,29 +410,29 @@ namespace UploadWebapp.Controllers
                         //    }
                         //};
 
-                        proc.Start();
-                        // proc.WaitForExit();
-                        //proc.StandardInput.Flush();
-                        //proc.StandardInput.Close();
-                        proc.WaitForExit();
-                        proc.Close();
-                        proc.Dispose();
+                        //proc.Start();
+                        //// proc.WaitForExit();
+                        ////proc.StandardInput.Flush();
+                        ////proc.StandardInput.Close();
+                        //proc.WaitForExit();
+                        //proc.Close();
+                        //proc.Dispose();
 
-                        new Thread(WaitOne).Start();
-                        _waitOneHandle.WaitOne();
+                        //new Thread(WaitOne).Start();
+                        //_waitOneHandle.WaitOne();
 
-                        DirectoryInfo d = new DirectoryInfo(outPathString);
-                        FileInfo[] Files = d.GetFiles("*" + Path.GetFileNameWithoutExtension(file.FileName) + "*").OrderByDescending(f => f.LastWriteTime).ToArray();
-                        if (Files.Count() > 0)
-                        {
-                            image.dngFilename = Files[0].Name;
-                            image.dngPath = string.Format("{0}/{1}", Files[0].DirectoryName, Files[0].Name);
-                        }
-                        else
-                        {
-                            image.dngFilename = outFileName;
-                            image.dngPath = outFilePath;
-                        }
+                        //DirectoryInfo d = new DirectoryInfo(outPathString);
+                        //FileInfo[] Files = d.GetFiles("*" + Path.GetFileNameWithoutExtension(file.FileName) + "*").OrderByDescending(f => f.LastWriteTime).ToArray();
+                        //if (Files.Count() > 0)
+                        //{
+                        //    image.dngFilename = Files[0].Name;
+                        //    image.dngPath = string.Format("{0}/{1}", Files[0].DirectoryName, Files[0].Name);
+                        //}
+                        //else
+                        //{
+                        //    image.dngFilename = outFileName;
+                        //    image.dngPath = outFilePath;
+                        //}
                         //uploadSet.images.Add(image);
                         plotset.images.Add(image);
                         if (newplotset)
@@ -596,6 +603,31 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 return View();
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult Manage()
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                User user = UserDA.CurrentUser;
+                user.sites = UserDA.GetSiteListForUser(UserDA.CurrentUserId);
+                return View(user);
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+        public ActionResult AddSite()
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                CreateSiteModel model = new CreateSiteModel();
+                model.site = new Site();
+                model.ecosystemList = ImageDA.GetEcosystemList();
+                model.countryList = ImageDA.GetCountryList();
+                return View(model);
             }
             else
                 return RedirectToAction("Login", "Account");

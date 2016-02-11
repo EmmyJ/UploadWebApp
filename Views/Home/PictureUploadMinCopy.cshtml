@@ -321,6 +321,7 @@
             $.trim($("#uploadSet_cameraSetup_lensY").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensA").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensB").val()) == '' ||
+            $.trim($("#uploadSet_cameraSetup_maxRadius").val()) == '' ||
             empty > 0)
             //alert("Please enter a value for each field");
             $(".emptyfields").show();
@@ -446,6 +447,7 @@
                     $("#uploadSet_cameraSetup_lensY").val(data.lensY);
                     $("#uploadSet_cameraSetup_lensA").val(data.lensA);
                     $("#uploadSet_cameraSetup_lensB").val(data.lensB);
+                    $("#uploadSet_cameraSetup_maxRadius").val(data.maxRadius);
                 }
             });
 

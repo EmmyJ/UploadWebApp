@@ -1,0 +1,40 @@
+﻿@model UploadWebapp.Models.User
+
+@{
+    ViewBag.Title = "Manage";
+}
+
+<h2>Manage</h2>
+
+<p>
+    @Html.ActionLink("Create New", "AddSite")
+</p>
+<table>
+    <tr>
+        <th>
+            Site Code
+        </th>
+        <th>
+            Site Name
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model.sites)
+{
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.siteCode)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.name)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ID })
+        </td>
+    </tr>
+}
+
+</table>

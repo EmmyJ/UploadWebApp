@@ -21,6 +21,6 @@ namespace UploadWebapp.Models
         //public ResultsSet resultsSet { get; set; }
         public string siteCode { get; set; }
         public bool hasDataLogs;
-
+        public string plotNames { get; set; }
     }
 }

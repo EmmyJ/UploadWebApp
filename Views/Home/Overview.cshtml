@@ -21,6 +21,9 @@
         <th>
             @Html.DisplayNameFor(model => model.siteID)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plotNames)
+        </th>
         @*<th>
             @Html.DisplayNameFor(model => model.userID)
         </th>*@
@@ -53,6 +56,9 @@
     <tr>
         <td>
             <h6>@Html.DisplayFor(modelItem => item.siteCode)</h6>
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.plotNames)
         </td>
         @*<td>
             @Html.DisplayFor(modelItem => item.userID)

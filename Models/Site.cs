@@ -11,6 +11,12 @@ namespace UploadWebapp.Models
         public int ID { get; set; }
         public string siteCode { get; set; }
         public string name { get; set; }
+
+        public string countryCode { get; set; }
+        public int ecosystemID { get; set; }
+        public double lattitude { get; set; }
+        public double longitude { get; set; }
+
         public string title { get; set; }
     }
 }

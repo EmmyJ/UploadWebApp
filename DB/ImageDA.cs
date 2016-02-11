@@ -79,7 +79,7 @@ namespace UploadWebapp.DB
             }
             result.Close();
 
-            result = db.ExecuteReader("SELECT [ID] ,[camType] ,[camSerial] ,[lensType],[lensSerial],[x] ,[y] ,[a] ,[b]FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
+            result = db.ExecuteReader("SELECT [ID] ,[camType] ,[camSerial] ,[lensType],[lensSerial],[x] ,[y] ,[a] ,[b], [maxRadius] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
             //SELECT [ID], [uploadSetID], [plotID] FROM [LAI_App].[dbo].[plotSets] WHERE uploadSetID = 
@@ -121,7 +121,8 @@ namespace UploadWebapp.DB
             //todo: italy
             if (UserDA.CurrentUserICOS)
             {
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]) 	FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots FROM [LAI_App].[dbo].[uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime] ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 //get sitecodes from italy
@@ -139,7 +140,8 @@ namespace UploadWebapp.DB
             }
             else
             {
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,	(SELECT count(r.[ID]) 	FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots FROM [LAI_App].[dbo].[uploadSet] us  LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ORDER BY us.uploadTime DESC");
+                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
                 db.Dispose();
             }
@@ -151,7 +153,7 @@ namespace UploadWebapp.DB
             db = new DB();
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
+            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
             return cameraSetups;
@@ -160,7 +162,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -184,6 +186,18 @@ namespace UploadWebapp.DB
             return plots;
         }
 
+        public static List<string> GetPlotNamesForUploadSet(int uploadSetID, DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader("SELECT  p.name from plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = " + uploadSetID);
+            List<string> plotnames = new List<string>();
+            while (result.Read())
+            {
+                plotnames.Add(result.GetString(0));
+            }
+            return plotnames;
+        }
+
         public static List<Species> GetSpeciesList(DB db = null)
         {
             db = new DB();
@@ -191,6 +205,23 @@ namespace UploadWebapp.DB
             List<Species> species = FromSpeciesData(result);
             db.Dispose();
             return species;
+        }
+        public static List<Ecosystem> GetEcosystemList(DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader("SELECT * FROM [LAI_App].[dbo].[ecosystems]");
+            List<Ecosystem> ecosystems = FromEcosystemsData(result);
+            db.Dispose();
+            return ecosystems;
+        }
+
+        public static List<Country> GetCountryList(DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader("SELECT * FROM [LAI_App].[dbo].[countries]");
+            List<Country> countries = FromCountryData(result);
+            db.Dispose();
+            return countries;
         }
 
         public static Site GetSiteByCode(string siteCode, DB db = null)
@@ -227,6 +258,7 @@ namespace UploadWebapp.DB
                 s.uploadTime = data.GetDateTime(5);
                 s.siteCode = data.GetString(6);
                 s.hasDataLogs = data.GetInt32(7) > 0;
+                s.plotNames = data.IsDBNull(8) ? "" : data.GetString(8);
                 //s.resultsSet = new ResultsSet();
                 //s.resultsSet.LAI = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 //s.resultsSet.LAI_SD = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
@@ -277,6 +309,7 @@ namespace UploadWebapp.DB
                 s.lensY = data.GetInt32(6);
                 s.lensA = data.GetDouble(7);
                 s.lensB = data.GetDouble(8);
+                s.maxRadius =  data.IsDBNull(9) ? (int?)null : data.GetInt32(9);
                 s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
 
                 result.Add(s);
@@ -315,8 +348,8 @@ namespace UploadWebapp.DB
                 image.ID = data.GetInt32(0);
                 image.filename = data.GetString(2);
                 image.path = data.GetString(3);
-                image.dngFilename = data.GetString(4);
-                image.dngPath = data.GetString(5);
+                image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
+                image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
                 result.Add(image);
             }
             data.Close();
@@ -336,7 +369,33 @@ namespace UploadWebapp.DB
             data.Close();
             return result;
         }
-
+        public static List<Ecosystem> FromEcosystemsData(SqlDataReader data)
+        {
+            var result = new List<Ecosystem>();
+            while (data.Read())
+            {
+                Ecosystem item = new Ecosystem();
+                item.ID = data.GetInt32(0);
+                item.name = data.GetString(1);
+                result.Add(item);
+            }
+            data.Close();
+            return result;
+        }
+        public static List<Country> FromCountryData(SqlDataReader data)
+        {
+            var result = new List<Country>();
+            while (data.Read())
+            {
+                Country item = new Country();
+                item.ID = data.GetInt32(0);
+                item.code = data.GetString(1);
+                item.name = data.GetString(2);
+                result.Add(item);
+            }
+            data.Close();
+            return result;
+        }
         public static List<Plot> FromPlotData(SqlDataReader data)
         {
             var result = new List<Plot>();
@@ -453,7 +512,7 @@ namespace UploadWebapp.DB
             int id;
             if (uploadset.cameraSetup.ID == null || uploadset.cameraSetup.ID == 0)
             {
-                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([camType],[camSerial],[lensType] ,[lensSerial] ,[x] ,[y] ,[a] ,[b])VALUES (@camType ,@camSerial ,@lensType ,@lensSerial,@x ,@y ,@a,@b);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([camType],[camSerial],[lensType] ,[lensSerial] ,[x] ,[y] ,[a] ,[b], [maxRadius] )VALUES (@camType ,@camSerial ,@lensType ,@lensSerial,@x ,@y ,@a,@b,@maxRadius);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
                    , new SqlParameter("camType", uploadset.cameraSetup.cameraType)
                    , new SqlParameter("camSerial", uploadset.cameraSetup.cameraSerial)
                    , new SqlParameter("lensType", uploadset.cameraSetup.lensType)
@@ -461,7 +520,8 @@ namespace UploadWebapp.DB
                    , new SqlParameter("x", uploadset.cameraSetup.lensX)
                    , new SqlParameter("y", uploadset.cameraSetup.lensY)
                    , new SqlParameter("a", uploadset.cameraSetup.lensA)
-                   , new SqlParameter("b", uploadset.cameraSetup.lensB)));
+                   , new SqlParameter("b", uploadset.cameraSetup.lensB)
+                   , new SqlParameter("maxRadius", uploadset.cameraSetup.maxRadius)));
 
                 uploadset.cameraSetup.ID = id;
             }
@@ -493,12 +553,15 @@ namespace UploadWebapp.DB
 
                 foreach (Image image in plotset.images)
                 {
-                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[images] ([plotSetID],[filename],[path],[dngFilename],[dngPath])  VALUES (@plotSetID ,@filename ,@path, @dngFilename, @dngPath);SELECT IDENT_CURRENT('[LAI_App].[dbo].[images]');",
+                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[images] ([plotSetID],[filename],[path])  VALUES (@plotSetID ,@filename ,@path);SELECT IDENT_CURRENT('[LAI_App].[dbo].[images]');",//, @dngFilename, @dngPath
+                        //,[dngFilename],[dngPath]
                     new SqlParameter("plotSetID", plotset.ID),
                     new SqlParameter("filename", image.filename),
-                    new SqlParameter("path", image.path),
-                    new SqlParameter("dngFilename", image.dngFilename),
-                    new SqlParameter("dngPath", image.dngPath)));
+                    new SqlParameter("path", image.path)
+                    //,
+                    //new SqlParameter("dngFilename", image.dngFilename),
+                    //new SqlParameter("dngPath", image.dngPath)
+                    ));
 
                     image.ID = id;
                 }

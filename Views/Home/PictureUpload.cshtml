@@ -141,13 +141,19 @@
         <div class="form-group row clearfix">
             @Html.Label("Lens Type Projectionfunction A Parameter: ", new { @class = "control-label col-md-3"})
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "numericOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup form-control"})
             </div>
         </div>
         <div class="form-group row clearfix">
             @Html.Label("Lens Type Projectionfunction B Parameter: ", new { @class = "control-label col-md-3"})
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "numericOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup form-control"})
+            </div>
+        </div>
+        <div class="form-group row clearfix">
+            @Html.Label("Lens Maximum Radius: ", new { @class = "control-label col-md-3"})
+            <div class="col-md-4">
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.maxRadius, new { @class = "decimalOnly camsetup form-control"})
             </div>
         </div>
         @*@Html.Label("Lens Center Rowpixel: ")<br />
@@ -261,7 +267,7 @@
         previewsContainer: "#previews", // Define the container to display the previews
         clickable: ".fileinput-button", // Define the element that should be used as click trigger to select files.
         uploadMultiple: true,
-        acceptedFiles: ".3fr,.ari, .arw,.bay,.crw, .cr2,.cap,.dcs, .dcr, .dng,.drf,.eip, .erf,.fff,.iiq,.k25, .kdc,.mdc, .mef, .mos, .mrw,.nef, .nrw,.obm, .orf,.pef, .ptx, pxn,.r3d, .raf, .raw, .rwl, .rw2, .rwz,.sr2, .srf, .srw,.x3f"
+        acceptedFiles: ".3fr, .ari, .arw, .bay, .crw, .cr2, .cap, .dcs, .dcr, .dng, .drf, .eip, .erf, .fff, .iiq, .k25, .kdc,.mdc, .mef, .mos, .mrw, .nef, .nrw, .obm, .orf, .pef, .ptx, .pxn, .r3d, .raf, .raw, .rwl, .rw2, .rwz, .sr2, .srf, .srw, .x3f, .jpg, .jpeg"
         //params: {
         //    testid: 0
         //}
@@ -372,6 +378,7 @@
             $.trim($("#uploadSet_cameraSetup_lensY").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensA").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensB").val()) == '' ||
+            $.trim($("#uploadSet_cameraSetup_maxRadius").val()) == '' ||
             empty > 0)
             //alert("Please enter a value for each field");
             $(".emptyfields").show();
@@ -405,6 +412,7 @@
                 myDropzone.options.params["lensY"] = $("#uploadSet_cameraSetup_lensY").val();
                 myDropzone.options.params["lensA"] = $("#uploadSet_cameraSetup_lensA").val();
                 myDropzone.options.params["lensB"] = $("#uploadSet_cameraSetup_lensB").val();
+                myDropzone.options.params["maxRadius"] = $("#uploadSet_cameraSetup_maxRadius").val();
                 var plots = "";
                 $(".plotTable").each(function () {
                     var plname = $(this).attr("id").substr(4, 1);
@@ -498,6 +506,7 @@
                     $("#uploadSet_cameraSetup_lensY").val(data.lensY);
                     $("#uploadSet_cameraSetup_lensA").val(data.lensA);
                     $("#uploadSet_cameraSetup_lensB").val(data.lensB);
+                    $("#uploadSet_cameraSetup_maxRadius").val(data.maxRadius);
                 }
             });
 

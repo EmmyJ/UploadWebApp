@@ -7,7 +7,7 @@
     <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width" />
     @Styles.Render("~/Content/css")
-    @Styles.Render("~/Content/dropzonecss")
+    @*@Styles.Render("~/Content/dropzonecss")*@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/modernizr")
     @Scripts.Render("~/bundles/dropzonescripts")
@@ -37,6 +37,7 @@
                     <ul class="inline-list">
                         <li class="inline-list-item">@Html.ActionLink("Home", "Index", "Home", null, new { @class = "text-white nav-link -home" })</li>
                         <li class="inline-list-item">@Html.ActionLink("Overview", "Overview", "Home", null, new { @class = "text-white nav-link " })</li>
+                       @* <li class="inline-list-item">@Html.ActionLink("Manage Sites", "Manage", "Home", null, new { @class = "text-white nav-link " })</li>*@
                         <li class="inline-list-item">@Html.ActionLink("Contact", "Contact", "Home", null, new { @class = "text-white nav-link " })</li>
 
 

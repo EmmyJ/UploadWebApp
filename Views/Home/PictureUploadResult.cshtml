@@ -290,6 +290,16 @@
                     @Html.DisplayFor(model => model.cameraSetup.lensB)
                 </div>
             </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.maxRadius)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.maxRadius)
+                </div>
+            </div>
         </div>
     </div>
 
@@ -378,21 +388,25 @@
                 Calculation Data:
             </label>
             <div class="display-field">
-                @if (plotSet.resultsSet.data != null && plotSet.resultsSet.data.IndexOf("\n") != -1)
+                @if (plotSet.resultsSet.data != null && plotSet.resultsSet.data.IndexOf("\n") != -1 && plotSet.resultsSet.data.Length > 50)
                 {            
                     <table class="datatable ovv">
                         <tr>
-                            <th style="width: 75px;">Image</th>
+                            @*<th style="width: 75px;">Image</th>
                             <th>Ridler Calvard Threshold</th>
                             <th>Lang Xiang Clumping</th>
                             <th>LAI with Optimization</th>
                             <th>Edge Detection Threshold</th>
                             <th>Lang Xiang Clumping</th>
-                            <th>LAI with Optimization</th>
+                            <th>LAI with Optimization</th>*@
+                            <th>Image</th>
+                            <th>LAI</th>
+                            <th>Threshold RC</th>  
+                            <th>Clumping LX</th>
                         </tr>
                         <tr>
                             <td>
-                                @Html.Raw(plotSet.resultsSet.data.Remove(plotSet.resultsSet.data.Length - 1).Substring(plotSet.resultsSet.data.IndexOf("\n") + 1).Replace(";", "</td><td>").Replace("\n", "</td></tr><tr><td>"))
+                                @Html.Raw(plotSet.resultsSet.data.Remove(plotSet.resultsSet.data.Length - 1).Substring(plotSet.resultsSet.data.IndexOf("\n") + 1).Replace(",", "</td><td>").Replace("\n", "</td></tr><tr><td>"))
 
                             </td>
                         </tr>

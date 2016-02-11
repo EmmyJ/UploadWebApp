@@ -179,6 +179,9 @@
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\AGBuploadDetail.cs" />
     <Compile Include="Models\CameraSetup.cs" />
+    <Compile Include="Models\Country.cs" />
+    <Compile Include="Models\CreateSiteModel.cs" />
+    <Compile Include="Models\Ecosystem.cs" />
     <Compile Include="Models\FileUploadPlot.cs" />
     <Compile Include="Models\FileUpload.cs" />
     <Compile Include="Models\HomeModel.cs" />
@@ -367,6 +370,8 @@
     <Content Include="Web References\usersitesservice\UserSiteService.wsdl" />
     <Content Include="Views\Home\PictureUploadCopy.cshtml" />
     <Content Include="Views\Home\PictureUploadMinCopy.cshtml" />
+    <Content Include="Views\Home\Manage.cshtml" />
+    <Content Include="Views\Home\AddSite.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

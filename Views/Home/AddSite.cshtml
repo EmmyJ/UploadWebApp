@@ -1,0 +1,94 @@
+﻿@model UploadWebapp.Models.CreateSiteModel
+
+@{
+    ViewBag.Title = "AddSite";
+}
+<script language="javascript" type="text/javascript">
+    $(document).ready(function () {
+        $("#site_countryCode").on("change", function () {
+            var cde = this.value;
+            $("#txtCountry").val(this.value);
+        });
+    });
+</script>
+<style>
+    .small {
+        width: 60px;
+    }
+</style>
+<h1>Add new Site</h1>
+
+@using (Html.BeginForm("CreateSite", "Home"))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Site</legend>
+
+        <div class="editor-label">
+            <label>Country</label>
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.site.countryCode, new SelectList(Model.countryList, "code", "name"), "- Select Country -" , new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.site.ecosystemID)
+        </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.site.name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.site.name)
+            @Html.ValidationMessageFor(model => model.site.name)
+        </div>
+<div class="editor-label">
+            @Html.LabelFor(model => model.site.siteCode)
+        </div>
+        <div class="editor-field">
+            <input type="text" id="txtCountry" class="form-control" style="width:40px" disabled="disabled"/> - @*<input type="text" id="txtCode" class="form-control" style="width:60px" />*@
+            @Html.EditorFor(model => model.site.siteCode, new { @class = "form-control small" })
+            @Html.ValidationMessageFor(model => model.site.siteCode)
+        </div>
+        <div class="editor-label">
+            <label>Ecosystem</label>
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.site.ecosystemID, new SelectList(Model.ecosystemList, "ID", "name"), new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.site.ecosystemID)
+        </div>
+        <div class="editor-label">
+            <label>Coordinates:</label>
+             @Html.LabelFor(model => model.site.lattitude)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.site.lattitude)
+            @Html.ValidationMessageFor(model => model.site.lattitude)
+        </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.site.longitude)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.site.longitude)
+            @Html.ValidationMessageFor(model => model.site.longitude)
+        </div>
+        
+       @* <div class="editor-label">
+            @Html.LabelFor(model => model.site.title)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.site.title)
+            @Html.ValidationMessageFor(model => model.site.title)
+        </div>*@
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
