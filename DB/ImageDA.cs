@@ -153,7 +153,8 @@ namespace UploadWebapp.DB
             db = new DB();
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
+            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
+            //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
             return cameraSetups;
@@ -166,6 +167,14 @@ namespace UploadWebapp.DB
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
+        }
+
+        public static bool DisableCameraSetup(int cameraSetupID, DB db = null)
+        {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[cameraSetup] set [deleted] = 1 WHERE ID = " + cameraSetupID);
+            db.Dispose();
+            return true;
         }
 
         public static Plot GetPlotByName(string plotName, int SiteID, DB db = null)
@@ -305,10 +314,10 @@ namespace UploadWebapp.DB
                 s.cameraSerial = data.GetString(2);
                 s.lensType = data.GetString(3);
                 s.lensSerial = data.GetString(4);
-                s.lensX = data.GetInt32(5);
-                s.lensY = data.GetInt32(6);
-                s.lensA = data.GetDouble(7);
-                s.lensB = data.GetDouble(8);
+                s.lensX = data.IsDBNull(5) ? (int?)null : data.GetInt32(5);
+                s.lensY = data.IsDBNull(6) ? (int?)null : data.GetInt32(6);
+                s.lensA = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
+                s.lensB = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
                 s.maxRadius =  data.IsDBNull(9) ? (int?)null : data.GetInt32(9);
                 s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
 
@@ -504,6 +513,31 @@ namespace UploadWebapp.DB
             }
             db.Dispose();
             return fileUpload;
+        }
+
+        public static CameraSetup SaveCameraSetup(CameraSetup cameraSetup, DB db = null)
+        {
+            db = new DB();
+            int id;
+            //INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+                   , new SqlParameter("userID", cameraSetup.userID)
+                   , new SqlParameter("camType", cameraSetup.cameraType)
+                   , new SqlParameter("camSerial", cameraSetup.cameraSerial)
+                   , new SqlParameter("lensType", cameraSetup.lensType)
+                   , new SqlParameter("lensSerial", cameraSetup.lensSerial)                   
+                   , new SqlParameter("maxRadius", cameraSetup.maxRadius)
+                   , new SqlParameter("pathCenter", cameraSetup.pathCenter)
+                   , new SqlParameter("pathProj", cameraSetup.pathProj)
+                   , new SqlParameter("processed", false)
+                   , new SqlParameter("width", cameraSetup.width)
+                   , new SqlParameter("height", cameraSetup.height)                   
+                   ));
+
+            cameraSetup.ID = id;
+
+            db.Dispose();
+            return cameraSetup;
         }
 
         public static UploadSet SaveUploadSet(UploadSet uploadset, DB db = null)

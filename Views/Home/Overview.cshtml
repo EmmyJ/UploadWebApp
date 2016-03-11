@@ -4,18 +4,9 @@
     ViewBag.Title = "Overview";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<style>
-     /*.ovv td, .ovv th {border: thin solid #c0c0c0;padding-top: 6pt; padding-bottom:3px; padding-left:6pt; text-indent: 0pt; text-align: left;width:80px;}
-    .ovv th {
-    text-align:center;
-    }*/
-    /*td:first-child{text-align: left;padding-left: 11pt;width:400px;}*/
-</style>
+
 <h1>Overview</h1>
 
-@*<p>
-    @Html.ActionLink("Create New", "Create")
-</p>*@
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
@@ -23,19 +14,10 @@
         </th>
         <th>
             @Html.DisplayNameFor(model => model.plotNames)
-        </th>
-        @*<th>
-            @Html.DisplayNameFor(model => model.userID)
-        </th>*@
+        </th>        
         <th>
             @Html.DisplayNameFor(model => model.person)
         </th>
-        @*<th>
-            @Html.DisplayNameFor(model => model.slope)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.slopeAspect)
-        </th>*@
         <th>
             @Html.DisplayNameFor(model => model.uploadTime)
         </th>

@@ -632,5 +632,136 @@ namespace UploadWebapp.Controllers
             else
                 return RedirectToAction("Login", "Account");
         }
+
+        //public ActionResult CenterCalibration(object file)
+        //{
+        //    return null;
+        //}
+
+        public ActionResult CameraSetups()
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                return View(ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId));
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult CreateCameraSetup()
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                return View();
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        [HttpPost]
+        public ActionResult CreateCameraSetup(CameraSetup cameraSetup, HttpPostedFileBase pathCenter, HttpPostedFileBase pathProj)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                if (ModelState.IsValid)
+                {
+                    cameraSetup.userID = UserDA.CurrentUserId;
+                    string pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + "CameraSetups/" + cameraSetup.userID;
+                    bool isExists = System.IO.Directory.Exists(pathString);
+                    if (!isExists)
+                        System.IO.Directory.CreateDirectory(pathString);
+                    var path = string.Format("{0}/{1}", pathString, "centercalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
+                    pathCenter.SaveAs(path);
+                    cameraSetup.pathCenter = path;
+
+                    path = string.Format("{0}/{1}", pathString, "lenscalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
+                    pathProj.SaveAs(path);
+                    cameraSetup.pathProj = path;
+
+                    cameraSetup = ImageDA.SaveCameraSetup(cameraSetup);
+
+                    return View("CameraSetups", ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId));
+                }
+                else
+                    return View(cameraSetup);
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+        
+        //public ActionResult CalibrateCenter()
+        //{ return View(); }
+
+        
+        public ActionResult DeleteCameraSetup(int cameraSetupID)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                ImageDA.DisableCameraSetup(cameraSetupID);
+                return View("CameraSetups", ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId));
+            }
+            else
+                return RedirectToAction("Login", "Account");           
+        }
+
+    //    [HttpPost]
+    //    public ActionResult CalibrateCenter(HttpPostedFileBase file, int width, int height)
+    //    {
+    //        try
+    //        {
+    //            if (height > width)
+    //                throw new Exception("height > width");
+    //            List<Circle> circles = new List<Circle>();
+    //            int cnr = 0;
+    //            int rownr = 0;
+    //            if (file.ContentLength > 0)
+    //            {
+    //                Circle currentCircle = null;
+    //                StreamReader reader = new StreamReader(file.InputStream);
+    //                while (!reader.EndOfStream)
+    //                {
+    //                    rownr++;
+    //                    var line = reader.ReadLine();
+    //                    if (rownr > 1)
+    //                    {
+
+    //                        var values = line.Split(',');
+    //                        var circlenr = int.Parse(values[2]);
+    //                        if (circlenr != cnr)
+    //                        {
+    //                            if (currentCircle != null)
+    //                                circles.Add(currentCircle);
+    //                            currentCircle = new Circle();
+    //                            currentCircle.circleNr = circlenr;
+    //                            currentCircle.points = new List<Point>();
+    //                            cnr = circlenr;
+    //                        }
+    //                        Point point = new Point();
+    //                        point.x = int.Parse(values[0]);
+    //                        point.y = int.Parse(values[1]);
+    //                        if(point.x >= width || point.y >= height)
+    //                            throw new Exception("Point coordinates > width or height");
+    //                        currentCircle.points.Add(point);
+    //                    }
+    //                }
+    //                circles.Add(currentCircle);
+    //            }
+    //            int nc = circles.Count;
+    //            if (nc > 5 || nc < 3)
+    //                throw new Exception("Nr of circles > 5 or < 3");
+    //            for (int i = 0; i < nc - 1; i++)
+    //            { 
+    //                if(circles[i].points.Count != circles[i+1].points.Count)
+    //                    throw new Exception("Different number of pictures per circle.");
+    //            }
+    //            int np = circles[0].points.Count;
+                
+    //        }
+    //        catch (Exception e)
+    //        {
+    //            ModelState.AddModelError("", e);
+    //        }
+    //        return View();
+    //    }
     }
 }

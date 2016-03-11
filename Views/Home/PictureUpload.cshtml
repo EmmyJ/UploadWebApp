@@ -98,8 +98,11 @@
         </div>
         <div class="form-group row clearfix">
             @Html.Label("Camera Setup: ", new { @class = "control-label col-md-3"})
-            <div class="col-md-4">
-                @Html.DropDownListFor(m => m.uploadSet.cameraSetup.ID, new SelectList(Model.user.cameraSetups, "ID", "title"), "-- New Camerasetup --", new { @class = "form-control"})
+            <div class="col-md-5">
+                @Html.DropDownListFor(m => m.uploadSet.cameraSetup.ID, new SelectList(Model.user.cameraSetups, "ID", "title"), "-- Choose a Camera Setup --",  new { @class = "form-control"})
+            </div>
+            <div class="col-md-3">
+                <a href="@Url.Action("CreateCameraSetup")" class="button rounded fill-highlight">Create New Camera Setup</a>
             </div>
         </div>
         <div class="form-group row clearfix">
@@ -276,6 +279,7 @@
     $(function () {
         $(".emptyfields").hide();
         $("#wrongfilenames").hide();
+        $("input.camsetup").attr('disabled', 'disabled');
     });
 
     myDropzone.on("addedfile", function (file) {
@@ -484,7 +488,7 @@
 
     $("#uploadSet_cameraSetup_ID").change(function () {
         if ($("#uploadSet_cameraSetup_ID").val() == "") {
-            $("input.camsetup").removeAttr('disabled');
+            //$("input.camsetup").removeAttr('disabled');
             $("input.camsetup").val("");
         }
         else {

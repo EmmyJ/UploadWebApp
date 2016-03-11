@@ -1,0 +1,102 @@
+﻿@model IEnumerable<UploadWebapp.Models.CameraSetup>
+
+@{
+    ViewBag.Title = "CameraSetups";
+}
+
+<h1>Camera Setups</h1>
+
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.cameraType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.cameraSerial)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensSerial)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensX)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensY)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensA)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.lensB)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.maxRadius)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.width)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.height)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.processed)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>        
+        <td>
+            @Html.DisplayFor(modelItem => item.cameraType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.cameraSerial)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensType)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensSerial)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensX)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensY)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensA)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.lensB)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.maxRadius)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.width)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.height)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.processed)
+        </td>
+        <td>
+           @* @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |*@
+            @*@Html.ActionLink("Details", "Details", new { id=item.ID }) |*@
+            @*@Html.ActionLink("Delete", "Delete", new { id=item.ID })*@
+            @Html.ActionLink("Delete", 
+    "DeleteCameraSetup", new { cameraSetupID = item.ID }, 
+    new { onclick = "return confirm('Do you really want to delete the camera setup " + @item.cameraType + " - " + @item.lensType + "?')" })
+        </td>
+    </tr>
+}
+</table>
+
+<p>
+    <a href="@Url.Action("CreateCameraSetup")" class="button rounded fill-highlight" style="width:300px">Create New Camera Setup</a>
+</p>

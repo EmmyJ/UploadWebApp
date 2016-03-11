@@ -179,6 +179,7 @@
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\AGBuploadDetail.cs" />
     <Compile Include="Models\CameraSetup.cs" />
+    <Compile Include="Models\Circle.cs" />
     <Compile Include="Models\Country.cs" />
     <Compile Include="Models\CreateSiteModel.cs" />
     <Compile Include="Models\Ecosystem.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="Models\Image.cs" />
     <Compile Include="Models\Plot.cs" />
     <Compile Include="Models\PlotSet.cs" />
+    <Compile Include="Models\Point.cs" />
     <Compile Include="Models\ResultsSet.cs" />
     <Compile Include="Models\Site.cs" />
     <Compile Include="Models\Species.cs" />
@@ -372,6 +374,9 @@
     <Content Include="Views\Home\PictureUploadMinCopy.cshtml" />
     <Content Include="Views\Home\Manage.cshtml" />
     <Content Include="Views\Home\AddSite.cshtml" />
+    <Content Include="Views\Home\CalibrateCenter.cshtml" />
+    <Content Include="Views\Home\CreateCameraSetup.cshtml" />
+    <Content Include="Views\Home\CameraSetups.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
