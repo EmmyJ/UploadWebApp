@@ -64,7 +64,13 @@ namespace UploadWebapp.Controllers
                 if (data.ID == null || data.ID == 0)
                 {
                     user = UserDA.GetByUsername(model.UserName);
-                    user.isICOSuser = false;
+                    if (user != null)
+                        user.isICOSuser = false;
+                    else
+                    {
+                        ModelState.AddModelError("", "This username is not in our system.");
+                        return View(model);
+                    }
                 }
                 else
                 {
@@ -98,6 +104,7 @@ namespace UploadWebapp.Controllers
                         Session["UserId"] = user.ID;
                         Session["ICOSuser"] = user.isICOSuser;
                         Session["username"] = user.name;
+                        Session["FreeUser"] = user.isFreeUser;
                         //return Content(user.ID.ToString());
                         return RedirectToLocal(returnUrl);
                     }
@@ -129,8 +136,12 @@ namespace UploadWebapp.Controllers
         {
             WebSecurity.Logout();
             UserDA.CurrentUserId = 0;
+            UserDA.CurrentUserName = null;
 
             Session["UserId"] = null;
+            Session["ICOSuser"] = null;
+            Session["username"] = null;
+            Session["FreeUser"] = null;
 
             return RedirectToAction("Index", "Home");
         }
@@ -157,9 +168,27 @@ namespace UploadWebapp.Controllers
                 // Attempt to register the user
                 try
                 {
-                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
-                    WebSecurity.Login(model.UserName, model.Password);
-                    return RedirectToAction("Index", "Home");
+                    //WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
+                    //WebSecurity.Login(model.UserName, model.Password);
+                    //return RedirectToAction("Index", "Home");
+                    User u = UserDA.CheckExist(model.UserName, model.Email);
+                    if (u != null)
+                    {
+                        if (u.username.ToLower() == model.UserName.ToLower())
+                            ModelState.AddModelError("UserName", "User name already exists. Please enter a different user name.");  
+                        else
+                            ModelState.AddModelError("Email", "A user with this email already exists. Please enter a different email.");
+                        return View(model);
+                    }
+
+                    if (UserDA.CreateFreeUser(model))
+                    {
+                        LoginModel m = new LoginModel();
+                        m.UserName = model.UserName;
+                        m.Password = model.Password;
+                        Login(m, null);
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
                 catch (MembershipCreateUserException e)
                 {

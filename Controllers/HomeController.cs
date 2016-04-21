@@ -294,8 +294,9 @@ namespace UploadWebapp.Controllers
                 bool isSavedSuccessfully = true;
                 string fName = "";
                 UploadSet uploadSet = new UploadSet();
-                uploadSet.siteID = int.Parse(Request.Params["siteID"]);
+                uploadSet.siteID = Request.Params["siteID"] == "undefined" ? (int?)null : int.Parse(Request.Params["siteID"]);
                 uploadSet.person = Request.Params["person"];
+                uploadSet.siteName = Request.Params["siteName"] == "" ? null : Request.Params["siteName"];
                 //uploadSet.slope = double.Parse(Request.Params["slope"]);
                 //uploadSet.slopeAspect = double.Parse(Request.Params["slopeAspect"]);
                 uploadSet.cameraSetup = new CameraSetup();
@@ -308,7 +309,7 @@ namespace UploadWebapp.Controllers
                 uploadSet.cameraSetup.lensY = int.Parse(Request.Params["lensY"]);
                 uploadSet.cameraSetup.lensA = double.Parse(Request.Params["lensA"]);
                 uploadSet.cameraSetup.lensB = double.Parse(Request.Params["lensB"]);
-                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);
+                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);                
                 //uploadSet.images = new List<Image>();
                 uploadSet.plotSets = new List<PlotSet>();
                 uploadSet.uploadTime = DateTime.Now;
@@ -324,11 +325,11 @@ namespace UploadWebapp.Controllers
                     plot.slope = double.Parse(ar[1]);
                     plot.slopeAspect = double.Parse(ar[2]);
 
-                    plot.ID = ImageDA.SavePlot(plot, uploadSet.siteID);
+                    plot.ID = ImageDA.SavePlot(plot, uploadSet.siteID.Value);
                     plotList.Add(plot);
                 }
 
-                Site site = UserDA.GetSiteByID(uploadSet.siteID);
+                Site site = UserDA.GetSiteByID(uploadSet.siteID.Value);
                 string message = "";
 
                 //try
@@ -680,7 +681,7 @@ namespace UploadWebapp.Controllers
 
                     cameraSetup = ImageDA.SaveCameraSetup(cameraSetup);
 
-                    return View("CameraSetups", ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId));
+                    return RedirectToAction("CameraSetups");
                 }
                 else
                     return View(cameraSetup);

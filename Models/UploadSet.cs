@@ -9,10 +9,11 @@ namespace UploadWebapp.Models
     {
         public int ID { get; set; }
         public CameraSetup cameraSetup { get; set; }
-        public int siteID { get; set; }
+        public int? siteID { get; set; }
         public int userID { get; set; }
         public string person { get; set; }
         public DateTime uploadTime { get; set; }
+        public string siteName { get; set; }
         //public double? slope { get; set; }
         //public double? slopeAspect { get; set; }
 

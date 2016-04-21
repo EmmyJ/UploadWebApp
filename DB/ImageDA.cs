@@ -63,13 +63,13 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             UploadSet uploadSet = new UploadSet();
-            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime] FROM [LAI_App].[dbo].[uploadSet] WHERE ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName] FROM [LAI_App].[dbo].[uploadSet] WHERE ID = " + uploadSetID);
             uploadSet = FromSetData(result).FirstOrDefault();
 
             if (UserDA.CurrentUserICOS)
             {
                 //UserSiteService uss = new UserSiteService();
-                uploadSet.siteCode = uss.GetSiteCode(uploadSet.siteID);
+                uploadSet.siteCode = uss.GetSiteCode(uploadSet.siteID.Value);
             }
             else
             {
@@ -79,7 +79,7 @@ namespace UploadWebapp.DB
             }
             result.Close();
 
-            result = db.ExecuteReader("SELECT [ID] ,[camType] ,[camSerial] ,[lensType],[lensSerial],[x] ,[y] ,[a] ,[b], [maxRadius] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
+            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
             //SELECT [ID], [uploadSetID], [plotID] FROM [LAI_App].[dbo].[plotSets] WHERE uploadSetID = 
@@ -134,7 +134,7 @@ namespace UploadWebapp.DB
                 }
                 foreach (UploadSet us in list)
                 {
-                    us.siteCode = sitelist[us.siteID];
+                    us.siteCode = us.siteID.HasValue ? sitelist[us.siteID.Value] : "";
                 }
 
             }
@@ -153,7 +153,7 @@ namespace UploadWebapp.DB
             db = new DB();
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
+            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
@@ -163,7 +163,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -319,6 +319,9 @@ namespace UploadWebapp.DB
                 s.lensA = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 s.lensB = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
                 s.maxRadius =  data.IsDBNull(9) ? (int?)null : data.GetInt32(9);
+                s.width = data.IsDBNull(10) ? (int?)null : data.GetInt32(10);
+                s.height = data.IsDBNull(11) ? (int?)null : data.GetInt32(11);
+                s.processed = data.GetBoolean(12);
                 s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
 
                 result.Add(s);

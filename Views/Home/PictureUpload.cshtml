@@ -84,10 +84,17 @@
 <div class="container" id="container">
     <form class="form-horizontal">
         @*<legend>Camera Setup</legend>*@
+        @Html.HiddenFor(m=> m.user.isFreeUser)
         <div class="form-group row clearfix">
             @Html.Label("Site: ", new { @class = "control-label col-md-3"})
             <div class="col-md-4">
+                @if(!Model.user.isFreeUser){
                 @Html.DropDownListFor(m => m.selectedSite, new SelectList(Model.user.sites, "ID", "title"), new { @class = "form-control"})
+                }
+                else
+                {
+                    @Html.TextBoxFor(m => m.uploadSet.siteName, new { @class = "form-control"})
+                }
             </div>
         </div>
         <div class="form-group row clearfix">
@@ -286,6 +293,7 @@
         //debugger;
         // Hookup the start button
         //file.previewElement.querySelector(".start").onclick = function () { myDropzone.enqueueFile(file); };
+        if ($.trim($("#user_isFreeUser").val()) == false) {
         var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
         if ((m = re.exec(file.name)) == null) {
@@ -313,27 +321,9 @@
                 function successFunc(data, status) {
                     $("#plot" + plotname + "slope").val(data.slope);
                     $("#plot" + plotname + "slopeAspect").val(data.slopeAspect);
-                }                
+                }
 
-                $(".decimalOnly").bind('keypress', function (e) {
-                    if (e.keyCode == '9' || e.keyCode == '16') {
-                        return;
-                    }
-                    var code;
-                    if (e.keyCode) code = e.keyCode;
-                    else if (e.which) code = e.which;
-                    if (e.which == 46)
-                        return false;
-                    if (code == 8 || code == 44 || code == 45 || code == 46)
-                        return true;
-                    if (code < 48 || code > 57)
-                        return false;
-                });
-
-                //Disable paste
-                $(".decimalOnly").bind("paste", function (e) {
-                    e.preventDefault();
-                });
+            }
             }
         }
     });
@@ -370,7 +360,7 @@
             return $.trim(this.value).length == 0;
         }).length;
 
-        if ($.trim($("#selectedSite").val()) == '' ||
+        if (($.trim($("#selectedSite").val()) == '' && $.trim($("#uploadSet_siteName").val()) == '') ||
             $.trim($("#uploadSet_person").val()) == '' ||
             //$.trim($("#uploadSet_slope").val()) == '' ||
             //$.trim($("#uploadSet_slopeAspect").val()) == '' ||
@@ -391,16 +381,20 @@
             var files = myDropzone.getFilesWithStatus(Dropzone.ADDED);
             var filenamesok = true;
             $(".emptyfields").hide();
-            //Check filename            
-            var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
-            for (i = 0; i < files.length; i++) {
-                var m;
+            if ($.trim($("#user_isFreeUser").val()) == false) {
+                //Check filename            only for ICOS user
+                var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
-                if ((m = re.exec(files[i].name)) == null) {
-                    filenamesok = false;
-                    $("#wrongfilenames").append(files[i].name + "<br/>");
+                for (i = 0; i < files.length; i++) {
+                    var m;
+
+                    if ((m = re.exec(files[i].name)) == null) {
+                        filenamesok = false;
+                        $("#wrongfilenames").append(files[i].name + "<br/>");
+                    }
                 }
+
             }
             if (filenamesok) {
                 myDropzone.options.params["siteID"] = $("#selectedSite").val();
@@ -417,6 +411,8 @@
                 myDropzone.options.params["lensA"] = $("#uploadSet_cameraSetup_lensA").val();
                 myDropzone.options.params["lensB"] = $("#uploadSet_cameraSetup_lensB").val();
                 myDropzone.options.params["maxRadius"] = $("#uploadSet_cameraSetup_maxRadius").val();
+                myDropzone.options.params["isFreeUser"] = $("#user_isFreeUser").val();
+                myDropzone.options.params["siteName"] = $("#uploadSet_siteName").val();
                 var plots = "";
                 $(".plotTable").each(function () {
                     var plname = $(this).attr("id").substr(4, 1);

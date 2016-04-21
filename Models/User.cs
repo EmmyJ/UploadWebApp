@@ -14,6 +14,7 @@ namespace UploadWebapp.Models
         public string pwd { get; set; }
 
         public bool isICOSuser { get; set; }
+        public bool isFreeUser { get; set; }
 
         public List<Site> sites { get; set; }
         public List<CameraSetup> cameraSetups { get; set; }

@@ -50,7 +50,7 @@ namespace UploadWebapp.DB
             get
             {
                 bool id = false;
-                if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["UserId"] != null)
+                if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["ICOSuser"] != null)
                     bool.TryParse(HttpContext.Current.Session["ICOSuser"].ToString(), out id);
 
                 return id;
@@ -59,6 +59,23 @@ namespace UploadWebapp.DB
             {
                 if (HttpContext.Current.Session != null)
                     HttpContext.Current.Session["ICOSuser"] = value;
+            }
+        }
+
+        public static bool CurrentUserFree
+        {
+            get
+            {
+                bool free = false;
+                if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["FreeUser"] != null)
+                    bool.TryParse(HttpContext.Current.Session["FreeUser"].ToString(), out free);
+
+                return free;
+            }
+            set
+            {
+                if (HttpContext.Current.Session != null)
+                    HttpContext.Current.Session["FreeUser"] = value;
             }
         }
 
@@ -71,6 +88,7 @@ namespace UploadWebapp.DB
                 user.ID = int.Parse(HttpContext.Current.Session["UserId"].ToString());
                 user.username = HttpContext.Current.Session["username"].ToString();
                 user.isICOSuser = bool.Parse(HttpContext.Current.Session["ICOSuser"].ToString());
+                user.isFreeUser = bool.Parse(HttpContext.Current.Session["FreeUser"].ToString());
 
                 return user;
             }
@@ -80,10 +98,36 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD] FROM [LAI_App].[dbo].[utenti] WHERE USERNAME='" + username + "'");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [LAI_App].[dbo].[utenti] WHERE USERNAME='" + username + "'");
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
+        }
+
+        public static User CheckExist(string username, string email, DB db = null)
+        {
+            db = new DB();
+
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [LAI_App].[dbo].[utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
+            User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
+            db.Dispose();
+            return user;
+        }
+
+        public static bool CreateFreeUser(RegisterModel register, DB db = null)
+        {
+            db = new DB();
+            int id;
+
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[utenti] ([NAME], [EMAIL], [USERNAME], [PWD], [freeUser]) VALUES (@NAME, @EMAIL, @USERNAME, @PWD, @freeUser);SELECT IDENT_CURRENT('[LAI_App].[dbo].[utenti]');"
+                , new SqlParameter("NAME", register.UserName)
+                , new SqlParameter("EMAIL", register.Email)
+                , new SqlParameter("USERNAME", register.UserName)
+                , new SqlParameter("PWD", register.Password)
+                , new SqlParameter("freeUser", true)));
+            db.Dispose();
+
+            return true;
         }
 
         //public static User GetByUserID(int ID, DB db = null)
@@ -160,6 +204,7 @@ namespace UploadWebapp.DB
                 u.email = data.GetString(2);
                 u.username = data.GetString(3);
                 u.pwd = data.GetString(4);
+                u.isFreeUser = data.IsDBNull(5) ? false : data.GetBoolean(5);
 
                 result.Add(u);
             }
