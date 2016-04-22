@@ -14,8 +14,8 @@ namespace UploadWebapp.Models
         public string person { get; set; }
         public DateTime uploadTime { get; set; }
         public string siteName { get; set; }
-        //public double? slope { get; set; }
-        //public double? slopeAspect { get; set; }
+        public double? slope { get; set; }
+        public double? slopeAspect { get; set; }
 
         public List<PlotSet> plotSets { get; set; }
         //public List<Image> images { get; set; }

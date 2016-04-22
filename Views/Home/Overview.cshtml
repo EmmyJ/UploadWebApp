@@ -10,16 +10,16 @@
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.siteID)
+            @*@Html.DisplayNameFor(model => model.siteID)*@Site
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.plotNames)
+            @*@Html.DisplayNameFor(model => model.plotNames)*@Plots
         </th>        
         <th>
-            @Html.DisplayNameFor(model => model.person)
+            @*@Html.DisplayNameFor(model => model.person)*@Person
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.uploadTime)
+            @*@Html.DisplayNameFor(model => model.uploadTime)*@Upload Time
         </th>
         @*<th>
             @Html.DisplayNameFor(model => model.resultsSet.processed)
@@ -37,7 +37,12 @@
 @foreach (var item in Model) {
     <tr>
         <td>
+            @if(item.siteID != 0){
             <h6>@Html.DisplayFor(modelItem => item.siteCode)</h6>
+            }
+            else{
+                <h6>@Html.DisplayFor(modelItem => item.siteName)</h6>
+            }
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.plotNames)

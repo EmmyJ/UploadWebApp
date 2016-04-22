@@ -297,8 +297,6 @@ namespace UploadWebapp.Controllers
                 uploadSet.siteID = Request.Params["siteID"] == "undefined" ? (int?)null : int.Parse(Request.Params["siteID"]);
                 uploadSet.person = Request.Params["person"];
                 uploadSet.siteName = Request.Params["siteName"] == "" ? null : Request.Params["siteName"];
-                //uploadSet.slope = double.Parse(Request.Params["slope"]);
-                //uploadSet.slopeAspect = double.Parse(Request.Params["slopeAspect"]);
                 uploadSet.cameraSetup = new CameraSetup();
                 uploadSet.cameraSetup.ID = Request.Params["cameraSetupID"] == "" ? 0 : int.Parse(Request.Params["cameraSetupID"]);
                 uploadSet.cameraSetup.cameraType = Request.Params["cameraType"];
@@ -309,27 +307,44 @@ namespace UploadWebapp.Controllers
                 uploadSet.cameraSetup.lensY = int.Parse(Request.Params["lensY"]);
                 uploadSet.cameraSetup.lensA = double.Parse(Request.Params["lensA"]);
                 uploadSet.cameraSetup.lensB = double.Parse(Request.Params["lensB"]);
-                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);                
-                //uploadSet.images = new List<Image>();
-                uploadSet.plotSets = new List<PlotSet>();
+                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);     
                 uploadSet.uploadTime = DateTime.Now;
                 uploadSet.userID = UserDA.CurrentUserId;
+                uploadSet.plotSets = new List<PlotSet>();
                 List<Plot> plotList = new List<Plot>();
-                string plots = Request.Params["plots"];
-                string[] plotsArray = plots.Split(';');
-                for (int i = 0; i < plotsArray.Count() - 1; i++)
+                Site site = null;
+                PlotSet plotset = null;
+                if (!UserDA.CurrentUserFree)
                 {
-                    string[] ar = plotsArray[i].Split('_');
-                    Plot plot = new Plot();
-                    plot.name = ar[0];
-                    plot.slope = double.Parse(ar[1]);
-                    plot.slopeAspect = double.Parse(ar[2]);
+                    string plots = Request.Params["plots"];
+                    string[] plotsArray = plots.Split(';');
+                    for (int i = 0; i < plotsArray.Count() - 1; i++)
+                    {
+                        string[] ar = plotsArray[i].Split('_');
+                        Plot plot = new Plot();
+                        plot.name = ar[0];
+                        plot.slope = double.Parse(ar[1]);
+                        plot.slopeAspect = double.Parse(ar[2]);
 
-                    plot.ID = ImageDA.SavePlot(plot, uploadSet.siteID.Value);
-                    plotList.Add(plot);
+                        plot.ID = ImageDA.SavePlot(plot, uploadSet.siteID.Value);
+                        plotList.Add(plot);
+                    }
+
+                    site = UserDA.GetSiteByID(uploadSet.siteID.Value);
                 }
-
-                Site site = UserDA.GetSiteByID(uploadSet.siteID.Value);
+                else
+                {
+                    Plot plot = new Plot();
+                    plot.name = Request.Params["plotNames"];
+                    plot.slope = double.Parse(Request.Params["slope"]);
+                    plot.slopeAspect = double.Parse(Request.Params["slopeAspect"]);
+                    plot.ID = ImageDA.SavePlot(plot, null);
+                    plotList.Add(plot);
+                    plotset = new PlotSet();
+                    plotset.uploadSetID = uploadSet.ID;
+                    plotset.plotID = plot.ID;
+                    plotset.images = new List<Image>();
+                }
                 string message = "";
 
                 //try
@@ -344,28 +359,26 @@ namespace UploadWebapp.Controllers
                     if (file != null && file.ContentLength > 0)
                     {
                         fName = file.FileName;
-                        plotname = fName.Substring(16, 1);
-                        plotID = plotList.Find(p => p.name == plotname).ID;
-                        PlotSet plotset = uploadSet.plotSets.Find(p => p.plotID == plotID);
-                        if (plotset == null)
+                        if (!UserDA.CurrentUserFree)
                         {
-                            plotset = new PlotSet();
-                            plotset.uploadSetID = uploadSet.ID;
-                            plotset.plotID = plotID;
-                            plotset.images = new List<Image>();
-                            newplotset = true;
+                            plotname = fName.Substring(16, 1);
+                            plotID = plotList.Find(p => p.name == plotname).ID;
+                            plotset = uploadSet.plotSets.Find(p => p.plotID == plotID);
+                            if (plotset == null)
+                            {
+                                plotset = new PlotSet();
+                                plotset.uploadSetID = uploadSet.ID;
+                                plotset.plotID = plotID;
+                                plotset.images = new List<Image>();
+                                newplotset = true;
+                            }
                         }
-                        //C:/Users/Lesley/Pictures/LAIUploads
-                        //string pathString = Server.MapPath("~/Uploads/" + site.siteCode);
-                        //string outPathString = Server.MapPath("~/Uploads/" + site.siteCode + "/Converted");
-                        string pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + site.siteCode + "/LAI"; //+ "/" + plotname;
-                        //string outPathString = pathString + "/Converted";
-                        //string outFileName = Path.GetFileNameWithoutExtension(file.FileName) + ".dng";
 
-                        //Tiff
-                        //string outPathString = pathString;// +"/Converted";
-                        //string outFileName = Path.GetFileNameWithoutExtension(file.FileName) + ".tiff";
-                        //string outFilePath = outPathString + "/" + outFileName;
+                        string pathString;
+                        if(!UserDA.CurrentUserFree)
+                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + site.siteCode + "/LAI"; 
+                        else
+                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + uploadSet.userID + "/" + uploadSet.siteName + "/LAI"; 
 
                         var fileName1 = Path.GetFileName(file.FileName);
 
@@ -373,82 +386,22 @@ namespace UploadWebapp.Controllers
                         if (!isExists)
                             System.IO.Directory.CreateDirectory(pathString);
 
-                        //isExists = System.IO.Directory.Exists(outPathString);
-                        //if (!isExists)
-                        //    System.IO.Directory.CreateDirectory(outPathString);
-
                         var path = string.Format("{0}/{1}", pathString, file.FileName);
                         file.SaveAs(path);
 
                         Image image = new Image();
                         image.filename = file.FileName;
                         image.path = path;
-
-
-                        //Process proc = new Process
-                        //{
-                        //    StartInfo = new ProcessStartInfo
-                        //    {
-                        //        FileName = "\"C:\\Program Files (x86)\\Adobe\\AdobeDNGConverter.exe\"",
-                        //        Arguments = "-c -d \"" + outPathString + "\" \"" + path + "\"",
-                        //        UseShellExecute = false,
-                        //        RedirectStandardOutput = true,
-                        //        CreateNoWindow = true
-                        //    }
-                        //};
-
-                        //tiff
-                        //Process proc = new Process
-                        //{
-                        //    StartInfo = new ProcessStartInfo()
-                        //    {
-                        //        FileName = "cmd.exe",
-                        //        Arguments = "/C dcraw -T " + path,
-                        //        UseShellExecute = false,
-                        //        RedirectStandardInput = true,
-                        //        RedirectStandardOutput = true,
-                        //        CreateNoWindow = true
-                        //    }
-                        //};
-
-                        //proc.Start();
-                        //// proc.WaitForExit();
-                        ////proc.StandardInput.Flush();
-                        ////proc.StandardInput.Close();
-                        //proc.WaitForExit();
-                        //proc.Close();
-                        //proc.Dispose();
-
-                        //new Thread(WaitOne).Start();
-                        //_waitOneHandle.WaitOne();
-
-                        //DirectoryInfo d = new DirectoryInfo(outPathString);
-                        //FileInfo[] Files = d.GetFiles("*" + Path.GetFileNameWithoutExtension(file.FileName) + "*").OrderByDescending(f => f.LastWriteTime).ToArray();
-                        //if (Files.Count() > 0)
-                        //{
-                        //    image.dngFilename = Files[0].Name;
-                        //    image.dngPath = string.Format("{0}/{1}", Files[0].DirectoryName, Files[0].Name);
-                        //}
-                        //else
-                        //{
-                        //    image.dngFilename = outFileName;
-                        //    image.dngPath = outFilePath;
-                        //}
-                        //uploadSet.images.Add(image);
                         plotset.images.Add(image);
                         if (newplotset)
                             uploadSet.plotSets.Add(plotset);
                     }
 
                 }
+                if(UserDA.CurrentUserFree)
+                    uploadSet.plotSets.Add(plotset);
                 uploadSet = ImageDA.SaveUploadSet(uploadSet);
                 ImageDA.CurrentUploadSetId = uploadSet.ID;
-                //}
-                //catch (Exception ex)
-                //{
-                //    isSavedSuccessfully = false;
-                //}
-
 
                 if (isSavedSuccessfully)
                 {

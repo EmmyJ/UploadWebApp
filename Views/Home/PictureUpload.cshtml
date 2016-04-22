@@ -174,10 +174,26 @@
         @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup" })<br />
         @Html.Label("Lens Type Projectionfunction B Parameter: ")<br />
         @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup" })<br />*@
-        @*@Html.Label("Slope (0° - 90°): ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.slope, new { @class = "decimalOnly" })<br />
-        @Html.Label("Slope Aspect (0° - 360°): ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.slopeAspect, new { @class = "decimalOnly" })<br />*@
+        @if(Model.user.isFreeUser){
+        <div class="form-group row clearfix">
+            @Html.Label("Plot Name: ", new { @class = "control-label col-md-3"})
+            <div class="col-md-4">
+                @Html.TextBoxFor(m => m.uploadSet.plotNames, new { @class = "form-control"})
+            </div>
+        </div>
+        <div class="form-group row clearfix">
+             @Html.Label("Slope (0° - 90°): ", new { @class = "control-label col-md-3"})
+            <div class="col-md-4">
+                @Html.TextBoxFor(m => m.uploadSet.slope, new { @class = "decimalOnly form-control" ,  @Value = "0"})
+            </div>
+        </div>
+        <div class="form-group row clearfix">
+             @Html.Label("Slope Aspect (0° - 360°): ", new { @class = "control-label col-md-3"})
+            <div class="col-md-4">
+                @Html.TextBoxFor(m => m.uploadSet.slopeAspect, new { @class = "decimalOnly form-control" ,  @Value = "0"})
+            </div>
+        </div>
+        }
     </form>
     <table>
         <tr id="plotTable">
@@ -293,11 +309,11 @@
         //debugger;
         // Hookup the start button
         //file.previewElement.querySelector(".start").onclick = function () { myDropzone.enqueueFile(file); };
-        if ($.trim($("#user_isFreeUser").val()) == false) {
+        if ($.trim($("#user_isFreeUser").val()) == "False") {
         var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
         if ((m = re.exec(file.name)) == null) {
-            $("#wrongfilenames").append(files[i].name + "<br/>");
+            $("#wrongfilenames").append(file.name + "<br/>");
             $("#wrongfilenames").show();
         }
         else {
@@ -373,6 +389,10 @@
             $.trim($("#uploadSet_cameraSetup_lensA").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensB").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_maxRadius").val()) == '' ||
+            ($.trim($("#user_isFreeUser").val()) == true && 
+                ($.trim($("#uploadSet_plotNames").val()) == '' ||
+                $.trim($("#uploadSet_slope").val()) == '' ||
+                $.trim($("#uploadSet_slopeAspect").val()) == '' )) ||
             empty > 0)
             //alert("Please enter a value for each field");
             $(".emptyfields").show();
@@ -382,7 +402,7 @@
             var filenamesok = true;
             $(".emptyfields").hide();
 
-            if ($.trim($("#user_isFreeUser").val()) == false) {
+            if ($.trim($("#user_isFreeUser").val()) == "False") {
                 //Check filename            only for ICOS user
                 var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
@@ -413,6 +433,11 @@
                 myDropzone.options.params["maxRadius"] = $("#uploadSet_cameraSetup_maxRadius").val();
                 myDropzone.options.params["isFreeUser"] = $("#user_isFreeUser").val();
                 myDropzone.options.params["siteName"] = $("#uploadSet_siteName").val();
+
+                myDropzone.options.params["plotNames"] = $("#uploadSet_plotNames").val();
+                myDropzone.options.params["slope"] = $("#uploadSet_slope").val();
+                myDropzone.options.params["slopeAspect"] = $("#uploadSet_slopeAspect").val();
+
                 var plots = "";
                 $(".plotTable").each(function () {
                     var plname = $(this).attr("id").substr(4, 1);

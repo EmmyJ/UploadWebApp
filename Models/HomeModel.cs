@@ -9,7 +9,7 @@ namespace UploadWebapp.Models
     public class HomeModel
     {
         public User user { get; set; }
-        public int selectedSite { get; set; }
+        public int? selectedSite { get; set; }
 
         public UploadSet uploadSet { get; set; }
 

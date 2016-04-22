@@ -158,6 +158,7 @@
 <div class="container" id="container">
     <div class="row">
         <div class="col-md-6 ">
+            @if(Model.siteID != 0){
             <div class="row clearfix">
                 <div class="col-md-4">
                     <label class="display-label">
@@ -178,6 +179,20 @@
                     @Html.DisplayFor(model => model.siteCode)
                 </div>
             </div>
+            }
+            else
+            {
+                <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
+                        @Html.DisplayNameFor(model => model.siteName)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.siteName)
+                </div>
+            </div>
+            }
             <div class="row clearfix">
                 <div class="col-md-4">
                     <label class="display-label">
