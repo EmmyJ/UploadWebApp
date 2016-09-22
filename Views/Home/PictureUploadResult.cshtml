@@ -51,7 +51,6 @@
                         data: {setID: @(Model.ID.ToString())},
                     contentType: "application/json; charset=utf-8",
                     success: function (data, status) {
-                        //debugger;
                         if(status == "success")
                             $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
                         else
@@ -62,7 +61,6 @@
                 });
 
                 function sucFunc(data, status) {
-                    //debugger;
                     if(status == "success")
                         $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
                     else
@@ -73,13 +71,11 @@
 
                 
             }
-                //alert(data);
                 $(".logcontent").hide();
                 $(".logheading").click(function () {
                     $(this).next(".logcontent").slideToggle(500);
                 });
             }
-            //error: errorFunc
         });
 
         function successFunc(data, status) {
@@ -118,7 +114,6 @@
                     data: {setID: @(Model.ID.ToString())},
                     contentType: "application/json; charset=utf-8",
                     success: function (data, status) {
-                        //debugger;
                         if(status == "success")
                             $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
                         else
@@ -126,21 +121,8 @@
                         $("#toolongdiv").show();
                     
                     }
-                });
-
-                //function sucFunc(data, status) {
-                //    debugger;
-                //    if(status == "success")
-                //        $("#toolongdiv").html("<p>LAI is now being calculated. Calculation will be done at aproximately <b>" + data + "</b>. You can check the result then by refreshing this page or going to the Overview page.</p>")
-                //    else
-                //        $("#toolongdiv").html("<p>LAI is now being calculated. This can take a while. You can check the results by refreshing this page or going to the Overview page.</p>")
-                //    $("#toolongdiv").show();
-                    
-                //}
-
-                
+                });                
             }
-            //alert(data);
             $(".logcontent").hide();
             $(".logheading").click(function () {
                 $(this).next(".logcontent").slideToggle(500);
@@ -328,12 +310,8 @@
                     <thead>
                         <tr>
                             <th>
-                                @*@Html.DisplayNameFor(model => model.plotSets[0].images[0].filename)*@
                                 Uploaded Pictures
                             </th>
-                            @*<th>
-                                @Html.DisplayNameFor(model => model.plotSets[0].images[0].dngFilename)
-                            </th>*@
                         </tr>
                     </thead>
 
@@ -343,9 +321,6 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.filename)
                             </td>
-                            @*<td>
-                                @Html.DisplayFor(modelItem => item.dngFilename)
-                            </td>*@
                         </tr>
                     }
                 </table>
@@ -407,13 +382,6 @@
                 {            
                     <table class="datatable ovv">
                         <tr>
-                            @*<th style="width: 75px;">Image</th>
-                            <th>Ridler Calvard Threshold</th>
-                            <th>Lang Xiang Clumping</th>
-                            <th>LAI with Optimization</th>
-                            <th>Edge Detection Threshold</th>
-                            <th>Lang Xiang Clumping</th>
-                            <th>LAI with Optimization</th>*@
                             <th>Image</th>
                             <th>LAI</th>
                             <th>Threshold RC</th>  
@@ -455,10 +423,6 @@
     }
 
 </fieldset>
-@*<p>
-    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>*@
 <div id="loadingdiv">
     Calculating LAI now...
     <img src="~/Images/loader.gif" style="width: 30px" />
@@ -466,8 +430,3 @@
 <div id="toolongdiv">
     <p>Calculation is taking longer then expected, come back later to check your results.</p>
 </div>
-@*<div id="resultdiv">
-    LAI: <span id="lai"></span><br />
-    LAI_SD: <span id="laisd"></span><br />
-    Log: <span id="lailog" class="line-breaks"></span>
-</div>*@

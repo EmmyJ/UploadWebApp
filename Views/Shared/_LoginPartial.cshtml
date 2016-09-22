@@ -1,7 +1,7 @@
 ﻿@if (UploadWebapp.DB.UserDA.CurrentUserId != null && UploadWebapp.DB.UserDA.CurrentUserId != 0)
 {
     <text>
-        Hello, @(UploadWebapp.DB.UserDA.CurrentUserName)! @*@Html.ActionLink(User.Identity.Name, "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "Manage" })!*@
+        Hello, @(UploadWebapp.DB.UserDA.CurrentUserName)! 
         @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" })) {
             @Html.AntiForgeryToken()
             <a href="javascript:document.getElementById('logoutForm').submit()" style="color:white">Log off</a>
@@ -10,7 +10,6 @@
 } else {
     <ul>
         @Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" , style = "color:white" }) / 
-        @*<li></li>
-        <li>*@@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", style = "color:white" })@*</li>*@
+        @Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", style = "color:white" })
     </ul>
 }

@@ -6,132 +6,91 @@
 
 <h1>Create Camera Setup</h1>
 
-@*@using (Html.BeginForm()) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-
-    *@
-
 <form action="" method="post" enctype="multipart/form-data">
-
-        <div class="container" id="container">
-
+    <div class="container" id="container">
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.cameraType, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.cameraType, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.cameraType, new { @class = "form-control"})
+                @Html.EditorFor(model => model.cameraType, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.cameraType)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.cameraSerial, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.cameraSerial, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.cameraSerial, new { @class = "form-control"})
+                @Html.EditorFor(model => model.cameraSerial, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.cameraSerial)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensType, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.lensType, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensType, new { @class = "form-control"})
+                @Html.EditorFor(model => model.lensType, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.lensType)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensSerial, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.lensSerial, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensSerial, new { @class = "form-control"})
+                @Html.EditorFor(model => model.lensSerial, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.lensSerial)
             </div>
         </div>
-        @*</div><div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensX, new { @class = "control-label col-md-3"})
-        <div class="col-md-9">
-            @Html.EditorFor(model => model.lensX, new { @class = "form-control"})
-            @Html.ValidationMessageFor(model => model.lensX)
-        </div>
-
-        </div><div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensY, new { @class = "control-label col-md-3"})
-        <div class="col-md-9">
-            @Html.EditorFor(model => model.lensY, new { @class = "form-control"})
-            @Html.ValidationMessageFor(model => model.lensY)
-        </div>
-
-        </div><div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensA, new { @class = "control-label col-md-3"})
-        <div class="col-md-9">
-            @Html.EditorFor(model => model.lensA, new { @class = "form-control"})
-            @Html.ValidationMessageFor(model => model.lensA)
-        </div>
-
-        </div><div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensB, new { @class = "control-label col-md-3"})
-        <div class="col-md-9">
-            @Html.EditorFor(model => model.lensB, new { @class = "form-control"})
-            @Html.ValidationMessageFor(model => model.lensB)
-        </div>*@
-
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.maxRadius, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.maxRadius, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.maxRadius, new { @class = "form-control"})
+                @Html.EditorFor(model => model.maxRadius, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.maxRadius)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.width, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.width, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.width, new { @class = "form-control"})
+                @Html.EditorFor(model => model.width, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.width)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.height, new { @class = "control-label col-md-3"})
+            @Html.LabelFor(model => model.height, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.height, new { @class = "form-control"})
+                @Html.EditorFor(model => model.height, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.height)
             </div>
         </div>
-        @* </div><div class="form-group row clearfix">
-            @Html.LabelFor(model => model.processed)
-        <div class="col-md-9">
-            @Html.EditorFor(model => model.processed, new { @class = "form-control"})
-            @Html.ValidationMessageFor(model => model.processed)
-        </div>*@
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.pathCenter, new { @class = "control-label col-md-3"})
-            <div class="col-md-9">
-                @*@Html.EditorFor(model => model.pathCenter)*@
-                <input type="file" name="pathCenter" id="pathCenter" accept=".csv" class="form-control" data-val="true" data-val-required="The Center Calibration file is required."/>
+            @Html.LabelFor(model => model.pathCenter, new { @class = "control-label col-md-3" })
+            <div class="col-md-6">
+                <input type="file" name="pathCenter" id="pathCenter" accept=".csv" class="form-control" data-val="true" data-val-required="The Center Calibration file is required." />
                 @Html.ValidationMessageFor(model => model.pathCenter)
             </div>
-        </div>
-
-        <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.pathProj, new { @class = "control-label col-md-3"})
-            <div class="col-md-9">
-                @*@Html.EditorFor(model => model.pathProj)*@
-                <input type="file" name="pathProj" id="pathProj" accept=".csv" class="form-control" data-val="true" data-val-required="The Lens Projection file is required."/>
-                @Html.ValidationMessageFor(model => model.pathProj)
+            <div class="col-md-3">
+                <a href="~/Content/centercalibrationtemplate.csv">Download template</a>
             </div>
         </div>
 
-
+        <div class="form-group row clearfix">
+            @Html.LabelFor(model => model.pathProj, new { @class = "control-label col-md-3" })
+            <div class="col-md-6">
+                <input type="file" name="pathProj" id="pathProj" accept=".csv" class="form-control" data-val="true" data-val-required="The Lens Projection file is required." />
+                @Html.ValidationMessageFor(model => model.pathProj)
+            </div>
+             <div class="col-md-3">
+                 <a href="~/Content/lenscalibrationtemplate.csv">Download template</a>
+            </div>
+        </div>
 
         <p>
             <input type="submit" value="Create" class="button rounded fill-highlight" />
         </p>
     </div>
 </form>
-@*}*@
 
 <div>
     @Html.ActionLink("Back to List", "CameraSetups")
@@ -140,3 +99,9 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
 }
+
+<script>
+    $(function () {
+        $(".create").addClass("-active");
+    });
+</script>

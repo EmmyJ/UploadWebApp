@@ -10,26 +10,17 @@
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
-            @*@Html.DisplayNameFor(model => model.siteID)*@Site
+            @Html.DisplayNameFor(model => model.siteID)
         </th>
         <th>
-            @*@Html.DisplayNameFor(model => model.plotNames)*@Plots
+            @Html.DisplayNameFor(model => model.plotNames)
         </th>        
         <th>
-            @*@Html.DisplayNameFor(model => model.person)*@Person
+            @Html.DisplayNameFor(model => model.person)
         </th>
         <th>
-            @*@Html.DisplayNameFor(model => model.uploadTime)*@Upload Time
+            @Html.DisplayNameFor(model => model.uploadTime)
         </th>
-        @*<th>
-            @Html.DisplayNameFor(model => model.resultsSet.processed)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.resultsSet.LAI)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.resultsSet.LAI_SD)
-        </th>*@
         <th>Detail</th>
         <th style="width:200px">Download Results</th>
     </tr>
@@ -47,35 +38,13 @@
         <td>
             @Html.DisplayFor(modelItem => item.plotNames)
         </td>
-        @*<td>
-            @Html.DisplayFor(modelItem => item.userID)
-        </td>*@
         <td>
             @Html.DisplayFor(modelItem => item.person)
         </td>
-        @*<td>
-            @Html.DisplayFor(modelItem => item.slope)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.slopeAspect)
-        </td>*@
         <td>
             @Html.DisplayFor(modelItem => item.uploadTime)
         </td>
-        @*<td>
-            @if (item.resultsSet.processed == true)
-        {<text>Yes</text>}
-        else
-            {<text>No</text>      }
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.resultsSet.LAI)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.resultsSet.LAI_SD)
-        </td>*@
         <td style="text-align:center">
-            @*@Html.ActionLink("Edit", "Edit", new { id=item.ID }) |*@
             @Html.ActionLink("Detail", "SetDetails", new { setID = item.ID })
         </td>
         <td style="text-align:center">
@@ -83,9 +52,13 @@
             {
                 @Html.ActionLink("Download results", "SetDownload", new { setID = item.ID })
             }
-@*            @Html.ActionLink("Delete", "Delete", new { id=item.ID })*@
         </td>
     </tr>
 }
-
 </table>
+
+<script>
+    $(function () {
+        $(".overview").addClass("-active");
+    });
+</script>

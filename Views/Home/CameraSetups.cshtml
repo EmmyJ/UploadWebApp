@@ -86,9 +86,6 @@
             @Html.DisplayFor(modelItem => item.processed)
         </td>
         <td>
-           @* @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |*@
-            @*@Html.ActionLink("Details", "Details", new { id=item.ID }) |*@
-            @*@Html.ActionLink("Delete", "Delete", new { id=item.ID })*@
             @Html.ActionLink("Delete", 
     "DeleteCameraSetup", new { cameraSetupID = item.ID }, 
     new { onclick = "return confirm('Do you really want to delete the camera setup " + @item.cameraType + " - " + @item.lensType + "?')" })

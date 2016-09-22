@@ -185,12 +185,8 @@
                     <thead>
                         <tr>
                             <th>
-                                @*@Html.DisplayNameFor(model => model.plotSets[0].images[0].filename)*@
                                 Uploaded Pictures
                             </th>
-                            @*<th>
-                                @Html.DisplayNameFor(model => model.plotSets[0].images[0].dngFilename)
-                            </th>*@
                         </tr>
                     </thead>
 
@@ -200,9 +196,6 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.filename)
                             </td>
-                            @*<td>
-                                @Html.DisplayFor(modelItem => item.dngFilename)
-                            </td>*@
                         </tr>
                     }
                 </table>
@@ -256,7 +249,6 @@
         <div class="row clearfix">
             <div class="col-md-12">
             <label class="display-label">
-                @*@Html.DisplayNameFor(model => plotSet.resultsSet.data)*@
                 Calculation Data:
             </label>
             <div class="display-field">
@@ -264,13 +256,6 @@
                 {            
                     <table class="datatable ovv">
                         <tr>
-                            @*<th style="width: 75px;">Image</th>
-                            <th>Ridler Calvard Threshold</th>
-                            <th>Lang Xiang Clumping</th>
-                            <th>LAI with Optimization</th>
-                            <th>Edge Detection Threshold</th>
-                            <th>Lang Xiang Clumping</th>
-                            <th>LAI with Optimization</th>*@
                             <th>Image</th>
                             <th>LAI</th>
                             <th>Threshold RC</th>  

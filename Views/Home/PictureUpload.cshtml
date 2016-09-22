@@ -2,10 +2,7 @@
 @{
     ViewBag.Title = "Upload Hemispherical Pictures";
 }
-@*<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
-<link href="~/Content/bootstrap.min.css" rel="stylesheet" />*@
 <script>
-    //var Dropzone = require("enyo-dropzone");
     Dropzone.autoDiscover = false;
 </script>
 <style>
@@ -70,7 +67,6 @@
         color: red;
         font-weight: bold;
     }
-
 </style>
 
 <h1>Upload Hemispherical Pictures</h1>
@@ -83,116 +79,109 @@
 
 <div class="container" id="container">
     <form class="form-horizontal">
-        @*<legend>Camera Setup</legend>*@
-        @Html.HiddenFor(m=> m.user.isFreeUser)
+        @Html.HiddenFor(m => m.user.isFreeUser)
         <div class="form-group row clearfix">
-            @Html.Label("Site: ", new { @class = "control-label col-md-3"})
+            @Html.LabelFor(m => m.selectedSite, new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @if(!Model.user.isFreeUser){
-                @Html.DropDownListFor(m => m.selectedSite, new SelectList(Model.user.sites, "ID", "title"), new { @class = "form-control"})
+                @if (!Model.user.isFreeUser)
+                {
+                    @Html.DropDownListFor(m => m.selectedSite, new SelectList(Model.user.sites, "ID", "title"), new { @class = "form-control" })
                 }
                 else
                 {
-                    @Html.TextBoxFor(m => m.uploadSet.siteName, new { @class = "form-control"})
+                    @Html.TextBoxFor(m => m.uploadSet.siteName, new { @class = "form-control" })
                 }
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Person: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Person: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.person, new { @class = "form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.person, new { @class = "form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Camera Setup: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Camera Setup: ", new { @class = "control-label col-md-3" })
             <div class="col-md-5">
-                @Html.DropDownListFor(m => m.uploadSet.cameraSetup.ID, new SelectList(Model.user.cameraSetups, "ID", "title"), "-- Choose a Camera Setup --",  new { @class = "form-control"})
+                @Html.DropDownListFor(m => m.uploadSet.cameraSetup.ID, new SelectList(Model.user.cameraSetups, "ID", "title"), "-- Choose a Camera Setup --", new { @class = "form-control" })
             </div>
             <div class="col-md-3">
                 <a href="@Url.Action("CreateCameraSetup")" class="button rounded fill-highlight">Create New Camera Setup</a>
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Camera type: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Camera type: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.cameraType, new { @class = "camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.cameraType, new { @class = "camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Camera Serial number: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Camera Serial number: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.cameraSerial, new { @class = "camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.cameraSerial, new { @class = "camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Type: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Type: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensType, new { @class = "camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensType, new { @class = "camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Serial Number: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Serial Number: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensSerial, new { @class = "camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensSerial, new { @class = "camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Center Rowpixel: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Center Rowpixel: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensX, new { @class = "numericOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensX, new { @class = "numericOnly camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Center Columnpixel: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Center Columnpixel: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensY, new { @class = "numericOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensY, new { @class = "numericOnly camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Type Projectionfunction A Parameter: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Type Projectionfunction A Parameter: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Type Projectionfunction B Parameter: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Type Projectionfunction B Parameter: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup form-control" })
             </div>
         </div>
         <div class="form-group row clearfix">
-            @Html.Label("Lens Maximum Radius: ", new { @class = "control-label col-md-3"})
+            @Html.Label("Lens Maximum Radius: ", new { @class = "control-label col-md-3" })
             <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.maxRadius, new { @class = "decimalOnly camsetup form-control"})
+                @Html.TextBoxFor(m => m.uploadSet.cameraSetup.maxRadius, new { @class = "decimalOnly camsetup form-control" })
             </div>
         </div>
-        @*@Html.Label("Lens Center Rowpixel: ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensX, new { @class = "numericOnly camsetup" })*@<br />
-        @*@Html.Label("Lens Center Columnpixel: ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensY, new { @class = "numericOnly camsetup" })<br />
-        @Html.Label("Lens Type Projectionfunction A Parameter: ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensA, new { @class = "decimalOnly camsetup" })<br />
-        @Html.Label("Lens Type Projectionfunction B Parameter: ")<br />
-        @Html.TextBoxFor(m => m.uploadSet.cameraSetup.lensB, new { @class = "decimalOnly camsetup" })<br />*@
-        @if(Model.user.isFreeUser){
-        <div class="form-group row clearfix">
-            @Html.Label("Plot Name: ", new { @class = "control-label col-md-3"})
-            <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.plotNames, new { @class = "form-control"})
+        @if (Model.user.isFreeUser)
+        {
+            <div class="form-group row clearfix">
+                @Html.Label("Plot Name: ", new { @class = "control-label col-md-3" })
+                <div class="col-md-4">
+                    @Html.TextBoxFor(m => m.uploadSet.plotNames, new { @class = "form-control" })
+                </div>
             </div>
-        </div>
-        <div class="form-group row clearfix">
-             @Html.Label("Slope (0° - 90°): ", new { @class = "control-label col-md-3"})
-            <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.slope, new { @class = "decimalOnly form-control" ,  @Value = "0"})
+            <div class="form-group row clearfix">
+                @Html.Label("Slope (0° - 90°): ", new { @class = "control-label col-md-3" })
+                <div class="col-md-4">
+                    @Html.TextBoxFor(m => m.uploadSet.slope, new { @class = "decimalOnly form-control", @Value = "0" })
+                </div>
             </div>
-        </div>
-        <div class="form-group row clearfix">
-             @Html.Label("Slope Aspect (0° - 360°): ", new { @class = "control-label col-md-3"})
-            <div class="col-md-4">
-                @Html.TextBoxFor(m => m.uploadSet.slopeAspect, new { @class = "decimalOnly form-control" ,  @Value = "0"})
+            <div class="form-group row clearfix">
+                @Html.Label("Slope Aspect (0° - 360°): ", new { @class = "control-label col-md-3" })
+                <div class="col-md-4">
+                    @Html.TextBoxFor(m => m.uploadSet.slopeAspect, new { @class = "decimalOnly form-control", @Value = "0" })
+                </div>
             </div>
-        </div>
         }
     </form>
     <table>
@@ -204,7 +193,6 @@
     </div>
     <div id="actions" class="row clearfix">
         <div class="col-lg-7">
-            <!-- The fileinput-button span is used to style the file input field as button -->
             <span class="btn btn-success fileinput-button">
                 <i class="glyphicon glyphicon-plus"></i>
                 <span>Add files...</span>
@@ -220,7 +208,8 @@
         </div>
         <div class="col-lg-10">
             <div id="wrongfilenames" class="wrongfilenames">
-                <p>Incorrect filenames:
+                <p>
+                    Incorrect filenames:
                     <br />
                 </p>
             </div>
@@ -228,7 +217,6 @@
         </div>
 
         <div class="col-lg-5 row clearfix">
-            <!-- The global file processing state -->
             <span class="fileupload-process">
                 <div id="total-progress" class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="progress-bar progress-bar-success" style="width: 0%;" data-dz-uploadprogress></div>
@@ -237,47 +225,32 @@
         </div>
     </div>
 
-    <div class="table table-striped row clearfix files" style="width:100%" id="previews">
+    <div class="table table-striped row clearfix files" style="width: 100%" id="previews">
         <div id="template" class="file-row">
-            @*<div>
-                <span class="preview">
-                    <img data-dz-thumbnail /></span>
-            </div>*@
             <div>
                 <p class="name" data-dz-name></p>
                 <strong class="error text-danger" data-dz-errormessage></strong>
             </div>
             <div class="size" data-dz-size></div>
-            <div style="width:300px;">
-                @*<span class="size" data-dz-size></span>*@
+            <div style="width: 300px;">
                 <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="progress-bar progress-bar-success" style="width: 0%;" data-dz-uploadprogress></div>
                 </div>
             </div>
-            <div style="width:150px;">
-                @*<button class="btn btn-primary start">
-                    <i class="glyphicon glyphicon-upload"></i>
-                    <span>Start</span>
-                </button>*@
+            <div style="width: 150px;">
                 <button data-dz-remove class="btn btn-warning cancel">
                     <i class="glyphicon glyphicon-ban-circle"></i>
                     <span>Cancel</span>
                 </button>
-@*                <button data-dz-remove class="btn btn-danger delete">
-                    <i class="glyphicon glyphicon-trash"></i>
-                    <span>Delete</span>
-                </button>*@
             </div>
         </div>
     </div>
     <p id="resMessage"></p>
-
 </div>
 
 
 
 <script>
-    // Get the template HTML and remove it from the doument
     var previewNode = document.querySelector("#template");
     previewNode.id = "";
     var previewTemplate = previewNode.parentNode.innerHTML;
@@ -294,52 +267,47 @@
         clickable: ".fileinput-button", // Define the element that should be used as click trigger to select files.
         uploadMultiple: true,
         acceptedFiles: ".3fr, .ari, .arw, .bay, .crw, .cr2, .cap, .dcs, .dcr, .dng, .drf, .eip, .erf, .fff, .iiq, .k25, .kdc,.mdc, .mef, .mos, .mrw, .nef, .nrw, .obm, .orf, .pef, .ptx, .pxn, .r3d, .raf, .raw, .rwl, .rw2, .rwz, .sr2, .srf, .srw, .x3f, .jpg, .jpeg"
-        //params: {
-        //    testid: 0
-        //}
     });
 
     $(function () {
         $(".emptyfields").hide();
         $("#wrongfilenames").hide();
         $("input.camsetup").attr('disabled', 'disabled');
+        $(".upload").addClass("-active");
     });
 
     myDropzone.on("addedfile", function (file) {
-        //debugger;
-        // Hookup the start button
-        //file.previewElement.querySelector(".start").onclick = function () { myDropzone.enqueueFile(file); };
         if ($.trim($("#user_isFreeUser").val()) == "False") {
-        var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
+            var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
 
-        if ((m = re.exec(file.name)) == null) {
-            $("#wrongfilenames").append(file.name + "<br/>");
-            $("#wrongfilenames").show();
-        }
-        else {
-            var plotname = file.name.substr(16, 1);
-            if ($("#plot" + plotname + "table").length == 0) {
+            if ((m = re.exec(file.name)) == null) {
+                $("#wrongfilenames").append(file.name + "<br/>");
+                $("#wrongfilenames").show();
+            }
+            else {
+                var plotname = file.name.substr(16, 1);
+                if ($("#plot" + plotname + "table").length == 0) {
 
-                $("#plotTable").append("<td id='plot" + plotname + "table' class='plotTable'><table style='margin: 20px'><tr><th>Plot " + plotname + "</th></tr><tr><td>Slope (0° - 90°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px' id='plot" + plotname + "slope' /></td></tr><tr><td>Slope Aspect (0° - 360°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px'  id='plot" + plotname + "slopeAspect' /></td></tr></table></td>");
+                    $("#plotTable").append("<td id='plot" + plotname + "table' class='plotTable'><table style='margin: 20px'><tr><th>Plot " + plotname + "</th></tr><tr><td>Slope (0° - 90°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px' id='plot" + plotname + "slope' /></td></tr><tr><td>Slope Aspect (0° - 360°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px'  id='plot" + plotname + "slopeAspect' /></td></tr></table></td>");
 
-                var siteID = $("#selectedSite").val();
-                $.ajax({
-                    type: "GET",
-                    url: "/Home/GetPlotData",
-                    data: { siteID: siteID, plotname: plotname },
-                    contentType: "application/json; charset=utf-8",
-                    success: function (data, status) {
+                    var siteID = $("#selectedSite").val();
+                    $.ajax({
+                        type: "GET",
+                        url: "/Home/GetPlotData",
+                        data: { siteID: siteID, plotname: plotname },
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data, status) {
+                            $("#plot" + plotname + "slope").val(data.slope);
+                            $("#plot" + plotname + "slopeAspect").val(data.slopeAspect);
+                        }
+                    });
+
+                    function successFunc(data, status) {
                         $("#plot" + plotname + "slope").val(data.slope);
                         $("#plot" + plotname + "slopeAspect").val(data.slopeAspect);
                     }
-                });
 
-                function successFunc(data, status) {
-                    $("#plot" + plotname + "slope").val(data.slope);
-                    $("#plot" + plotname + "slopeAspect").val(data.slopeAspect);
                 }
-
-            }
             }
         }
     });
@@ -362,7 +330,6 @@
         document.querySelector("#total-progress").style.opacity = "0";
     });
     myDropzone.on("complete", function (data) {
-        //debugger;        
         var res = JSON.parse(data.xhr.responseText).Message;
         $("#resMessage").html(res);
         window.location = "./PictureUploadResult/";
@@ -371,15 +338,13 @@
     // Setup the buttons for all transfers
     // The "add files" button doesn't need to be setup because the config
     // `clickable` has already been specified.
-    document.querySelector("#actions .start").onclick = function () {  
+    document.querySelector("#actions .start").onclick = function () {
         var empty = $(".plotinput").filter(function () {
             return $.trim(this.value).length == 0;
         }).length;
 
         if (($.trim($("#selectedSite").val()) == '' && $.trim($("#uploadSet_siteName").val()) == '') ||
             $.trim($("#uploadSet_person").val()) == '' ||
-            //$.trim($("#uploadSet_slope").val()) == '' ||
-            //$.trim($("#uploadSet_slopeAspect").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_cameraType").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_cameraSerial").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensType").val()) == '' ||
@@ -389,15 +354,13 @@
             $.trim($("#uploadSet_cameraSetup_lensA").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_lensB").val()) == '' ||
             $.trim($("#uploadSet_cameraSetup_maxRadius").val()) == '' ||
-            ($.trim($("#user_isFreeUser").val()) == true && 
+            ($.trim($("#user_isFreeUser").val()) == true &&
                 ($.trim($("#uploadSet_plotNames").val()) == '' ||
                 $.trim($("#uploadSet_slope").val()) == '' ||
-                $.trim($("#uploadSet_slopeAspect").val()) == '' )) ||
+                $.trim($("#uploadSet_slopeAspect").val()) == '')) ||
             empty > 0)
-            //alert("Please enter a value for each field");
             $(".emptyfields").show();
         else {
-            //debugger;
             var files = myDropzone.getFilesWithStatus(Dropzone.ADDED);
             var filenamesok = true;
             $(".emptyfields").hide();
@@ -419,8 +382,6 @@
             if (filenamesok) {
                 myDropzone.options.params["siteID"] = $("#selectedSite").val();
                 myDropzone.options.params["person"] = $("#uploadSet_person").val();
-                //myDropzone.options.params["slope"] = $("#uploadSet_slope").val();
-                //myDropzone.options.params["slopeAspect"] = $("#uploadSet_slopeAspect").val();
                 myDropzone.options.params["cameraSetupID"] = $("#uploadSet_cameraSetup_ID").val();
                 myDropzone.options.params["cameraType"] = $("#uploadSet_cameraSetup_cameraType").val();
                 myDropzone.options.params["cameraSerial"] = $("#uploadSet_cameraSetup_cameraSerial").val();
@@ -468,7 +429,7 @@
         else if (e.which) code = e.which;
         if (e.which == 46)
             return false;
-        if (code == 8) // || code == 44 || code == 46
+        if (code == 8) 
             return true;
         if (code < 48 || code > 57)
             return false;
@@ -509,7 +470,6 @@
 
     $("#uploadSet_cameraSetup_ID").change(function () {
         if ($("#uploadSet_cameraSetup_ID").val() == "") {
-            //$("input.camsetup").removeAttr('disabled');
             $("input.camsetup").val("");
         }
         else {
@@ -520,8 +480,6 @@
                 url: "/Home/GetCameraSetup",
                 data: { setupid: id },
                 contentType: "application/json; charset=utf-8",
-                //dataType: "html",
-                //success: successFunc
                 success: function (data, status) {
                     $("#uploadSet_cameraSetup_cameraType").val(data.cameraType);
                     $("#uploadSet_cameraSetup_cameraSerial").val(data.cameraSerial);
@@ -534,19 +492,6 @@
                     $("#uploadSet_cameraSetup_maxRadius").val(data.maxRadius);
                 }
             });
-
-            //function successFunc(data, status) {
-            //    $("#uploadSet_cameraSetup_cameraType").val(data.cameraType);
-            //    $("#uploadSet_cameraSetup_cameraSerial").val(data.cameraSerial);
-            //    $("#uploadSet_cameraSetup_lensType").val(data.lensType);
-            //    $("#uploadSet_cameraSetup_lensSerial").val(data.lensSerial);
-            //    $("#uploadSet_cameraSetup_lensX").val(data.lensX);
-            //    $("#uploadSet_cameraSetup_lensY").val(data.lensY);
-            //    $("#uploadSet_cameraSetup_lensA").val(data.lensA);
-            //    $("#uploadSet_cameraSetup_lensB").val(data.lensB);
-            //}
-
-
         }
     });
 </script>
