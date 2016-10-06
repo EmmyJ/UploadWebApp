@@ -628,9 +628,28 @@ namespace UploadWebapp.Controllers
                     pathCenter.SaveAs(path);
                     cameraSetup.pathCenter = path;
 
-                    path = string.Format("{0}/{1}", pathString, "lenscalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
-                    pathProj.SaveAs(path);
-                    cameraSetup.pathProj = path;
+                    if (pathProj != null)
+                    {
+                        path = string.Format("{0}/{1}", pathString, "lenscalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
+                        pathProj.SaveAs(path);
+                        cameraSetup.pathProj = path;
+                        cameraSetup.lensA = 0;
+                        cameraSetup.lensB = 0;
+                    }
+                    else
+                    {
+                        cameraSetup.pathProj = "no";
+                        try
+                        {
+                            cameraSetup.lensA = double.Parse(cameraSetup.lensAstr);
+                            cameraSetup.lensB = double.Parse(cameraSetup.lensBstr);
+                        }
+                        catch (Exception)
+                        {
+                            return View(cameraSetup);
+                        }
+                        
+                    }
 
                     cameraSetup = ImageDA.SaveCameraSetup(cameraSetup);
 

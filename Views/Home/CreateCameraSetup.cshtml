@@ -6,7 +6,7 @@
 
 <h1>Create Camera Setup</h1>
 
-<form action="" method="post" enctype="multipart/form-data">
+<form action="" method="post" enctype="multipart/form-data" id="setupform">
     <div class="container" id="container">
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.cameraType, new { @class = "control-label col-md-3" })
@@ -43,7 +43,7 @@
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.maxRadius, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.maxRadius, new { @class = "form-control" })
+                @Html.EditorFor(model => model.maxRadius, new { @class = "form-control numericOnly" })
                 @Html.ValidationMessageFor(model => model.maxRadius)
             </div>
         </div>
@@ -51,7 +51,7 @@
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.width, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.width, new { @class = "form-control" })
+                @Html.EditorFor(model => model.width, new { @class = "form-control numericOnly" })
                 @Html.ValidationMessageFor(model => model.width)
             </div>
         </div>
@@ -59,7 +59,7 @@
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.height, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.height, new { @class = "form-control" })
+                @Html.EditorFor(model => model.height, new { @class = "form-control numericOnly" })
                 @Html.ValidationMessageFor(model => model.height)
             </div>
         </div>
@@ -78,14 +78,34 @@
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.pathProj, new { @class = "control-label col-md-3" })
             <div class="col-md-6">
-                <input type="file" name="pathProj" id="pathProj" accept=".csv" class="form-control" data-val="true" data-val-required="The Lens Projection file is required." />
+                <input type="file" name="pathProj" id="pathProj" accept=".csv" class="form-control data-val="true"" />
                 @Html.ValidationMessageFor(model => model.pathProj)
             </div>
              <div class="col-md-3">
                  <a href="~/Content/lenscalibrationtemplate.csv">Download template</a>
             </div>
         </div>
+         <div class="form-group row clearfix">
+             <label class="control-label col-md-9">or</label>
+             <div class="col-md-3">Enter Lens projection File </br>or Lens A and B parameters</div>
+         </div>
 
+
+        <div class="form-group row clearfix">
+            @Html.Label("Lens A", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.lensAstr, new { @class = "form-control decimalOnly" })
+                @*@Html.ValidationMessageFor(model => model.lensA)*@
+            </div>
+        </div>
+        <div class="form-group row clearfix">
+            @Html.Label("Lens B", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.lensBstr, new { @class = "form-control decimalOnly" })
+                @*@Html.ValidationMessageFor(model => model.lensB)*@
+            </div>
+        </div>
+        <span class="field-validation-error" id="lensprojerror" hidden="hidden">The Lens Projection File or Lens A and B parameters are required.</span>
         <p>
             <input type="submit" value="Create" class="button rounded fill-highlight" />
         </p>
@@ -103,5 +123,59 @@
 <script>
     $(function () {
         $(".create").addClass("-active");
+
+        $(".numericOnly").bind("paste", function (e) {
+            e.preventDefault();
+        });
+
+        $(".numericOnly").bind('keypress', function (e) {
+            if (e.keyCode == '9' || e.keyCode == '16') {
+                return;
+            }
+            var code;
+            if (e.keyCode) code = e.keyCode;
+            else if (e.which) code = e.which;
+            if (e.which == 46 || code == 44)
+                return false;
+            if (code == 8)
+                return true;
+            if (code < 48 || code > 57)
+                return false;
+        });
+
+        $(".decimalOnly").bind('keypress', function (e) {
+            if (e.keyCode == '9' || e.keyCode == '16') {
+                return;
+            }
+            var code;
+            if (e.keyCode) code = e.keyCode;
+            else if (e.which) code = e.which;
+            //if (e.which == 46)
+            //    return false;
+            if (code == 8 || code == 44 || code == 45 || code == 46)
+                return true;
+            if (code < 48 || code > 57)
+                return false;
+        });
+
+        //Disable paste
+        $(".decimalOnly").bind("paste", function (e) {
+            e.preventDefault();
+        });
+
+
+        $("#setupform").submit(function () {
+            //debugger;
+            if (($("#pathProj").val() != undefined && $("#pathProj").val() != "") || ($("#lensAstr").val() != "" && $("#lensBstr").val() != "")) {
+                $("#lensAstr").val($("#lensAstr").val().replace(".", ","));
+                $("#lensBstr").val($("#lensBstr").val().replace(".", ","));
+                return true;
+            }
+            else
+            {
+                $("#lensprojerror").show();
+                return false;
+            }
+        });
     });
 </script>

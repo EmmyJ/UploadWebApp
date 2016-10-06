@@ -527,7 +527,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
             //INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
                    , new SqlParameter("userID", cameraSetup.userID)
                    , new SqlParameter("camType", cameraSetup.cameraType)
                    , new SqlParameter("camSerial", cameraSetup.cameraSerial)
@@ -538,7 +538,9 @@ namespace UploadWebapp.DB
                    , new SqlParameter("pathProj", cameraSetup.pathProj)
                    , new SqlParameter("processed", false)
                    , new SqlParameter("width", cameraSetup.width)
-                   , new SqlParameter("height", cameraSetup.height)                   
+                   , new SqlParameter("height", cameraSetup.height)
+                   , new SqlParameter("a", cameraSetup.lensA)
+                   , new SqlParameter("b", cameraSetup.lensB)
                    ));
 
             cameraSetup.ID = id;

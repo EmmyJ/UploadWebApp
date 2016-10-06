@@ -35,10 +35,13 @@
                 <nav class="hidden-xs">
                     <ul class="inline-list">
                         <li class="inline-list-item">@Html.ActionLink("Home", "Index", "Home", null, new { @class = "text-white nav-link -home" })</li>
+                        @if (UploadWebapp.DB.UserDA.CurrentUserId != null && UploadWebapp.DB.UserDA.CurrentUserId != 0)
+                        {
                         <li class="inline-list-item">@Html.ActionLink("Upload Hemispherical Pictures", "PictureUpload", "Home", null, new { @class = "text-white nav-link upload " })</li>
                         <li class="inline-list-item">@Html.ActionLink("Overview Uploads", "Overview", "Home", null, new { @class = "text-white nav-link overview " })</li>
                         <li class="inline-list-item">@Html.ActionLink("Create Camera Setup", "createCameraSetup", "Home", null, new { @class = "text-white nav-link create" })</li>
                         <li class="inline-list-item">@Html.ActionLink("Manage Camera Setups", "CameraSetups", "Home", null, new { @class = "text-white nav-link manageSetups" })</li>
+                        }
                         <li class="inline-list-item">@Html.ActionLink("Contact", "Contact", "Home", null, new { @class = "text-white nav-link contact" })</li>
                     </ul>
                 </nav>

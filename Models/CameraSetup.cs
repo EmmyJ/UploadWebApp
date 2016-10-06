@@ -50,12 +50,14 @@ namespace UploadWebapp.Models
         [Required]
         [DisplayName("Center Calibration File")]
         public string pathCenter { get; set; }
-        [Required]
+        //[Required]
         [DisplayName("Lens Projection File")]
         public string pathProj { get; set; }
         //public HttpPostedFileBase centerFile { get; set ;asp}
         //public HttpPostedFileBase projFile { get; set; }
 
         public string title { get; set; }
+        public string lensAstr { get; set; }
+        public string lensBstr { get; set; }
     }
 }
