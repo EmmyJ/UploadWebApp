@@ -81,7 +81,7 @@ namespace UploadWebapp.DB
             }
             result.Close();
 
-            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
+            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
             //SELECT [ID], [uploadSetID], [plotID] FROM [LAI_App].[dbo].[plotSets] WHERE uploadSetID = 
@@ -155,7 +155,7 @@ namespace UploadWebapp.DB
             db = new DB();
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
+            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
@@ -165,7 +165,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -326,7 +326,11 @@ namespace UploadWebapp.DB
                 s.width = data.IsDBNull(10) ? (int?)null : data.GetInt32(10);
                 s.height = data.IsDBNull(11) ? (int?)null : data.GetInt32(11);
                 s.processed = data.GetBoolean(12);
-                s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
+                s.name = data.IsDBNull(13) ? "" : data.GetString(13);
+                if(s.name != "")
+                    s.title = string.Format("{2}: {0} + {1}", s.cameraType, s.lensType, s.name);
+                else
+                    s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
 
                 result.Add(s);
             }
@@ -527,7 +531,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
             //INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b], [x], [y], [name]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b, @x, @y, @name);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
                    , new SqlParameter("userID", cameraSetup.userID)
                    , new SqlParameter("camType", cameraSetup.cameraType)
                    , new SqlParameter("camSerial", cameraSetup.cameraSerial)
@@ -541,6 +545,9 @@ namespace UploadWebapp.DB
                    , new SqlParameter("height", cameraSetup.height)
                    , new SqlParameter("a", cameraSetup.lensA)
                    , new SqlParameter("b", cameraSetup.lensB)
+                   , new SqlParameter("x", cameraSetup.lensX)
+                   , new SqlParameter("y", cameraSetup.lensY)
+                   , new SqlParameter("name", cameraSetup.name)
                    ));
 
             cameraSetup.ID = id;

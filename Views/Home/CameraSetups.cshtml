@@ -7,7 +7,9 @@
 <h1>Camera Setups</h1>
 
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
-    <tr>
+    <tr><th>
+            @Html.DisplayNameFor(model => model.name)
+        </th>
         <th>
             @Html.DisplayNameFor(model => model.cameraType)
         </th>
@@ -48,7 +50,10 @@
     </tr>
 
 @foreach (var item in Model) {
-    <tr>        
+    <tr>     
+        <td>
+            @Html.DisplayFor(modelItem => item.name)
+        </td>   
         <td>
             @Html.DisplayFor(modelItem => item.cameraType)
         </td>

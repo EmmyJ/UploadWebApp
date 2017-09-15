@@ -278,14 +278,16 @@
 
     myDropzone.on("addedfile", function (file) {
         if ($.trim($("#user_isFreeUser").val()) == "False") {
-            var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
-
+            //var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
+            //nieuwe regex: /^[a-zA-Z]{2}-[a-zA-Z]{3}_DHP_[a-zA-Z0-9]{2}_[a-zA-Z]{2}[0-9]{2}_[a-zA-Z]{1}[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/
+            //of stricter: 
+            var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
             if ((m = re.exec(file.name)) == null) {
                 $("#wrongfilenames").append(file.name + "<br/>");
                 $("#wrongfilenames").show();
             }
             else {
-                var plotname = file.name.substr(16, 1);
+                var plotname = file.name.substr(14, 4);
                 if ($("#plot" + plotname + "table").length == 0) {
 
                     $("#plotTable").append("<td id='plot" + plotname + "table' class='plotTable'><table style='margin: 20px'><tr><th>Plot " + plotname + "</th></tr><tr><td>Slope (0° - 90°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px' id='plot" + plotname + "slope' /></td></tr><tr><td>Slope Aspect (0° - 360°):<br/><input class='plotinput decimalOnly' type='text' style='width: 170px'  id='plot" + plotname + "slopeAspect' /></td></tr></table></td>");
@@ -367,8 +369,8 @@
 
             if ($.trim($("#user_isFreeUser").val()) == "False") {
                 //Check filename            only for ICOS user
-                var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
-
+                //var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
+                var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
                 for (i = 0; i < files.length; i++) {
                     var m;
 
@@ -401,7 +403,7 @@
 
                 var plots = "";
                 $(".plotTable").each(function () {
-                    var plname = $(this).attr("id").substr(4, 1);
+                    var plname = $(this).attr("id").substr(4, 4);
                     var slope = $("#plot" + plname + "slope").val();
                     var slopeA = $("#plot" + plname + "slopeAspect").val();
 

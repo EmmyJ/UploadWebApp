@@ -9,6 +9,13 @@
 <form action="" method="post" enctype="multipart/form-data" id="setupform">
     <div class="container" id="container">
         <div class="form-group row clearfix">
+            @Html.LabelFor(model => model.name, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.name, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.name)
+            </div>
+        </div>
+        <div class="form-group row clearfix">
             @Html.LabelFor(model => model.cameraType, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
                 @Html.EditorFor(model => model.cameraType, new { @class = "form-control" })
@@ -67,13 +74,33 @@
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.pathCenter, new { @class = "control-label col-md-3" })
             <div class="col-md-6">
-                <input type="file" name="pathCenter" id="pathCenter" accept=".csv" class="form-control" data-val="true" data-val-required="The Center Calibration file is required." />
+                <input type="file" name="pathCenter" id="pathCenter" accept=".csv" class="form-control" data-val="true"  />
                 @Html.ValidationMessageFor(model => model.pathCenter)
             </div>
             <div class="col-md-3">
                 <a href="~/Content/centercalibrationtemplate.csv">Download template</a>
             </div>
         </div>
+        <div class="form-group row clearfix">
+             <label class="control-label col-md-9">or</label>
+             <div class="col-md-3">Enter Center Calibration File </br>or Lens X and Y parameters</div>
+         </div>
+
+        <div class="form-group row clearfix">
+            @Html.Label("Lens X", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.lensXstr, new { @class = "form-control numberOnly" })
+                @*@Html.ValidationMessageFor(model => model.lensX)*@
+            </div>
+        </div>
+        <div class="form-group row clearfix">
+            @Html.Label("Lens Y", new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.lensYstr, new { @class = "form-control numberOnly" })
+                @*@Html.ValidationMessageFor(model => model.lensY)*@
+            </div>
+        </div>
+        <span class="field-validation-error" id="lenscentererror" hidden="hidden">The Center Calibration File or Lens X and Y parameters are required.</span>
 
         <div class="form-group row clearfix">
             @Html.LabelFor(model => model.pathProj, new { @class = "control-label col-md-3" })
@@ -166,14 +193,22 @@
 
         $("#setupform").submit(function () {
             //debugger;
-            if (($("#pathProj").val() != undefined && $("#pathProj").val() != "") || ($("#lensAstr").val() != "" && $("#lensBstr").val() != "")) {
+            if ((($("#pathProj").val() != undefined && $("#pathProj").val() != "") || ($("#lensAstr").val() != "" && $("#lensBstr").val() != ""))
+                && (($("#pathCenter").val() != undefined && $("#pathCenter").val() != "") || ($("#lensXstr").val() != "" && $("#lensYstr").val() != "")))
+
+            {
                 $("#lensAstr").val($("#lensAstr").val().replace(".", ","));
                 $("#lensBstr").val($("#lensBstr").val().replace(".", ","));
+                $("#lensXstr").val($("#lensXstr").val().replace(".", ","));
+                $("#lensYstr").val($("#lensYstr").val().replace(".", ","));
                 return true;
             }
             else
             {
-                $("#lensprojerror").show();
+                if ($("#pathProj").val() == undefined || $("#pathProj").val() == "")
+                    $("#lensprojerror").show();
+                if ($("#pathCenter").val() != undefined || $("#pathCenter").val() != "")
+                    $("#lenscentererror").show();
                 return false;
             }
         });

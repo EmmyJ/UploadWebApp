@@ -210,6 +210,16 @@
             <div class="row clearfix">
                 <div class="col-md-4">
                     <label class="display-label">
+                        @Html.DisplayNameFor(model => model.cameraSetup.name)
+                    </label>
+                </div>
+                <div class="display-field col-md-8">
+                    @Html.DisplayFor(model => model.cameraSetup.name)
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="col-md-4">
+                    <label class="display-label">
                         @Html.DisplayNameFor(model => model.cameraSetup.cameraType)
                     </label>
                 </div>

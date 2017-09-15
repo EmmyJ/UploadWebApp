@@ -10,6 +10,9 @@ namespace UploadWebapp.Models
     public class CameraSetup
     {
         public int ID { get; set; }
+        [Required]
+        [DisplayName("Name")]
+        public string name { get; set; }
         public int userID { get; set; }
         [Required]
         [DisplayName("Camera Type")]
@@ -47,7 +50,7 @@ namespace UploadWebapp.Models
         [DisplayName("Processed")]
         public bool processed { get; set; }
 
-        [Required]
+        //[Required]
         [DisplayName("Center Calibration File")]
         public string pathCenter { get; set; }
         //[Required]
@@ -59,5 +62,7 @@ namespace UploadWebapp.Models
         public string title { get; set; }
         public string lensAstr { get; set; }
         public string lensBstr { get; set; }
+        public string lensXstr { get; set; }
+        public string lensYstr { get; set; }
     }
 }

@@ -360,7 +360,7 @@ namespace UploadWebapp.Controllers
                         fName = file.FileName;
                         if (!UserDA.CurrentUserFree)
                         {
-                            plotname = fName.Substring(16, 1);
+                            plotname = fName.Substring(14, 4);
                             plotID = plotList.Find(p => p.name == plotname).ID;
                             plotset = uploadSet.plotSets.Find(p => p.plotID == plotID);
                             if (plotset == null)
@@ -618,13 +618,33 @@ namespace UploadWebapp.Controllers
                     bool isExists = System.IO.Directory.Exists(pathString);
                     if (!isExists)
                         System.IO.Directory.CreateDirectory(pathString);
-                    var path = string.Format("{0}/{1}", pathString, "centercalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
-                    pathCenter.SaveAs(path);
-                    cameraSetup.pathCenter = path;
+
+
+                    if (pathCenter != null)
+                    {
+                        var path = string.Format("{0}/{1}", pathString, "centercalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".csv");
+                        pathCenter.SaveAs(path);
+                        cameraSetup.pathCenter = path;
+                        cameraSetup.lensX = 0;
+                        cameraSetup.lensY = 0;
+                    }
+                    else
+                    {
+                        cameraSetup.pathCenter = "no";
+                        try
+                        {
+                            cameraSetup.lensX = int.Parse(cameraSetup.lensXstr);
+                            cameraSetup.lensY = int.Parse(cameraSetup.lensYstr);
+                        }
+                        catch (Exception)
+                        {
+                            return View(cameraSetup);
+                        }
+                    }
 
                     if (pathProj != null)
                     {
-                        path = string.Format("{0}/{1}", pathString, "lenscalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".cvs");
+                        var path = string.Format("{0}/{1}", pathString, "lenscalibration_" + DateTime.Today.Date.ToString("yyyyMMdd") + ".csv");
                         pathProj.SaveAs(path);
                         cameraSetup.pathProj = path;
                         cameraSetup.lensA = 0;
