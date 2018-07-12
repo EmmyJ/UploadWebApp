@@ -160,7 +160,7 @@ namespace UploadWebapp.DB
                 sites = result.HasRows ? FromSiteData(result) : null;
                 db.Dispose();
             }
-            return sites;
+            return sites.OrderBy(s => s.siteCode).ToList();
         }
 
         public static Site SiteDataToSite(SiteData data)

@@ -99,7 +99,7 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 List<string> dataList = ImageDA.GetUploadSetData(setID);
-                string fileContent = String.Join("\n", dataList).Replace('.', ',');
+                string fileContent = String.Join("\n", dataList);//.Replace('.', ',');
                 if (!string.IsNullOrEmpty(fileContent))
                 {
                     // Get the bytes for the dynamic string content
