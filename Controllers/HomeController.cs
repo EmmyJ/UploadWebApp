@@ -37,7 +37,8 @@ namespace UploadWebapp.Controllers
                 ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
                 //UploadWebapp.Models.User user = UserDA.GetByUserID(UserDA.CurrentUserId);
                 User user = UserDA.CurrentUser;
-                user.sites = UserDA.GetSiteListForUser(UserDA.CurrentUserId);
+                if (!user.isFreeUser)
+                    user.sites = UserDA.GetSiteListForUser(UserDA.CurrentUserId);
                 user.cameraSetups = ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId);
 
                 HomeModel homeModel = new HomeModel();
