@@ -98,7 +98,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [LAI_App].[dbo].[utenti] WHERE USERNAME='" + username + "'");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [utenti] WHERE USERNAME='" + username + "'");
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -108,7 +108,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [LAI_App].[dbo].[utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -119,7 +119,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[utenti] ([NAME], [EMAIL], [USERNAME], [PWD], [freeUser]) VALUES (@NAME, @EMAIL, @USERNAME, @PWD, @freeUser);SELECT IDENT_CURRENT('[LAI_App].[dbo].[utenti]');"
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [utenti] ([NAME], [EMAIL], [USERNAME], [PWD], [freeUser]) VALUES (@NAME, @EMAIL, @USERNAME, @PWD, @freeUser);SELECT IDENT_CURRENT('[utenti]');"
                 , new SqlParameter("NAME", register.UserName)
                 , new SqlParameter("EMAIL", register.Email)
                 , new SqlParameter("USERNAME", register.UserName)
@@ -134,7 +134,7 @@ namespace UploadWebapp.DB
         //{
         //    db = new DB();
 
-        //    var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD] FROM [LAI_App].[dbo].[utenti] WHERE ID=" + ID);
+        //    var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD] FROM [utenti] WHERE ID=" + ID);
         //    User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
         //    db.Dispose();
         //    return user;
@@ -156,7 +156,7 @@ namespace UploadWebapp.DB
             else
             {
                 db = new DB();
-                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME] FROM [LAI_App].[dbo].[sites] s LEFT JOIN [LAI_App].[dbo].[usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
+                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
                 sites = result.HasRows ? FromSiteData(result) : null;
                 db.Dispose();
             }
@@ -186,7 +186,7 @@ namespace UploadWebapp.DB
             else
             {
                 db = new DB();
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [LAI_App].[dbo].[sites] WHERE ID = " + siteID);
+                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE ID = " + siteID);
                 site = result.HasRows ? FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
             }

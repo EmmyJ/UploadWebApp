@@ -22,7 +22,7 @@ namespace UploadWebapp.DB
                 else
                 {
                     DB db = new DB();
-                    SqlDataReader result = db.ExecuteReader("SELECT MAX(ID) as ID FROM [LAI_App].[dbo].[uploadSet] WHERE USERID = " + UserDA.CurrentUserId);
+                    SqlDataReader result = db.ExecuteReader("SELECT MAX(ID) as ID FROM [uploadSet] WHERE USERID = " + UserDA.CurrentUserId);
                     result.Read();
                     id = result.GetInt32(0);
                 }
@@ -47,7 +47,7 @@ namespace UploadWebapp.DB
         public static List<string> GetUploadSetData(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("select r.data from [LAI_App].[dbo].results r left join [LAI_App].[dbo].plotSets ps on r.plotSetID = ps.id where ps.uploadSetID = " + uploadSetID);
+            var result = db.ExecuteReader("select r.data from results r left join plotSets ps on r.plotSetID = ps.id where ps.uploadSetID = " + uploadSetID);
             List<string> results = new List<string>();
             while (result.Read())
             {
@@ -63,7 +63,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             UploadSet uploadSet = new UploadSet();
-            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName] FROM [LAI_App].[dbo].[uploadSet] WHERE ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName] FROM [uploadSet] WHERE ID = " + uploadSetID);
             uploadSet = FromSetData(result).FirstOrDefault();
             if (!UserDA.CurrentUserFree)
             {
@@ -74,26 +74,26 @@ namespace UploadWebapp.DB
                 }
                 else
                 {
-                    result = db.ExecuteReader("SELECT [site] FROM [LAI_App].[dbo].[sites] WHERE ID =" + uploadSet.siteID);
+                    result = db.ExecuteReader("SELECT [site] FROM [sites] WHERE ID =" + uploadSet.siteID);
                     result.Read();
                     uploadSet.siteCode = result.GetString(0);
                 }
             }
             result.Close();
 
-            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name] FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
+            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name] FROM [cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
-            //SELECT [ID], [uploadSetID], [plotID] FROM [LAI_App].[dbo].[plotSets] WHERE uploadSetID = 
-            result = db.ExecuteReader("SELECT ps.[ID], ps.[uploadSetID], ps.[plotID], p.name, p.slope, p.slopeAspect FROM [LAI_App].[dbo].[plotSets] ps LEFT JOIN [LAI_App].[dbo].[plots]  p on ps.plotID = p.ID WHERE uploadSetID = " + uploadSetID + " ORDER BY p.name");
+            //SELECT [ID], [uploadSetID], [plotID] FROM [plotSets] WHERE uploadSetID = 
+            result = db.ExecuteReader("SELECT ps.[ID], ps.[uploadSetID], ps.[plotID], p.name, p.slope, p.slopeAspect FROM [plotSets] ps LEFT JOIN [plots]  p on ps.plotID = p.ID WHERE uploadSetID = " + uploadSetID + " ORDER BY p.name");
             uploadSet.plotSets = FromPlotSetData(result);
 
             foreach (PlotSet plot in uploadSet.plotSets)
             {
-                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path],[dngFilename] ,[dngPath] FROM [LAI_App].[dbo].[images] WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path],[dngFilename] ,[dngPath] FROM [images] WHERE plotSetID = " + plot.ID);
                 plot.images = FromImageData(result);
 
-                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[processed] ,[LAI] ,[LAI_SD] ,[resultLog], [data] FROM [LAI_App].[dbo].[results] WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[processed] ,[LAI] ,[LAI_SD] ,[resultLog], [data] FROM [results] WHERE plotSetID = " + plot.ID);
 
                 plot.resultsSet = FromResultsData(result).FirstOrDefault();
             }
@@ -107,8 +107,8 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             List<PlotSet> plotSets = new List<PlotSet>();
-            //SELECT p.[ID] ,p.[uploadSetID],p.[plotname],r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data] FROM [LAI_App].[dbo].[plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id where p.[uploadSetID] = 
-            var result = db.ExecuteReader("SELECT p.[ID] ,p.[uploadSetID],pl.name, r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data], pl.ID FROM [LAI_App].[dbo].[plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id left join plots pl on p.plotID = pl.ID where p.[uploadSetID] = " + uploadSetID);
+            //SELECT p.[ID] ,p.[uploadSetID],p.[plotname],r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data] FROM [plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id where p.[uploadSetID] = 
+            var result = db.ExecuteReader("SELECT p.[ID] ,p.[uploadSetID],pl.name, r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data], pl.ID FROM [plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id left join plots pl on p.plotID = pl.ID where p.[uploadSetID] = " + uploadSetID);
             plotSets = FromPlotResultsData(result);
             db.Dispose();
             return plotSets;
@@ -118,13 +118,13 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             List<UploadSet> list = new List<UploadSet>();
-            //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, r.LAI, r.LAI_SD, r.processed, us.slope, us.slopeAspect FROM [LAI_App].[dbo].[uploadSet] us LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID] LEFT JOIN [LAI_App].[dbo].[results] r on r.uploadSetID = us.ID WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
-            //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site FROM [LAI_App].[dbo].[uploadSet] us LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+            //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, r.LAI, r.LAI_SD, r.processed, us.slope, us.slopeAspect FROM [uploadSet] us LEFT JOIN [sites] s on s.ID = us.[siteID] LEFT JOIN [results] r on r.uploadSetID = us.ID WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+            //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site FROM [uploadSet] us LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
             //todo: italy
             if (UserDA.CurrentUserICOS)
             {
-                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]) 	FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [LAI_App].[dbo].[uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
+                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]) 	FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 //get sitecodes from italy
@@ -142,8 +142,8 @@ namespace UploadWebapp.DB
             }
             else
             {
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,	(SELECT count(r.[ID]) 	FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [LAI_App].[dbo].[uploadSet] us  LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName ORDER BY us.uploadTime DESC");
-                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [LAI_App].[dbo].[results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [LAI_App].[dbo].[uploadSet] us  LEFT JOIN [LAI_App].[dbo].[sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,	(SELECT count(r.[ID]) 	FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName ORDER BY us.uploadTime DESC");
+                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
                 db.Dispose();
             }
@@ -154,8 +154,8 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             //todo:italy nu alle setups van user
-            //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [LAI_App].[dbo].[cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [LAI_App].[dbo].[cameraSetup] c where deleted = 0 and c.userID = " + userID);
+            //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
+            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [cameraSetup] c where deleted = 0 and c.userID = " + userID);
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
@@ -165,7 +165,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [LAI_App].[dbo].[cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [cameraSetup] WHERE ID = " + cameraSetupID);
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -174,7 +174,7 @@ namespace UploadWebapp.DB
         public static bool DisableCameraSetup(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[cameraSetup] set [deleted] = 1 WHERE ID = " + cameraSetupID);
+            db.ExecuteScalar("UPDATE [cameraSetup] set [deleted] = 1 WHERE ID = " + cameraSetupID);
             db.Dispose();
             return true;
         }
@@ -182,7 +182,7 @@ namespace UploadWebapp.DB
         public static Plot GetPlotByName(string plotName, int SiteID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [LAI_App].[dbo].[plots] WHERE active = 1 AND name = '" + plotName + "' AND siteID = " + SiteID);
+            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND name = '" + plotName + "' AND siteID = " + SiteID);
             Plot plot = FromPlotData(result).FirstOrDefault();
             db.Dispose();
             return plot;
@@ -191,7 +191,7 @@ namespace UploadWebapp.DB
         public static List<Plot> GetPlotListForSite(int SiteID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [LAI_App].[dbo].[plots] WHERE active = 1 AND  siteID = " + SiteID);
+            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND  siteID = " + SiteID);
             List<Plot> plots = FromPlotData(result);
             db.Dispose();
             return plots;
@@ -212,7 +212,7 @@ namespace UploadWebapp.DB
         public static List<Species> GetSpeciesList(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT * FROM [LAI_App].[dbo].[species]");
+            var result = db.ExecuteReader("SELECT * FROM [species]");
             List<Species> species = FromSpeciesData(result);
             db.Dispose();
             return species;
@@ -220,7 +220,7 @@ namespace UploadWebapp.DB
         public static List<Ecosystem> GetEcosystemList(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT * FROM [LAI_App].[dbo].[ecosystems]");
+            var result = db.ExecuteReader("SELECT * FROM [ecosystems]");
             List<Ecosystem> ecosystems = FromEcosystemsData(result);
             db.Dispose();
             return ecosystems;
@@ -229,7 +229,7 @@ namespace UploadWebapp.DB
         public static List<Country> GetCountryList(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT * FROM [LAI_App].[dbo].[countries]");
+            var result = db.ExecuteReader("SELECT * FROM [countries]");
             List<Country> countries = FromCountryData(result);
             db.Dispose();
             return countries;
@@ -247,7 +247,7 @@ namespace UploadWebapp.DB
             }
             else
             {
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [LAI_App].[dbo].[sites] WHERE site = '" + siteCode + "'");
+                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE site = '" + siteCode + "'");
                 site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
             }
@@ -489,7 +489,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[fileUploads] ([siteID], [userID], [uploadDate], [operator], [filename], [path], [type]) VALUES (@siteID, @userID, @uploadDate, @operator, @filename, @path, @type);SELECT IDENT_CURRENT('[LAI_App].[dbo].[fileUploads]');"
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [fileUploads] ([siteID], [userID], [uploadDate], [operator], [filename], [path], [type]) VALUES (@siteID, @userID, @uploadDate, @operator, @filename, @path, @type);SELECT IDENT_CURRENT('[fileUploads]');"
                 , new SqlParameter("siteID", fileUpload.siteID)
                 , new SqlParameter("userID", fileUpload.userID)
                 , new SqlParameter("uploadDate", fileUpload.uploadDate)
@@ -504,7 +504,7 @@ namespace UploadWebapp.DB
             foreach (FileUploadPlot fileUploadPlot in fileUpload.fileUploadPlots)
             {
                 fileUploadPlot.fileUploadID = fileUpload.ID;
-                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[fileUploadPlots] ([plotID], [fileUploadID]) VALUES (@plotID, @fileUploadID);SELECT IDENT_CURRENT('[LAI_App].[dbo].[fileUploadPlots]');",
+                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [fileUploadPlots] ([plotID], [fileUploadID]) VALUES (@plotID, @fileUploadID);SELECT IDENT_CURRENT('[fileUploadPlots]');",
                     new SqlParameter("plotID", fileUploadPlot.plotID),
                     new SqlParameter("fileUploadID", fileUploadPlot.fileUploadID)
                     ));
@@ -513,7 +513,7 @@ namespace UploadWebapp.DB
                 foreach (AGBuploadDetail AGBdetail in fileUploadPlot.AGBdetails)
                 {
                     AGBdetail.fileUploadPlotID = fileUploadPlot.ID;
-                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[AGBuploadDetail] ([fileUploadPlotID], [treeNr], [DBH], [speciesID]) VALUES (@fileUploadPlotID, @treeNr, @DBH, @speciesID);SELECT IDENT_CURRENT('[LAI_App].[dbo].[AGBuploadDetail]');",
+                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [AGBuploadDetail] ([fileUploadPlotID], [treeNr], [DBH], [speciesID]) VALUES (@fileUploadPlotID, @treeNr, @DBH, @speciesID);SELECT IDENT_CURRENT('[AGBuploadDetail]');",
                         new SqlParameter("fileUploadPlotID", AGBdetail.fileUploadPlotID),
                         new SqlParameter("treeNr", AGBdetail.treeNr),
                         new SqlParameter("DBH", AGBdetail.DBH),
@@ -530,8 +530,8 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             int id;
-            //INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b], [x], [y], [name]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b, @x, @y, @name);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+            //INSERT INTO [cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b], [x], [y], [name]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b, @x, @y, @name);SELECT IDENT_CURRENT('[cameraSetup]');"
                    , new SqlParameter("userID", cameraSetup.userID)
                    , new SqlParameter("camType", cameraSetup.cameraType)
                    , new SqlParameter("camSerial", cameraSetup.cameraSerial)
@@ -562,7 +562,7 @@ namespace UploadWebapp.DB
             int id;
             if (uploadset.cameraSetup.ID == null || uploadset.cameraSetup.ID == 0)
             {
-                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[cameraSetup] ([camType],[camSerial],[lensType] ,[lensSerial] ,[x] ,[y] ,[a] ,[b], [maxRadius] )VALUES (@camType ,@camSerial ,@lensType ,@lensSerial,@x ,@y ,@a,@b,@maxRadius);SELECT IDENT_CURRENT('[LAI_App].[dbo].[cameraSetup]');"
+                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [cameraSetup] ([camType],[camSerial],[lensType] ,[lensSerial] ,[x] ,[y] ,[a] ,[b], [maxRadius] )VALUES (@camType ,@camSerial ,@lensType ,@lensSerial,@x ,@y ,@a,@b,@maxRadius);SELECT IDENT_CURRENT('[cameraSetup]');"
                    , new SqlParameter("camType", uploadset.cameraSetup.cameraType)
                    , new SqlParameter("camSerial", uploadset.cameraSetup.cameraSerial)
                    , new SqlParameter("lensType", uploadset.cameraSetup.lensType)
@@ -577,7 +577,7 @@ namespace UploadWebapp.DB
             }
 
             id = Convert.ToInt32(
-                db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[uploadSet] ([camSetupID],[siteID],[userID],[person],[uploadTime],[siteName]) VALUES (@camSetupID ,@siteID,@userID,@person,@uploadTime, @siteName);SELECT IDENT_CURRENT('[LAI_App].[dbo].[uploadSet]');",
+                db.ExecuteScalar("INSERT INTO [uploadSet] ([camSetupID],[siteID],[userID],[person],[uploadTime],[siteName]) VALUES (@camSetupID ,@siteID,@userID,@person,@uploadTime, @siteName);SELECT IDENT_CURRENT('[uploadSet]');",
                 new SqlParameter("camSetupID", uploadset.cameraSetup.ID),
                 new SqlParameter("siteID", uploadset.siteID.HasValue ? uploadset.siteID.Value : 0),
                 new SqlParameter("userID", uploadset.userID.ToString()),
@@ -592,19 +592,19 @@ namespace UploadWebapp.DB
             foreach (PlotSet plotset in uploadset.plotSets)
             {
                 plotset.uploadSetID = uploadset.ID;
-                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[plotSets]  ([uploadSetID] ,[plotID]) VALUES (@uploadSetID ,@plotID);SELECT IDENT_CURRENT('[LAI_App].[dbo].[plotSets]');",
+                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [plotSets]  ([uploadSetID] ,[plotID]) VALUES (@uploadSetID ,@plotID);SELECT IDENT_CURRENT('[plotSets]');",
                 new SqlParameter("uploadSetID", plotset.uploadSetID),
                 new SqlParameter("plotID", plotset.plotID)));
 
                 plotset.ID = id;
 
-                db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[results] ([plotSetID] ,[processed]) VALUES(@plotSetID ,@processed )",
+                db.ExecuteScalar("INSERT INTO [results] ([plotSetID] ,[processed]) VALUES(@plotSetID ,@processed )",
                 new SqlParameter("plotSetID", plotset.ID),
                 new SqlParameter("processed", false));
 
                 foreach (Image image in plotset.images)
                 {
-                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[images] ([plotSetID],[filename],[path])  VALUES (@plotSetID ,@filename ,@path);SELECT IDENT_CURRENT('[LAI_App].[dbo].[images]');",//, @dngFilename, @dngPath
+                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path])  VALUES (@plotSetID ,@filename ,@path);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
                         //,[dngFilename],[dngPath]
                     new SqlParameter("plotSetID", plotset.ID),
                     new SqlParameter("filename", image.filename),
@@ -627,7 +627,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[plots] ([siteID], [name], [insertDate], [insertUser], [active]) VALUES(@siteID, @name, @insertDate, @insertUser, @active);SELECT IDENT_CURRENT('[LAI_App].[dbo].[plots]');",
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [plots] ([siteID], [name], [insertDate], [insertUser], [active]) VALUES(@siteID, @name, @insertDate, @insertUser, @active);SELECT IDENT_CURRENT('[plots]');",
                     new SqlParameter("siteID", plot.siteID),
                     new SqlParameter("name", plot.name),
                     new SqlParameter("insertDate", DateTime.Now),
@@ -645,7 +645,7 @@ namespace UploadWebapp.DB
                 oPlot = GetPlotByName(plot.name, siteID.Value);
             if (oPlot == null || (oPlot != null && (oPlot.slope != plot.slope || oPlot.slopeAspect != plot.slopeAspect)))
             {
-                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [LAI_App].[dbo].[plots] ([siteID], [name], [slope], [slopeAspect], [insertDate], [insertUser], [active]) VALUES(@siteID, @name, @slope, @slopeAspect, @insertDate, @insertUser, @active);SELECT IDENT_CURRENT('[LAI_App].[dbo].[plots]');",
+                id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [plots] ([siteID], [name], [slope], [slopeAspect], [insertDate], [insertUser], [active]) VALUES(@siteID, @name, @slope, @slopeAspect, @insertDate, @insertUser, @active);SELECT IDENT_CURRENT('[plots]');",
                     new SqlParameter("siteID", siteID.HasValue ? siteID.Value : 0),
                     new SqlParameter("name", plot.name),
                     new SqlParameter("slope", plot.slope),
@@ -656,7 +656,7 @@ namespace UploadWebapp.DB
 
                 if (oPlot != null && (oPlot.slope != plot.slope || oPlot.slopeAspect != plot.slopeAspect))
                 {
-                    db.ExecuteScalar("UPDATE [LAI_App].[dbo].[plots] SET [active] = 0, [deleteDate] = @deleteDate, [deleteUser] = @deleteUser WHERE ID = @ID",
+                    db.ExecuteScalar("UPDATE [plots] SET [active] = 0, [deleteDate] = @deleteDate, [deleteUser] = @deleteUser WHERE ID = @ID",
                         new SqlParameter("deleteDate", DateTime.Now),
                         new SqlParameter("deleteUser", UserDA.CurrentUserId),
                         new SqlParameter("ID", oPlot.ID));
