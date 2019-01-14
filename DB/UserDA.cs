@@ -143,23 +143,23 @@ namespace UploadWebapp.DB
         public static List<Site> GetSiteListForUser(int userID, DB db = null)
         {
             List<Site> sites = new List<Site>();
-            if (CurrentUserICOS)
-            {
-                UserSiteService uss = new UserSiteService();
-                List<SiteData> datalist = uss.GetUserSites(userID).ToList();
-                foreach (SiteData data in datalist)
-                {
-                    Site s = SiteDataToSite(data);
-                    sites.Add(s);
-                }
-            }
-            else
-            {
+            //if (CurrentUserICOS)
+            //{
+            //    UserSiteService uss = new UserSiteService();
+            //    List<SiteData> datalist = uss.GetUserSites(userID).ToList();
+            //    foreach (SiteData data in datalist)
+            //    {
+            //        Site s = SiteDataToSite(data);
+            //        sites.Add(s);
+            //    }
+            //}
+            //else
+            //{
                 db = new DB();
                 var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
                 sites = result.HasRows ? FromSiteData(result) : null;
                 db.Dispose();
-            }
+            //}
             return sites.OrderBy(s => s.siteCode).ToList();
         }
 
@@ -177,19 +177,19 @@ namespace UploadWebapp.DB
         public static Site GetSiteByID(int siteID, DB db = null)
         {
             Site site = new Site();
-            if (CurrentUserICOS)
-            {
-                UserSiteService uss = new UserSiteService();
-                site.ID = siteID;
-                site.siteCode = uss.GetSiteCode(siteID);
-            }
-            else
-            {
+            //if (CurrentUserICOS)
+            //{
+            //    UserSiteService uss = new UserSiteService();
+            //    site.ID = siteID;
+            //    site.siteCode = uss.GetSiteCode(siteID);
+            //}
+            //else
+            //{
                 db = new DB();
                 var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE ID = " + siteID);
                 site = result.HasRows ? FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
-            }
+            //}
             return site;
         }
 

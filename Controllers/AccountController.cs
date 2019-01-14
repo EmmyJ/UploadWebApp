@@ -58,11 +58,11 @@ namespace UploadWebapp.Controllers
         {
             if (!string.IsNullOrEmpty(model.UserName) && !string.IsNullOrEmpty(model.Password))
             {
-                UserSiteService uss = new UserSiteService();
+                //UserSiteService uss = new UserSiteService();
                 User user;
-                UserData data = uss.getUserID(model.UserName, model.Password);
-                if (data.ID == null || data.ID == 0)
-                {
+                //UserData data = uss.getUserID(model.UserName, model.Password);
+                //if (data.ID == null || data.ID == 0)
+                //{
                     user = UserDA.GetByUsername(model.UserName);
                     if (user != null)
                         user.isICOSuser = false;
@@ -71,16 +71,16 @@ namespace UploadWebapp.Controllers
                         ModelState.AddModelError("", "This username is not in our system.");
                         return View(model);
                     }
-                }
-                else
-                {
-                    user = new User();
-                    user.ID = data.ID;
-                    user.name = data.name;
-                    user.pwd = model.Password;
-                    user.username = model.UserName;
-                    user.isICOSuser = true;
-                }
+                //}
+                //else
+                //{
+                //    user = new User();
+                //    user.ID = data.ID;
+                //    user.name = data.name;
+                //    user.pwd = model.Password;
+                //    user.username = model.UserName;
+                //    user.isICOSuser = true;
+                //}
                 if (user != null)
                 //if (Membership.ValidateUser(model.UserName, model.Password))
                 {

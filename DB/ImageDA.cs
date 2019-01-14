@@ -11,7 +11,7 @@ namespace UploadWebapp.DB
 {
     public class ImageDA
     {
-        public static UserSiteService uss = new UserSiteService();
+        //public static UserSiteService uss = new UserSiteService();
         public static int CurrentUploadSetId
         {
             get
@@ -67,17 +67,17 @@ namespace UploadWebapp.DB
             uploadSet = FromSetData(result).FirstOrDefault();
             if (!UserDA.CurrentUserFree)
             {
-                if (UserDA.CurrentUserICOS)
-                {
-                    //UserSiteService uss = new UserSiteService();
-                    uploadSet.siteCode = uss.GetSiteCode(uploadSet.siteID.Value);
-                }
-                else
-                {
+                //if (UserDA.CurrentUserICOS)
+                //{
+                //    //UserSiteService uss = new UserSiteService();
+                //    uploadSet.siteCode = uss.GetSiteCode(uploadSet.siteID.Value);
+                //}
+                //else
+                //{
                     result = db.ExecuteReader("SELECT [site] FROM [sites] WHERE ID =" + uploadSet.siteID);
                     result.Read();
                     uploadSet.siteCode = result.GetString(0);
-                }
+                //}
             }
             result.Close();
 
@@ -129,7 +129,7 @@ namespace UploadWebapp.DB
 
                 //get sitecodes from italy
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
-                List<SiteData> datalist = uss.GetUserSites(userID).ToList();
+                List<SiteData> datalist = GetUserSites(userID);
                 foreach (SiteData data in datalist)
                 {
                     sitelist.Add(data.ID, data.siteCode);
@@ -148,6 +148,30 @@ namespace UploadWebapp.DB
                 db.Dispose();
             }
             return list;
+        }
+
+        public static List<SiteData> GetUserSites(int userID)
+        {
+            DB db = new DB();
+            SqlDataReader rd;
+            List<SiteData> sites = new List<SiteData>();            
+
+            SiteData s;
+            rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
+            while (rd.Read())
+            {
+                s = new SiteData();
+                s.ID = rd.GetInt32(0);
+                s.siteCode = rd.IsDBNull(1) ? "" : rd.GetString(1);
+                s.name = rd.GetString(2);
+                s.title = string.Format("{0} ({1})", s.name, s.siteCode);
+
+                sites.Add(s);
+            }
+
+            rd.Close();
+
+            return sites;
         }
 
         public static List<CameraSetup> GetCameraSetupsForUser(int userID, DB db = null)
@@ -239,18 +263,18 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             Site site;
-            if (UserDA.CurrentUserICOS)
-            {
-                //UserSiteService uss = new UserSiteService();
-                SiteData data = uss.GetSiteByCode(siteCode);
-                site = UserDA.SiteDataToSite(data);
-            }
-            else
-            {
+            //if (UserDA.CurrentUserICOS)
+            //{
+            //    //UserSiteService uss = new UserSiteService();
+            //    SiteData data = uss.GetSiteByCode(siteCode);
+            //    site = UserDA.SiteDataToSite(data);
+            //}
+            //else
+            //{
                 var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE site = '" + siteCode + "'");
                 site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
-            }
+            //}
             return site;
         }
 

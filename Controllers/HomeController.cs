@@ -537,8 +537,8 @@ namespace UploadWebapp.Controllers
 
         public ActionResult Contact()
         {
-            UserSiteService uss = new UserSiteService();
-            ViewBag.Message = "Your contact page." + uss.HelloWorld();
+            //UserSiteService uss = new UserSiteService();
+            //ViewBag.Message = "Your contact page." + uss.HelloWorld();
             return View();
         }
 
