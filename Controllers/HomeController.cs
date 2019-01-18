@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -308,7 +309,7 @@ namespace UploadWebapp.Controllers
                 uploadSet.cameraSetup.lensY = int.Parse(Request.Params["lensY"]);
                 uploadSet.cameraSetup.lensA = double.Parse(Request.Params["lensA"]);
                 uploadSet.cameraSetup.lensB = double.Parse(Request.Params["lensB"]);
-                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);     
+                uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);
                 uploadSet.uploadTime = DateTime.Now;
                 uploadSet.userID = UserDA.CurrentUserId;
                 uploadSet.plotSets = new List<PlotSet>();
@@ -375,10 +376,10 @@ namespace UploadWebapp.Controllers
                         }
 
                         string pathString;
-                        if(!UserDA.CurrentUserFree)
-                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + site.siteCode + "/LAI"; 
+                        if (!UserDA.CurrentUserFree)
+                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + site.siteCode + "/LAI";
                         else
-                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + uploadSet.userID + "/" + uploadSet.siteName + "/LAI"; 
+                            pathString = ConfigurationManager.AppSettings["UploadFolder"].ToString() + uploadSet.userID + "/" + uploadSet.siteName + "/LAI";
 
                         var fileName1 = Path.GetFileName(file.FileName);
 
@@ -398,7 +399,7 @@ namespace UploadWebapp.Controllers
                     }
 
                 }
-                if(UserDA.CurrentUserFree)
+                if (UserDA.CurrentUserFree)
                     uploadSet.plotSets.Add(plotset);
                 uploadSet = ImageDA.SaveUploadSet(uploadSet);
                 ImageDA.CurrentUploadSetId = uploadSet.ID;
@@ -546,7 +547,10 @@ namespace UploadWebapp.Controllers
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
-                return View(ImageDA.GetUploadSetsByUserID(UserDA.CurrentUserId));
+                OverviewModel model = new OverviewModel();
+                model.uploadSets = ImageDA.GetUploadSetsByUserID(UserDA.CurrentUserId);
+                model.isETCuser = UserDA.CurrentUserETC;
+                return View(model);
             }
             else
                 return RedirectToAction("Login", "Account");
@@ -662,7 +666,7 @@ namespace UploadWebapp.Controllers
                         catch (Exception)
                         {
                             return View(cameraSetup);
-                        }                        
+                        }
                     }
 
                     cameraSetup = ImageDA.SaveCameraSetup(cameraSetup);
@@ -676,7 +680,7 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
-        
+
         public ActionResult DeleteCameraSetup(int cameraSetupID)
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
@@ -685,7 +689,87 @@ namespace UploadWebapp.Controllers
                 return View("CameraSetups", ImageDA.GetCameraSetupsForUser(UserDA.CurrentUserId));
             }
             else
-                return RedirectToAction("Login", "Account");           
+                return RedirectToAction("Login", "Account");
+        }
+
+        class laiData
+        {
+            public string filename { get; set; }
+            public double? LAI { get; set; }
+            public double? LAIe { get; set; }
+            public double? threshold { get; set; }
+            public double? clumping { get; set; }
+        }
+
+        public ActionResult GenerateQualityChecksForUploadSet(int setID)
+        {       
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0 && UserDA.CurrentUserETC)
+            {
+                UploadSet uploadSet = ImageDA.GetUploadSetByID(setID);
+                List<QualityCheck> qualityChecks = new List<QualityCheck>();
+
+                foreach(PlotSet plotSet in uploadSet.plotSets)
+                {
+                    List<Image> images = plotSet.images;
+                    List<laiData> lais = new List<laiData>();
+
+                    if (plotSet.resultsSet.processed) {
+                        string dataString = plotSet.resultsSet.data;
+                        string[] split = plotSet.resultsSet.data.Split('\n');
+                        for (int i = 1; i < split.Length; i++)
+                        {
+                            if (!string.IsNullOrEmpty(split[i])) { 
+                                string[] split2 = split[i].Split(',');
+                                laiData lai = new laiData();
+                                lai.filename = !string.IsNullOrEmpty(split2[0]) ? split2[0] : "";
+                                lai.LAI = !string.IsNullOrEmpty(split2[1]) ? double.Parse(split2[1], CultureInfo.InvariantCulture) : (double?)null;
+                                lai.LAIe = !string.IsNullOrEmpty(split2[2]) ? double.Parse(split2[2], CultureInfo.InvariantCulture) : (double?)null;
+                                lai.threshold = !string.IsNullOrEmpty(split2[3]) ? double.Parse(split2[3], CultureInfo.InvariantCulture) : (double?)null;
+                                lai.clumping = !string.IsNullOrEmpty(split2[4]) ? double.Parse(split2[4], CultureInfo.InvariantCulture) : (double?)null;
+
+                                lais.Add(lai);
+                            }
+                        }
+                    }
+
+                    foreach (Image image in images)
+                    {
+                        QualityCheck qc = new QualityCheck();
+                        qc.imageID = image.ID;
+                        qc.status = QCstatus.created;
+                        //qc.setupObjects = false;
+                        //qc.noForeignObjects = false;
+                        //qc.noRaindropsDirt = false;
+                        //qc.noLensRing = false;
+                        //qc.lighting = false;
+                        //qc.noOverexposure = false;
+
+                        var res = lais.Where(l => l.filename == image.filename);
+                        if (res.Any())
+                        {
+                            laiData lai = res.First();
+                            qc.LAI = lai.LAI;
+                            qc.LAIe = lai.LAIe;
+                            qc.threshold = lai.threshold;
+                            qc.clumping = lai.clumping;
+                        }
+                        //qc.ID = 
+                        ImageDA.insertQualityCheck(qc);
+                        //qualityChecks.Add(qc); 
+                    }
+                }
+                ImageDA.setUploadSetQualityCheck(setID);
+
+                return UploadSetQualityChecks(setID);
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult UploadSetQualityChecks(int setID)
+        {
+
+            return View();
         }
     }
 }

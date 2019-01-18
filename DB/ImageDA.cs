@@ -63,7 +63,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             UploadSet uploadSet = new UploadSet();
-            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName] FROM [uploadSet] WHERE ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName], [qualityCheck] FROM [uploadSet] WHERE ID = " + uploadSetID);
             uploadSet = FromSetData(result).FirstOrDefault();
             if (!UserDA.CurrentUserFree)
             {
@@ -124,7 +124,7 @@ namespace UploadWebapp.DB
             if (UserDA.CurrentUserICOS)
             {
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]) 	FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 //get sitecodes from italy
@@ -142,7 +142,7 @@ namespace UploadWebapp.DB
             }
             else
             {
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,	(SELECT count(r.[ID]) 	FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,(SELECT count(r.[ID]) 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName, us.[qualityCheck] FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName, us.[qualityCheck] ORDER BY us.uploadTime DESC");
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
                 db.Dispose();
@@ -295,6 +295,7 @@ namespace UploadWebapp.DB
                 s.hasDataLogs = data.GetInt32(7) > 0;
                 s.plotNames = data.IsDBNull(8) ? "" : data.GetString(8);
                 s.siteName = data.IsDBNull(9) ? "" : data.GetString(9);
+                s.qualityCheck = (data.GetBoolean(10));
                 //s.resultsSet = new ResultsSet();
                 //s.resultsSet.LAI = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 //s.resultsSet.LAI_SD = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
@@ -322,6 +323,7 @@ namespace UploadWebapp.DB
                 s.person = data.GetString(4);
                 s.uploadTime = data.GetDateTime(5);
                 s.siteName = data.GetString(6);
+                s.qualityCheck = data.GetBoolean(7);
                 //s.slope = data.IsDBNull(6) ? (double?)null : data.GetDouble(6);
                 //s.slopeAspect = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
 
@@ -693,6 +695,28 @@ namespace UploadWebapp.DB
 
             db.Dispose();
             return id;
+        }
+
+        public static int insertQualityCheck(QualityCheck qc, DB db = null)
+        {
+            db = new DB();
+            int id;
+
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [LAI], [LAIe], [threshold], [clumping]) VALUES (@imageID, @status , @LAI , @LAIe, @threshold , @clumping);SELECT IDENT_CURRENT('[qualityCheck]');",
+                    new SqlParameter("imageID", qc.imageID),
+                    new SqlParameter("status", qc.status),
+                    new SqlParameter("LAI", qc.LAI),
+                    new SqlParameter("LAIe", qc.LAIe),
+                    new SqlParameter("threshold", qc.threshold),
+                    new SqlParameter("clumping", qc.clumping)));
+
+            return id;
+        }
+
+        public static void setUploadSetQualityCheck(int setId, DB db = null)
+        {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [dbo].[uploadSet] SET [qualityCheck] = 1 WHERE ID = " +  setId);
         }
     }
 }

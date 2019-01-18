@@ -62,6 +62,23 @@ namespace UploadWebapp.DB
             }
         }
 
+        public static bool CurrentUserETC
+        {
+            get
+            {
+                bool id = false;
+                if (HttpContext.Current != null && HttpContext.Current.Session != null && HttpContext.Current.Session["ETCuser"] != null)
+                    bool.TryParse(HttpContext.Current.Session["ETCuser"].ToString(), out id);
+
+                return id;
+            }
+            set
+            {
+                if (HttpContext.Current.Session != null)
+                    HttpContext.Current.Session["ETCuser"] = value;
+            }
+        }
+
         public static bool CurrentUserFree
         {
             get
@@ -89,6 +106,7 @@ namespace UploadWebapp.DB
                 user.username = HttpContext.Current.Session["username"].ToString();
                 user.isICOSuser = bool.Parse(HttpContext.Current.Session["ICOSuser"].ToString());
                 user.isFreeUser = bool.Parse(HttpContext.Current.Session["FreeUser"].ToString());
+                user.isETCuser = bool.Parse(HttpContext.Current.Session["ETCuser"].ToString());
 
                 return user;
             }
@@ -98,7 +116,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [utenti] WHERE USERNAME='" + username + "'");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE USERNAME='" + username + "'");
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -108,7 +126,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -205,6 +223,7 @@ namespace UploadWebapp.DB
                 u.username = data.GetString(3);
                 u.pwd = data.GetString(4);
                 u.isFreeUser = data.IsDBNull(5) ? false : data.GetBoolean(5);
+                u.isETCuser = data.IsDBNull(6) ? false : data.GetBoolean(6);
 
                 result.Add(u);
             }

@@ -38,5 +38,7 @@ namespace UploadWebapp.Models
 
         [Display(Name = "Plots")]
         public string plotNames { get; set; }
+
+        public bool qualityCheck { get; set; }
     }
 }

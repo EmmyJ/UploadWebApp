@@ -26,6 +26,7 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -193,9 +194,11 @@
     <Compile Include="Models\FileUpload.cs" />
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\Image.cs" />
+    <Compile Include="Models\OverviewModel.cs" />
     <Compile Include="Models\Plot.cs" />
     <Compile Include="Models\PlotSet.cs" />
     <Compile Include="Models\Point.cs" />
+    <Compile Include="Models\QualityCheck.cs" />
     <Compile Include="Models\ResultsSet.cs" />
     <Compile Include="Models\Site.cs" />
     <Compile Include="Models\Species.cs" />
@@ -385,6 +388,7 @@
     <Content Include="Views\Home\CalibrateCenter.cshtml" />
     <Content Include="Views\Home\CreateCameraSetup.cshtml" />
     <Content Include="Views\Home\CameraSetups.cshtml" />
+    <Content Include="Views\Home\UploadSetQualityChecks.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

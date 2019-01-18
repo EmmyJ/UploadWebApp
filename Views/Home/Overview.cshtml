@@ -1,4 +1,4 @@
-﻿@model IEnumerable<UploadWebapp.Models.UploadSet>
+﻿@model UploadWebapp.Models.OverviewModel
 
 @{
     ViewBag.Title = "Overview";
@@ -10,22 +10,25 @@
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.siteID)
+            @Html.DisplayNameFor(model => model.uploadSets[0].siteID)
         </th>
-        <th>
-            @Html.DisplayNameFor(model => model.plotNames)
+        <th style="width:300px">
+            @Html.DisplayNameFor(model => model.uploadSets[0].plotNames)
         </th>        
         <th>
-            @Html.DisplayNameFor(model => model.person)
+            @Html.DisplayNameFor(model => model.uploadSets[0].person)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.uploadTime)
+            @Html.DisplayNameFor(model => model.uploadSets[0].uploadTime)
         </th>
         <th>Detail</th>
-        <th style="width:200px">Download Results</th>
+        <th >Download Results</th>@*style="width:200px"*@
+        @if (Model.isETCuser) {
+            <th>Quality Check</th> 
+        }
     </tr>
 
-@foreach (var item in Model) {
+@foreach (var item in Model.uploadSets) {
     <tr>
         <td>
             @if(item.siteID != 0){
@@ -53,6 +56,20 @@
                 @Html.ActionLink("Download results", "SetDownload", new { setID = item.ID })
             }
         </td>
+        @if (Model.isETCuser)
+        {
+            <td>
+                @if (item.qualityCheck)
+                {
+                    @Html.ActionLink("View", "UploadSetQualityChecks", new { setID = item.ID })
+                }
+                else
+                {
+                    @Html.ActionLink("Create", "GenerateQualityChecksForUploadSet", new { setID = item.ID })
+                }
+                @*@Html.DisplayFor(modelItem => item.qualityCheck)*@
+            </td>
+        }
     </tr>
 }
 </table>

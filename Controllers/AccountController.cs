@@ -105,6 +105,7 @@ namespace UploadWebapp.Controllers
                         Session["ICOSuser"] = user.isICOSuser;
                         Session["username"] = user.name;
                         Session["FreeUser"] = user.isFreeUser;
+                        Session["ETCuser"] = user.isETCuser;
                         //return Content(user.ID.ToString());
                         return RedirectToLocal(returnUrl);
                     }
@@ -142,6 +143,7 @@ namespace UploadWebapp.Controllers
             Session["ICOSuser"] = null;
             Session["username"] = null;
             Session["FreeUser"] = null;
+            Session["ETCuser"] = null;
 
             return RedirectToAction("Index", "Home");
         }
