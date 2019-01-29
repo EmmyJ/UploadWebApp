@@ -15,7 +15,6 @@ namespace UploadWebapp.Models
     public class QualityCheck
     {
         public int ID { get; set; }
-        public Image image { get; set; }
         public int imageID { get; set; }
         public bool setupObjects { get; set; }
         public string setupObjectsComments { get; set; }

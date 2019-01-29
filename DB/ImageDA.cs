@@ -709,7 +709,7 @@ namespace UploadWebapp.DB
                     new SqlParameter("LAIe", qc.LAIe),
                     new SqlParameter("threshold", qc.threshold),
                     new SqlParameter("clumping", qc.clumping)));
-
+            db.Dispose();
             return id;
         }
 
@@ -717,6 +717,125 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             db.ExecuteScalar("UPDATE [dbo].[uploadSet] SET [qualityCheck] = 1 WHERE ID = " +  setId);
+            db.Dispose();
+        }
+
+        public static List<QualityCheckListItem> getUploadSetQualityChecks(int setId, DB db = null)
+        {
+            db = new DB();
+            List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
+
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID where us.ID = " + setId);
+
+            while (data.Read()) {
+                QualityCheckListItem item = new QualityCheckListItem();
+                item.ID = data.GetInt32(0);
+                item.filename = data.GetString(1);
+                item.status = (QCstatus)data.GetByte(2);
+                item.uploadSetID = setId;
+                qcList.Add(item);
+            }
+
+            db.Dispose();
+
+            return qcList;
+        }
+
+        public static EditQualityCheckModel getQualityCheck(int checkID, DB db = null)
+        {
+            db = new DB();
+            EditQualityCheckModel qc = new EditQualityCheckModel();
+
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name] FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID  where qc.id = " + checkID);
+
+            qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
+
+            db.Dispose();
+
+            return qc;
+        }
+
+        public static List<EditQualityCheckModel> FromQualityCheckData(SqlDataReader data) {
+            var result = new List<EditQualityCheckModel>();
+            while (data.Read())
+            {
+                EditQualityCheckModel qcm = new EditQualityCheckModel();
+                QualityCheck qc = new QualityCheck();
+                CameraSetup cs = new CameraSetup();
+                Image i = new Image();
+
+                qc.ID = data.GetInt32(0);
+                qc.imageID = data.GetInt32(1);
+                qc.setupObjects = data.GetBoolean(2);
+                qc.setupObjectsComments = data.IsDBNull(3) ? null : data.GetString(3);
+                qc.noForeignObjects = data.GetBoolean(4);
+                qc.foreignObjectsComments = data.IsDBNull(5) ? null : data.GetString(5);
+                qc.noRaindropsDirt = data.GetBoolean(6);
+                qc.raindropsDirtComments = data.IsDBNull(7) ? null : data.GetString(7);
+                qc.noLensRing = data.GetBoolean(8);
+                qc.lighting = data.GetBoolean(9);
+                qc.lightingComments = data.IsDBNull(10) ? null : data.GetString(10);
+                qc.noOverexposure = data.GetBoolean(11);
+                qc.overexposureComments = data.IsDBNull(12) ? null : data.GetString(12);
+                qc.otherComments = data.IsDBNull(13) ? null : data.GetString(13);
+                qc.status = (QCstatus)data.GetByte(14);
+                qc.LAI = data.IsDBNull(15) ? (double?)null : data.GetDouble(15);
+                qc.LAIe = data.IsDBNull(16) ? (double?)null : data.GetDouble(16);
+                qc.threshold = data.IsDBNull(17) ? (double?)null : data.GetDouble(17);
+                qc.clumping = data.IsDBNull(18) ? (double?)null : data.GetDouble(18);
+                qcm.qualityCheck = qc;
+
+                i.ID = data.GetInt32(19);
+                i.filename = data.GetString(20);
+                i.path = data.GetString(21);
+                qcm.image = i;
+
+                cs.ID = data.GetInt32(22);
+                cs.userID = data.GetInt32(23);
+                cs.cameraType = data.IsDBNull(24) ? null : data.GetString(24);
+                cs.cameraSerial = data.IsDBNull(25) ? null : data.GetString(25);
+                cs.lensType = data.IsDBNull(26) ? null : data.GetString(26);
+                cs.lensSerial = data.IsDBNull(27) ? null : data.GetString(27);
+                cs.lensX = data.IsDBNull(28) ? 0 : data.GetInt32(28);
+                cs.lensY = data.IsDBNull(29) ? 0 : data.GetInt32(29);
+                cs.lensA = data.IsDBNull(30) ? 0 : data.GetDouble(30);
+                cs.lensB = data.IsDBNull(31) ? 0 : data.GetDouble(31);
+                cs.maxRadius = data.IsDBNull(32) ? 0 : data.GetInt32(32);
+                cs.pathCenter = data.IsDBNull(33) ? null : data.GetString(33);
+                cs.pathProj = data.IsDBNull(34) ? null : data.GetString(34);
+                cs.processed = data.GetBoolean(35);
+                cs.width = data.IsDBNull(36) ? 0 : data.GetInt32(36);
+                cs.height = data.IsDBNull(37) ? 0 : data.GetInt32(37);
+                cs.name = data.IsDBNull(39) ? null : data.GetString(39);
+                qcm.cameraSetup = cs;
+
+                result.Add(qcm);
+            }
+            data.Close();
+            return result;
+        }
+
+        public static QualityCheck SaveQualityCheck(QualityCheck qc, DB db = null) {
+            //UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID
+            db = new DB();
+            db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID",
+                    new SqlParameter("setupObjects", qc.setupObjects),
+                    new SqlParameter("setupObjectsComments", qc.setupObjectsComments ?? ""),
+                    new SqlParameter("noForeignObjects", qc.noForeignObjects),
+                    new SqlParameter("foreignObjectsComments", qc.foreignObjectsComments ?? ""),
+                    new SqlParameter("noRaindrops", qc.noRaindropsDirt),
+                    new SqlParameter("raindropsComments", qc.raindropsDirtComments ?? ""),
+                    new SqlParameter("noLensRing", qc.noLensRing),
+                    new SqlParameter("lighting", qc.lighting),
+                    new SqlParameter("lightingComments", qc.lightingComments ?? ""),
+                    new SqlParameter("noOverexposure", qc.noOverexposure),
+                    new SqlParameter("overexposureComments", qc.overexposureComments ?? ""),
+                    new SqlParameter("otherComments", qc.otherComments ?? ""),
+                    new SqlParameter("status", (int)qc.status),
+                    new SqlParameter("ID", qc.ID));
+
+            db.Dispose();
+            return qc;
         }
     }
 }

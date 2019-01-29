@@ -768,8 +768,30 @@ namespace UploadWebapp.Controllers
 
         public ActionResult UploadSetQualityChecks(int setID)
         {
+            List<QualityCheckListItem> model = ImageDA.getUploadSetQualityChecks(setID);
 
-            return View();
+            return View(model);
+        }
+
+        public ActionResult EditQualityCheck(int checkID, int setID)
+        {
+            EditQualityCheckModel model = ImageDA.getQualityCheck(checkID);
+            model.uploadSetID = setID;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult EditQualityCheck(EditQualityCheckModel qc) {
+            //todo: save
+            if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
+                qc.qualityCheck.status = QCstatus.pass;
+            else
+                qc.qualityCheck.status = QCstatus.fail;
+
+            ImageDA.SaveQualityCheck(qc.qualityCheck);
+
+            return RedirectToAction("UploadSetQualityChecks", new { setID = qc.uploadSetID });
         }
     }
 }

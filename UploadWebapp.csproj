@@ -190,6 +190,7 @@
     <Compile Include="Models\Country.cs" />
     <Compile Include="Models\CreateSiteModel.cs" />
     <Compile Include="Models\Ecosystem.cs" />
+    <Compile Include="Models\EditQualityCheckModel.cs" />
     <Compile Include="Models\FileUploadPlot.cs" />
     <Compile Include="Models\FileUpload.cs" />
     <Compile Include="Models\HomeModel.cs" />
@@ -199,6 +200,7 @@
     <Compile Include="Models\PlotSet.cs" />
     <Compile Include="Models\Point.cs" />
     <Compile Include="Models\QualityCheck.cs" />
+    <Compile Include="Models\QualityCheckListItem.cs" />
     <Compile Include="Models\ResultsSet.cs" />
     <Compile Include="Models\Site.cs" />
     <Compile Include="Models\Species.cs" />
@@ -389,6 +391,7 @@
     <Content Include="Views\Home\CreateCameraSetup.cshtml" />
     <Content Include="Views\Home\CameraSetups.cshtml" />
     <Content Include="Views\Home\UploadSetQualityChecks.cshtml" />
+    <Content Include="Views\Home\EditQualityCheck.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

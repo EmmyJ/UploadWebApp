@@ -1,0 +1,300 @@
+﻿@model UploadWebapp.Models.EditQualityCheckModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .qceditor label {
+        display: inline;
+    }
+
+    .qceditor .text-box {
+        display: block;
+        width: 100%;
+    }
+
+    .qceditor textarea {
+        width: 100%;
+    }
+
+    .qceditor .display-field {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+</style>
+
+
+<div class="col-md-12 ">
+    <h1>Quality Check</h1>
+</div>
+<form action="" method="post" enctype="multipart/form-data" id="qcform">
+    <div class="col-md-8 qceditor">
+        <h3>
+            @Model.image.filename.Substring(0, 6) @Model.image.filename.Substring(14, 4) @Model.image.filename.Substring(19, 3)
+            @Model.image.filename.Substring(29, 2)/@Model.image.filename.Substring(27, 2)/@Model.image.filename.Substring(23, 4)
+        </h3>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.setupObjects)
+            <label>Setup Objects</label>
+            @Html.EditorFor(model => model.qualityCheck.setupObjectsComments)
+        </div>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.noForeignObjects)
+            <label>No Foreign Objects</label>
+            @Html.EditorFor(model => model.qualityCheck.foreignObjectsComments)
+        </div>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.noRaindropsDirt)
+            <label>No Raindrops / Dirt / Light Scattering</label>
+            @Html.EditorFor(model => model.qualityCheck.raindropsDirtComments)
+        </div>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.noLensRing)
+            <label>No Lens Ring</label>
+        </div>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.lighting)
+            <label>Good Lighting Conditions</label>
+            @Html.EditorFor(model => model.qualityCheck.lightingComments)
+        </div>
+        <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.noOverexposure)
+            <label>No Overexposure</label>
+            @Html.EditorFor(model => model.qualityCheck.overexposureComments)
+        </div>
+        <div class="display-field col-md-12">
+            <label>Other Comments</label><br />
+            @Html.TextAreaFor(model => model.qualityCheck.otherComments)
+        </div>
+        <div class="display-field col-md-12">
+            <label>Status</label>
+            @*@{
+                switch ((int)Model.qualityCheck.status)
+                {
+                    case 0:*@
+            <text><h3 id="unverified" style="color:grey;">Unverified</h3></text>
+            @*break;
+                case 1:*@
+            <text><h3 id="pass" class="text-highlight">Pass</h3></text>
+            @*break;
+                case 2:*@
+            <text><h3 id="fail" class="text-additional">Fail</h3></text>
+            @*break;
+                    }
+                }*@<p>
+    <input type="submit" value="Save" class="button rounded fill-highlight" style="float:right" />
+</p>
+        </div>
+        @Html.HiddenFor(model => model.qualityCheck.ID)
+        @Html.HiddenFor(model => model.qualityCheck.imageID)
+        @Html.HiddenFor(model => model.uploadSetID)
+</form>
+    </div>
+
+<div class="col-md-4 ">
+    <h3 class="text-highlight">Image Data</h3>
+    <div class="row clearfix">
+        <div class="col-md-12">
+            <label class="display-label">
+                Filename
+            </label>
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="display-field col-md-12">
+            @Html.DisplayFor(model => model.image.filename)
+        </div>
+    </div>
+    <br />
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                LAI
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.LAI)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                LAIe
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.LAIe)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                Threshold
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.threshold)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                Clumping
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.clumping)
+        </div>
+
+    </div>
+
+    <h3 class="text-highlight">Camera Setup</h3>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.name)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.name)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.cameraType)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.cameraType)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.cameraSerial)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.cameraSerial)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensType)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensType)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensSerial)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensSerial)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensX)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensX)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensY)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensY)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensA)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensA)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.lensB)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.lensB)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                @Html.DisplayNameFor(model => model.cameraSetup.maxRadius)
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.cameraSetup.maxRadius)
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @{
+            switch ((int)Model.qualityCheck.status)
+            {
+                case 0:
+                        <text> $("#pass").hide(); $("#fail").hide();</text>
+                    break;
+                case 1:
+                        <text>$("#unverified").hide(); $("#fail").hide();</text>
+                        break;
+                    case 2:
+                        <text>$("#unverified").hide(); $("#pass").hide();</text>
+                        break;
+                }
+        }
+    });
+
+    $("input[type='checkbox']").change(function () {
+        var count = $("[type='checkbox']:checked").length;
+        var otherComments = $("#qualityCheck_otherComments").val();
+        $("#unverified").hide();
+        if (count < 6 || (otherComments != "" && otherComments != null)) {
+            $("#pass").hide();
+            $("#fail").show();
+        }
+        else {
+            $("#pass").show();
+            $("#fail").hide();
+        }
+    });
+
+    $("#qualityCheck_otherComments").change(function () {
+        var count = $("[type='checkbox']:checked").length;
+        var otherComments = $("#qualityCheck_otherComments").val();
+        $("#unverified").hide();
+        if (count < 6 || (otherComments != "" && otherComments != null)) {
+            $("#pass").hide();
+            $("#fail").show();
+        }
+        else {
+            $("#pass").show();
+            $("#fail").hide();
+        }
+    });
+</script>
+
+
