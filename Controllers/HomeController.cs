@@ -760,7 +760,7 @@ namespace UploadWebapp.Controllers
                 }
                 ImageDA.setUploadSetQualityCheck(setID);
 
-                return UploadSetQualityChecks(setID);
+                return RedirectToAction("UploadSetQualityChecks", new { setID = setID });
             }
             else
                 return RedirectToAction("Login", "Account");

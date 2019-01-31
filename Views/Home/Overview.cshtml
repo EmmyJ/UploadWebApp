@@ -18,6 +18,10 @@
         <th>
             @Html.DisplayNameFor(model => model.uploadSets[0].person)
         </th>
+        @if (Model.isETCuser)
+        {
+            <th>Uploader</th>
+        }
         <th>
             @Html.DisplayNameFor(model => model.uploadSets[0].uploadTime)
         </th>
@@ -44,6 +48,12 @@
         <td>
             @Html.DisplayFor(modelItem => item.person)
         </td>
+        @if (Model.isETCuser)
+        {
+            <td>
+                @Html.DisplayFor(modelItem => item.userName)
+            </td>
+        }
         <td>
             @Html.DisplayFor(modelItem => item.uploadTime)
         </td>

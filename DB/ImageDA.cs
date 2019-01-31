@@ -121,13 +121,19 @@ namespace UploadWebapp.DB
             //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, r.LAI, r.LAI_SD, r.processed, us.slope, us.slopeAspect FROM [uploadSet] us LEFT JOIN [sites] s on s.ID = us.[siteID] LEFT JOIN [results] r on r.uploadSetID = us.ID WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
             //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site FROM [uploadSet] us LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
             //todo: italy
-            if (UserDA.CurrentUserICOS)
+            if (!UserDA.CurrentUserFree)
             {
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],'-' as site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
+                string whereStr;
+                if (UserDA.CurrentUserETC)
+                    whereStr = "WHERE u.ETCuser = 1";
+                else
+                    whereStr = "WHERE us.userID = " + userID;
+
+                //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
-                //get sitecodes from italy
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
                 List<SiteData> datalist = GetUserSites(userID);
                 foreach (SiteData data in datalist)
@@ -142,7 +148,7 @@ namespace UploadWebapp.DB
             }
             else
             {
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,(SELECT count(r.[ID]) 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName, us.[qualityCheck] FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName, us.[qualityCheck] ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,(SELECT count(r.[ID]) 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName, us.[qualityCheck], '' FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName, us.[qualityCheck] ORDER BY us.uploadTime DESC");
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site , (SELECT count(r.[ID]) FROM [results] r left join LAI_App.dbo.plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
                 db.Dispose();
@@ -157,7 +163,11 @@ namespace UploadWebapp.DB
             List<SiteData> sites = new List<SiteData>();            
 
             SiteData s;
-            rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
+            if (UserDA.CurrentUserETC)
+                rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID LEFT JOIN utenti u on us.iduser = u.ID  WHERE u.ETCuser = 1 ORDER BY s.name;");
+            else
+                rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
+
             while (rd.Read())
             {
                 s = new SiteData();
@@ -296,6 +306,7 @@ namespace UploadWebapp.DB
                 s.plotNames = data.IsDBNull(8) ? "" : data.GetString(8);
                 s.siteName = data.IsDBNull(9) ? "" : data.GetString(9);
                 s.qualityCheck = (data.GetBoolean(10));
+                s.userName = data.IsDBNull(11) ? "" : data.GetString(11);
                 //s.resultsSet = new ResultsSet();
                 //s.resultsSet.LAI = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 //s.resultsSet.LAI_SD = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);

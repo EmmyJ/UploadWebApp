@@ -40,5 +40,7 @@ namespace UploadWebapp.Models
         public string plotNames { get; set; }
 
         public bool qualityCheck { get; set; }
+
+        public string userName { get; set;  }
     }
 }
