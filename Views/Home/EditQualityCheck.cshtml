@@ -248,6 +248,27 @@
             @Html.DisplayFor(model => model.cameraSetup.maxRadius)
         </div>
     </div>
+    <br /><br />
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                Date Modified
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.dateModified)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                Modified By
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.qualityCheck.userName)
+        </div>
+    </div>
 </div>
 
 <script>

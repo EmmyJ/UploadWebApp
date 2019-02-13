@@ -737,6 +737,8 @@ namespace UploadWebapp.Controllers
                         QualityCheck qc = new QualityCheck();
                         qc.imageID = image.ID;
                         qc.status = QCstatus.created;
+                        qc.dateModified = DateTime.Now;
+                        qc.userID = UserDA.CurrentUserId;
                         //qc.setupObjects = false;
                         //qc.noForeignObjects = false;
                         //qc.noRaindropsDirt = false;

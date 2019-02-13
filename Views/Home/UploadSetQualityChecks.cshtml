@@ -11,8 +11,10 @@
         <th>
             Filename
         </th>
+        <th>Date Modified</th>
+        <th>User</th>
         <th>
-           Status
+            Status
         </th>
         <th>            
         </th>
@@ -23,10 +25,13 @@
         <tr>            
             <td>
                 @Html.DisplayFor(modelItem => item.filename)
+            </td>            
+            <td>
+                @Html.DisplayFor(modelItem => item.dateModified)
             </td>
-            @*<td>
-                    @Html.DisplayFor(modelItem => item.userID)
-                </td>*@
+            <td>
+                @Html.DisplayFor(modelItem => item.userName)
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.status)
             </td>

@@ -713,13 +713,15 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [LAI], [LAIe], [threshold], [clumping]) VALUES (@imageID, @status , @LAI , @LAIe, @threshold , @clumping);SELECT IDENT_CURRENT('[qualityCheck]');",
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [LAI], [LAIe], [threshold], [clumping], [dateModified], [userID]) VALUES (@imageID, @status , @LAI , @LAIe, @threshold , @clumping, @dateModified, @userID);SELECT IDENT_CURRENT('[qualityCheck]');",
                     new SqlParameter("imageID", qc.imageID),
                     new SqlParameter("status", qc.status),
                     new SqlParameter("LAI", qc.LAI),
                     new SqlParameter("LAIe", qc.LAIe),
                     new SqlParameter("threshold", qc.threshold),
-                    new SqlParameter("clumping", qc.clumping)));
+                    new SqlParameter("clumping", qc.clumping),
+                    new SqlParameter("dateModified", qc.dateModified),
+                    new SqlParameter("userID", qc.userID)));
             db.Dispose();
             return id;
         }
@@ -736,14 +738,17 @@ namespace UploadWebapp.DB
             db = new DB();
             List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
 
-            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID where us.ID = " + setId);
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId);
 
             while (data.Read()) {
                 QualityCheckListItem item = new QualityCheckListItem();
                 item.ID = data.GetInt32(0);
                 item.filename = data.GetString(1);
                 item.status = (QCstatus)data.GetByte(2);
+                item.userName = data.GetString(3);
+                item.dateModified = data.GetDateTime(4);
                 item.uploadSetID = setId;
+                
                 qcList.Add(item);
             }
 
@@ -757,7 +762,7 @@ namespace UploadWebapp.DB
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name] FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID  where qc.id = " + checkID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID);
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 
@@ -794,6 +799,9 @@ namespace UploadWebapp.DB
                 qc.LAIe = data.IsDBNull(16) ? (double?)null : data.GetDouble(16);
                 qc.threshold = data.IsDBNull(17) ? (double?)null : data.GetDouble(17);
                 qc.clumping = data.IsDBNull(18) ? (double?)null : data.GetDouble(18);
+                qc.dateModified = data.GetDateTime(40);
+                qc.userID = data.GetInt32(41);
+                qc.userName = data.GetString(42);
                 qcm.qualityCheck = qc;
 
                 i.ID = data.GetInt32(19);
@@ -829,7 +837,7 @@ namespace UploadWebapp.DB
         public static QualityCheck SaveQualityCheck(QualityCheck qc, DB db = null) {
             //UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID
             db = new DB();
-            db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID",
+            db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status, [dateModified] = @dateModified, [userID] = @userID WHERE ID = @ID",
                     new SqlParameter("setupObjects", qc.setupObjects),
                     new SqlParameter("setupObjectsComments", qc.setupObjectsComments ?? ""),
                     new SqlParameter("noForeignObjects", qc.noForeignObjects),
@@ -843,6 +851,8 @@ namespace UploadWebapp.DB
                     new SqlParameter("overexposureComments", qc.overexposureComments ?? ""),
                     new SqlParameter("otherComments", qc.otherComments ?? ""),
                     new SqlParameter("status", (int)qc.status),
+                    new SqlParameter("dateModified", DateTime.Now),
+                    new SqlParameter("userID", UserDA.CurrentUserId),
                     new SqlParameter("ID", qc.ID));
 
             db.Dispose();

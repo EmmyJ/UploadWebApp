@@ -34,5 +34,9 @@ namespace UploadWebapp.Models
         public double? LAIe { get; set; }
         public double? threshold { get; set; }
         public double? clumping { get; set; }
+
+        public DateTime dateModified { get; set; }
+        public int userID { get; set; }
+        public string userName { get; set; }
     }
 }
