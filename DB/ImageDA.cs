@@ -59,6 +59,46 @@ namespace UploadWebapp.DB
 
         }
 
+        public static List<string> GetUploadSetQualityChecksData(int uploadSetID, DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,qc.[LAI] ,qc.[LAIe] ,qc.[threshold] ,qc.[clumping]   FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
+            List<string> data = new List<string>();
+            data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Other Reason Image Unfit,Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX");
+            string filename = null;
+            while (result.Read())
+            {
+                if (filename == null)
+                {
+                    filename = result.GetString(0).Substring(0, 7) + result.GetString(0).Substring(23, 8);
+                    data.Insert(0, filename);
+                }
+                string s = result.GetString(0);
+                s += "," + result.GetString(1);
+                s += "," + (result.GetBoolean(2) ? "OK" : "NOK");
+                s += "," + (result.IsDBNull(3) ? "" : result.GetString(3));
+                s += "," + (result.GetBoolean(4) ? "OK" : "NOK");
+                s += "," + (result.IsDBNull(5) ? "" : result.GetString(5));
+                s += "," + (result.GetBoolean(6) ? "OK" : "NOK");
+                s += "," + (result.IsDBNull(7) ? "" : result.GetString(7));
+                s += "," + (result.GetBoolean(8) ? "OK" : "NOK");
+                s += "," + (result.GetBoolean(9) ? "OK" : "NOK");
+                s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
+                s += "," + (result.GetBoolean(11) ? "OK" : "NOK");
+                s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
+                s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
+                s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
+                s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
+                s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
+                s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
+                s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+
+                data.Add(s);
+            }
+            result.Close();
+            return data;
+        }
+
         public static UploadSet GetUploadSetByID(int uploadSetID, DB db = null)
         {
             db = new DB();
@@ -131,7 +171,7 @@ namespace UploadWebapp.DB
                     whereStr = "WHERE us.userID = " + userID;
 
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
@@ -313,6 +353,9 @@ namespace UploadWebapp.DB
                 //s.resultsSet.processed = data.IsDBNull(9) ? false : data.GetBoolean(9);
                 //s.slope = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 //s.slopeAspect = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
+                s.QCcreated = data.GetInt32(12);
+                s.QCpass = data.GetInt32(13);
+                s.QCfail = data.GetInt32(14);
 
                 result.Add(s);
             }

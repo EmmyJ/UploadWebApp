@@ -42,5 +42,9 @@ namespace UploadWebapp.Models
         public bool qualityCheck { get; set; }
 
         public string userName { get; set;  }
+
+        public int QCcreated { get; set; }
+        public int QCpass { get; set; }
+        public int QCfail { get; set; }
     }
 }

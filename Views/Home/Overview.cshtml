@@ -69,16 +69,26 @@
         @if (Model.isETCuser)
         {
             <td>
-                @if (item.qualityCheck)
-                {
-                    @Html.ActionLink("View", "UploadSetQualityChecks", new { setID = item.ID })
-                }
-                else
-                {
-                    @Html.ActionLink("Create", "GenerateQualityChecksForUploadSet", new { setID = item.ID })
-                }
-                @*@Html.DisplayFor(modelItem => item.qualityCheck)*@
-            </td>
+                                @if (item.qualityCheck)
+                                {
+                                    <span style="color:gray">
+                                        @Html.DisplayFor(modelItem => item.QCcreated)
+                                    </span>
+                                    <span class="text-highlight">
+                                        @Html.DisplayFor(modelItem => item.QCpass, new { @class = "text-highlight" })
+                                    </span><span class="text-additional">
+                                            @Html.DisplayFor(modelItem => item.QCfail, new { @class = "text-additional" }) 
+                                        </span>
+                                        @Html.ActionLink("View", "UploadSetQualityChecks", new { setID = item.ID })
+                                    <text> </text>
+                                    @Html.ActionLink("Download", "DownloadUploadSetQualityChecks", new { setID = item.ID })
+                                }
+                                else
+                                {
+                                        @Html.ActionLink("Create", "GenerateQualityChecksForUploadSet", new { setID = item.ID })
+                                        }
+                                        @*@Html.DisplayFor(modelItem => item.qualityCheck)*@
+</td>
         }
     </tr>
 }

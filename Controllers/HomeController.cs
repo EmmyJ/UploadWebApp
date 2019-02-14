@@ -120,6 +120,30 @@ namespace UploadWebapp.Controllers
         }
         //protected internal virtual FileStreamResult File(Stream fileStream, string contentType, string fileDownloadName);
 
+        public ActionResult DownloadUploadSetQualityChecks(int setID)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                List<string> dataList = ImageDA.GetUploadSetQualityChecksData(setID);
+
+                
+                if (dataList.Count > 1)
+                {
+                    string fileName = "DHP_QualityCheck_" + dataList[0] + ".csv";
+                    dataList.RemoveAt(0);
+                    string fileContent = String.Join("\n", dataList);
+                    // Get the bytes for the dynamic string content
+                    var byteArray = Encoding.ASCII.GetBytes(fileContent);                    
+
+                    return File(byteArray, "text/csv", fileName);
+                }
+                else
+                    return RedirectToAction("Overview");
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
         public ActionResult SetDetails(int setID)
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
