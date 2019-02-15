@@ -801,15 +801,19 @@ namespace UploadWebapp.Controllers
 
         public ActionResult EditQualityCheck(int checkID, int setID)
         {
-            EditQualityCheckModel model = ImageDA.getQualityCheck(checkID);
-            model.uploadSetID = setID;
+            EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
+            
 
-            return View(model);
+            if (model != null) { 
+                return View(model);
+                model.uploadSetID = setID;
+            }
+            else
+                return RedirectToAction("UploadSetQualityChecks", new { setID = setID });
         }
 
         [HttpPost]
         public ActionResult EditQualityCheck(EditQualityCheckModel qc) {
-            //todo: save
             if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
                 qc.qualityCheck.status = QCstatus.pass;
             else
@@ -817,7 +821,7 @@ namespace UploadWebapp.Controllers
 
             ImageDA.SaveQualityCheck(qc.qualityCheck);
 
-            return RedirectToAction("UploadSetQualityChecks", new { setID = qc.uploadSetID });
+            return RedirectToAction("EditQualityCheck", new { checkID = qc.qualityCheck.ID + 1, setID = qc.uploadSetID });
         }
     }
 }

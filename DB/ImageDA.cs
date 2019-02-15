@@ -353,9 +353,12 @@ namespace UploadWebapp.DB
                 //s.resultsSet.processed = data.IsDBNull(9) ? false : data.GetBoolean(9);
                 //s.slope = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 //s.slopeAspect = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
-                s.QCcreated = data.GetInt32(12);
-                s.QCpass = data.GetInt32(13);
-                s.QCfail = data.GetInt32(14);
+                if (data.FieldCount > 12)
+                {
+                    s.QCcreated = data.GetInt32(12);
+                    s.QCpass = data.GetInt32(13);
+                    s.QCfail = data.GetInt32(14);
+                }
 
                 result.Add(s);
             }
@@ -781,7 +784,7 @@ namespace UploadWebapp.DB
             db = new DB();
             List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
 
-            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId);
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId + "ORDER BY qc.ID");
 
             while (data.Read()) {
                 QualityCheckListItem item = new QualityCheckListItem();
@@ -800,12 +803,12 @@ namespace UploadWebapp.DB
             return qcList;
         }
 
-        public static EditQualityCheckModel getQualityCheck(int checkID, DB db = null)
+        public static EditQualityCheckModel getQualityCheck(int checkID, int setID, DB db = null)
         {
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 

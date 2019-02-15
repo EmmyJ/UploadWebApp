@@ -81,7 +81,8 @@
             @*break;
                     }
                 }*@<p>
-    <input type="submit" value="Save" class="button rounded fill-highlight" style="float:right" />
+                       @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID })
+    <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
 </p>
         </div>
         @Html.HiddenFor(model => model.qualityCheck.ID)
