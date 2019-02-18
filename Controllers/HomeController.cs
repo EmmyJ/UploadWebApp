@@ -804,9 +804,9 @@ namespace UploadWebapp.Controllers
             EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
             
 
-            if (model != null) { 
-                return View(model);
+            if (model != null) {
                 model.uploadSetID = setID;
+                return View(model);
             }
             else
                 return RedirectToAction("UploadSetQualityChecks", new { setID = setID });

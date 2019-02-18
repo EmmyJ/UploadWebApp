@@ -4,45 +4,67 @@
         Layout = "~/Views/Shared/_Layout.cshtml";
     }
 
-<h1>Quality Checks</h1>
+    <h1>Quality Checks</h1>
 
-<table class="ovv" style="border-collapse: collapse; width: 1170px;">
-    <tr>
-        <th>
-            Filename
-        </th>
-        <th>Date Modified</th>
-        <th>User</th>
-        <th>
-            Status
-        </th>
-        <th>            
-        </th>
-    </tr>
+    <table class="ovv" style="border-collapse: collapse; width: 1170px;">
+        <tr>
+            <th>
+                Filename
+            </th>
+            <th>Date Modified</th>
+            <th>User</th>
+            <th>
+                Status
+            </th>
+            <th>
+            </th>
+        </tr>
 
-    @foreach (var item in Model)
-    {
-        <tr>            
-            <td>
-                @Html.DisplayFor(modelItem => item.filename)
-            </td>            
-            <td>
-                @Html.DisplayFor(modelItem => item.dateModified)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.userName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.status)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.filename)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.dateModified)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.userName)
+                </td>
+                <td>
+                    @if ((item.status) == UploadWebapp.Models.QCstatus.created)
+                    {
+                        <span style="color:gray">
+                            @Html.DisplayFor(modelItem => item.status)
+                        </span>
+                    }
+                    else
+                    {
+                        if (item.status == UploadWebapp.Models.QCstatus.pass)
+                        {
+                            <span class="text-highlight">
+                            @Html.DisplayFor(modelItem => item.status)
+                            </span>
+                        }
+                        else
+                        { 
+                            <span class="text-additional">
+                            @Html.DisplayFor(modelItem => item.status)
+                            
+                            </span>
+                        }
+                    }
+        </td>
             <td style="text-align:center">
-                
+
                 @Html.ActionLink("Edit", "EditQualityCheck", new { checkID = item.ID, setID = item.uploadSetID })
             </td>
         </tr>
-    }
+                    }
 
-</table>
+                </table>
+                <p>@Html.ActionLink("Download results", "DownloadUploadSetQualityChecks", new { setID = Model.First().uploadSetID })</p>
 
 
 
