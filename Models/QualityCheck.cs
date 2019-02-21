@@ -30,10 +30,12 @@ namespace UploadWebapp.Models
         public string otherComments { get; set; }
         public QCstatus status { get; set; }
 
-        public double? LAI { get; set; }
-        public double? LAIe { get; set; }
-        public double? threshold { get; set; }
-        public double? clumping { get; set; }
+        public Image image { get; set; }
+
+        //public double? LAI { get; set; }
+        //public double? LAIe { get; set; }
+        //public double? threshold { get; set; }
+        //public double? clumping { get; set; }
 
         public DateTime dateModified { get; set; }
         public int userID { get; set; }

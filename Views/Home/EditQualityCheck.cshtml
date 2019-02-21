@@ -113,7 +113,7 @@
             </label>
         </div>
         <div class="display-field col-md-6">
-            @Html.DisplayFor(model => model.qualityCheck.LAI)
+            @Html.DisplayFor(model => model.image.LAI)
         </div>
     </div>
     <div class="row clearfix">
@@ -123,7 +123,7 @@
             </label>
         </div>
         <div class="display-field col-md-6">
-            @Html.DisplayFor(model => model.qualityCheck.LAIe)
+            @Html.DisplayFor(model => model.image.LAIe)
         </div>
     </div>
     <div class="row clearfix">
@@ -133,7 +133,7 @@
             </label>
         </div>
         <div class="display-field col-md-6">
-            @Html.DisplayFor(model => model.qualityCheck.threshold)
+            @Html.DisplayFor(model => model.image.threshold)
         </div>
     </div>
     <div class="row clearfix">
@@ -143,7 +143,18 @@
             </label>
         </div>
         <div class="display-field col-md-6">
-            @Html.DisplayFor(model => model.qualityCheck.clumping)
+            @Html.DisplayFor(model => model.image.clumping)
+        </div>
+
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                Overexposure
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.image.overexposure)
         </div>
 
     </div>

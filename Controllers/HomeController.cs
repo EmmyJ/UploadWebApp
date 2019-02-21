@@ -126,14 +126,14 @@ namespace UploadWebapp.Controllers
             {
                 List<string> dataList = ImageDA.GetUploadSetQualityChecksData(setID);
 
-                
+
                 if (dataList.Count > 1)
                 {
                     string fileName = "DHP_QualityCheck_" + dataList[0] + ".csv";
                     dataList.RemoveAt(0);
                     string fileContent = String.Join("\n", dataList);
                     // Get the bytes for the dynamic string content
-                    var byteArray = Encoding.ASCII.GetBytes(fileContent);                    
+                    var byteArray = Encoding.ASCII.GetBytes(fileContent);
 
                     return File(byteArray, "text/csv", fileName);
                 }
@@ -723,26 +723,29 @@ namespace UploadWebapp.Controllers
             public double? LAIe { get; set; }
             public double? threshold { get; set; }
             public double? clumping { get; set; }
+            public double? overexposure { get; set; }
         }
 
         public ActionResult GenerateQualityChecksForUploadSet(int setID)
-        {       
+        {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0 && UserDA.CurrentUserETC)
             {
                 UploadSet uploadSet = ImageDA.GetUploadSetByID(setID);
                 List<QualityCheck> qualityChecks = new List<QualityCheck>();
 
-                foreach(PlotSet plotSet in uploadSet.plotSets)
+                foreach (PlotSet plotSet in uploadSet.plotSets)
                 {
                     List<Image> images = plotSet.images;
                     List<laiData> lais = new List<laiData>();
 
-                    if (plotSet.resultsSet.processed) {
+                    if (plotSet.resultsSet.processed)
+                    {
                         string dataString = plotSet.resultsSet.data;
                         string[] split = plotSet.resultsSet.data.Split('\n');
                         for (int i = 1; i < split.Length; i++)
                         {
-                            if (!string.IsNullOrEmpty(split[i])) { 
+                            if (!string.IsNullOrEmpty(split[i]))
+                            {
                                 string[] split2 = split[i].Split(',');
                                 laiData lai = new laiData();
                                 lai.filename = !string.IsNullOrEmpty(split2[0]) ? split2[0] : "";
@@ -750,6 +753,10 @@ namespace UploadWebapp.Controllers
                                 lai.LAIe = !string.IsNullOrEmpty(split2[2]) ? double.Parse(split2[2], CultureInfo.InvariantCulture) : (double?)null;
                                 lai.threshold = !string.IsNullOrEmpty(split2[3]) ? double.Parse(split2[3], CultureInfo.InvariantCulture) : (double?)null;
                                 lai.clumping = !string.IsNullOrEmpty(split2[4]) ? double.Parse(split2[4], CultureInfo.InvariantCulture) : (double?)null;
+                                if (split2.Length > 5)
+                                    lai.overexposure = !string.IsNullOrEmpty(split2[5]) ? double.Parse(split2[5], CultureInfo.InvariantCulture) : (double?)null;
+                                else
+                                    lai.overexposure = (double?)null;
 
                                 lais.Add(lai);
                             }
@@ -763,21 +770,23 @@ namespace UploadWebapp.Controllers
                         qc.status = QCstatus.created;
                         qc.dateModified = DateTime.Now;
                         qc.userID = UserDA.CurrentUserId;
-                        //qc.setupObjects = false;
-                        //qc.noForeignObjects = false;
-                        //qc.noRaindropsDirt = false;
-                        //qc.noLensRing = false;
-                        //qc.lighting = false;
-                        //qc.noOverexposure = false;
+                        qc.setupObjects = false;
+                        qc.noForeignObjects = false;
+                        qc.noRaindropsDirt = false;
+                        qc.noLensRing = false;
+                        qc.lighting = false;
+                        qc.noOverexposure = false;
+                        qc.image = image;
 
                         var res = lais.Where(l => l.filename == image.filename);
                         if (res.Any())
                         {
                             laiData lai = res.First();
-                            qc.LAI = lai.LAI;
-                            qc.LAIe = lai.LAIe;
-                            qc.threshold = lai.threshold;
-                            qc.clumping = lai.clumping;
+                            qc.image.LAI = lai.LAI;
+                            qc.image.LAIe = lai.LAIe;
+                            qc.image.threshold = lai.threshold;
+                            qc.image.clumping = lai.clumping;
+                            qc.image.overexposure = lai.overexposure;
                         }
                         //qc.ID = 
                         ImageDA.insertQualityCheck(qc);
@@ -794,34 +803,51 @@ namespace UploadWebapp.Controllers
 
         public ActionResult UploadSetQualityChecks(int setID)
         {
-            List<QualityCheckListItem> model = ImageDA.getUploadSetQualityChecks(setID);
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                List<QualityCheckListItem> model = ImageDA.getUploadSetQualityChecks(setID);
 
-            return View(model);
+                return View(model);
+            }
+            else
+                return RedirectToAction("Login", "Account");
         }
 
         public ActionResult EditQualityCheck(int checkID, int setID)
         {
-            EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
-            
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
 
-            if (model != null) {
-                model.uploadSetID = setID;
-                return View(model);
+
+                if (model != null)
+                {
+                    model.uploadSetID = setID;
+                    return View(model);
+                }
+                else
+                    return RedirectToAction("UploadSetQualityChecks", new { setID = setID });
             }
             else
-                return RedirectToAction("UploadSetQualityChecks", new { setID = setID });
+                return RedirectToAction("Login", "Account");
         }
 
         [HttpPost]
-        public ActionResult EditQualityCheck(EditQualityCheckModel qc) {
-            if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
-                qc.qualityCheck.status = QCstatus.pass;
+        public ActionResult EditQualityCheck(EditQualityCheckModel qc)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
+                    qc.qualityCheck.status = QCstatus.pass;
+                else
+                    qc.qualityCheck.status = QCstatus.fail;
+
+                ImageDA.SaveQualityCheck(qc.qualityCheck);
+
+                return RedirectToAction("EditQualityCheck", new { checkID = qc.qualityCheck.ID + 1, setID = qc.uploadSetID });
+            }
             else
-                qc.qualityCheck.status = QCstatus.fail;
-
-            ImageDA.SaveQualityCheck(qc.qualityCheck);
-
-            return RedirectToAction("EditQualityCheck", new { checkID = qc.qualityCheck.ID + 1, setID = qc.uploadSetID });
+                return RedirectToAction("Login", "Account");
         }
     }
 }

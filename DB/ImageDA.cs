@@ -62,9 +62,9 @@ namespace UploadWebapp.DB
         public static List<string> GetUploadSetQualityChecksData(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,qc.[LAI] ,qc.[LAIe] ,qc.[threshold] ,qc.[clumping]   FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure]   FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
             List<string> data = new List<string>();
-            data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Other Reason Image Unfit,Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX");
+            data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Other Reason Image Unfit,Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
             string filename = null;
             while (result.Read())
             {
@@ -73,25 +73,52 @@ namespace UploadWebapp.DB
                     filename = result.GetString(0).Substring(0, 7) + result.GetString(0).Substring(23, 8);
                     data.Insert(0, filename);
                 }
-                string s = result.GetString(0);
-                s += "," + result.GetString(1);
-                s += "," + (result.GetBoolean(2) ? "OK" : "NOK");
-                s += "," + (result.IsDBNull(3) ? "" : result.GetString(3));
-                s += "," + (result.GetBoolean(4) ? "OK" : "NOK");
-                s += "," + (result.IsDBNull(5) ? "" : result.GetString(5));
-                s += "," + (result.GetBoolean(6) ? "OK" : "NOK");
-                s += "," + (result.IsDBNull(7) ? "" : result.GetString(7));
-                s += "," + (result.GetBoolean(8) ? "OK" : "NOK");
-                s += "," + (result.GetBoolean(9) ? "OK" : "NOK");
-                s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
-                s += "," + (result.GetBoolean(11) ? "OK" : "NOK");
-                s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
-                s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
-                s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
-                s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
-                s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
-                s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
-                s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                string s;
+                if ((QCstatus)result.GetByte(14) == QCstatus.created) {
+                    s = result.GetString(0);
+                    s += "," + result.GetString(1);
+                    s += ",";
+                    s += "," + (result.IsDBNull(3) ? "" : result.GetString(3));
+                    s += ",";
+                    s += "," + (result.IsDBNull(5) ? "" : result.GetString(5));
+                    s += ",";
+                    s += "," + (result.IsDBNull(7) ? "" : result.GetString(7));
+                    s += ",";
+                    s += ",";
+                    s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
+                    s += ",";
+                    s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
+                    s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
+                    s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
+                    s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                }
+                else
+                {
+                    s = result.GetString(0);
+                    s += "," + result.GetString(1);
+                    s += "," + (result.GetBoolean(2) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(3) ? "" : result.GetString(3));
+                    s += "," + (result.GetBoolean(4) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(5) ? "" : result.GetString(5));
+                    s += "," + (result.GetBoolean(6) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(7) ? "" : result.GetString(7));
+                    s += "," + (result.GetBoolean(8) ? "OK" : "NOK");
+                    s += "," + (result.GetBoolean(9) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
+                    s += "," + (result.GetBoolean(11) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
+                    s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
+                    s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
+                    s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                }
 
                 data.Add(s);
             }
@@ -759,15 +786,24 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [LAI], [LAIe], [threshold], [clumping], [dateModified], [userID]) VALUES (@imageID, @status , @LAI , @LAIe, @threshold , @clumping, @dateModified, @userID);SELECT IDENT_CURRENT('[qualityCheck]');",
-                    new SqlParameter("imageID", qc.imageID),
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [dateModified], [userID]) VALUES (@imageID, @status , @dateModified, @userID);SELECT IDENT_CURRENT('[qualityCheck]');",// , [LAI], [LAIe], [threshold], [clumping] @LAI , @LAIe, @threshold , @clumping,
+                    new SqlParameter("imageID", qc.image.ID),
                     new SqlParameter("status", qc.status),
-                    new SqlParameter("LAI", qc.LAI),
-                    new SqlParameter("LAIe", qc.LAIe),
-                    new SqlParameter("threshold", qc.threshold),
-                    new SqlParameter("clumping", qc.clumping),
+                    //new SqlParameter("LAI", qc.LAI),
+                    //new SqlParameter("LAIe", qc.LAIe),
+                    //new SqlParameter("threshold", qc.threshold),
+                    //new SqlParameter("clumping", qc.clumping),
                     new SqlParameter("dateModified", qc.dateModified),
                     new SqlParameter("userID", qc.userID)));
+
+            db.ExecuteScalar("UPDATE [dbo].[images] SET [LAI] = @LAI,[LAIe] = @LAIe,[threshold] = @threshold,[clumping] = @clumping, [overexposure] = @overexposure WHERE ID = @ID",
+                new SqlParameter("LAI", (object)qc.image.LAI ?? DBNull.Value),
+                new SqlParameter("LAIe", (object)qc.image.LAIe ?? DBNull.Value),
+                new SqlParameter("threshold", (object)qc.image.threshold ?? DBNull.Value),
+                new SqlParameter("clumping", (object)qc.image.clumping ?? DBNull.Value),
+                new SqlParameter("overexposure", (object)qc.image.overexposure ?? DBNull.Value),
+                new SqlParameter("ID", qc.image.ID));
+
             db.Dispose();
             return id;
         }
@@ -791,7 +827,7 @@ namespace UploadWebapp.DB
                 item.ID = data.GetInt32(0);
                 item.filename = data.GetString(1);
                 item.status = (QCstatus)data.GetByte(2);
-                item.userName = data.GetString(3);
+                item.userName = data.IsDBNull(3) ? "" : data.GetString(3);
                 item.dateModified = data.GetDateTime(4);
                 item.uploadSetID = setId;
                 
@@ -808,7 +844,7 @@ namespace UploadWebapp.DB
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], qc.[LAI], qc.[LAIe], qc.[threshold], qc.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 
@@ -841,10 +877,11 @@ namespace UploadWebapp.DB
                 qc.overexposureComments = data.IsDBNull(12) ? null : data.GetString(12);
                 qc.otherComments = data.IsDBNull(13) ? null : data.GetString(13);
                 qc.status = (QCstatus)data.GetByte(14);
-                qc.LAI = data.IsDBNull(15) ? (double?)null : data.GetDouble(15);
-                qc.LAIe = data.IsDBNull(16) ? (double?)null : data.GetDouble(16);
-                qc.threshold = data.IsDBNull(17) ? (double?)null : data.GetDouble(17);
-                qc.clumping = data.IsDBNull(18) ? (double?)null : data.GetDouble(18);
+                i.LAI = data.IsDBNull(15) ? (double?)null : data.GetDouble(15);
+                i.LAIe = data.IsDBNull(16) ? (double?)null : data.GetDouble(16);
+                i.threshold = data.IsDBNull(17) ? (double?)null : data.GetDouble(17);
+                i.clumping = data.IsDBNull(18) ? (double?)null : data.GetDouble(18);
+                i.overexposure = data.IsDBNull(43) ? (double?)null : data.GetDouble(43);
                 qc.dateModified = data.GetDateTime(40);
                 qc.userID = data.GetInt32(41);
                 qc.userName = data.GetString(42);
@@ -873,6 +910,7 @@ namespace UploadWebapp.DB
                 cs.height = data.IsDBNull(37) ? 0 : data.GetInt32(37);
                 cs.name = data.IsDBNull(39) ? null : data.GetString(39);
                 qcm.cameraSetup = cs;
+
 
                 result.Add(qcm);
             }
