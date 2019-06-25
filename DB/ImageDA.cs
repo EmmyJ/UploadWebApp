@@ -94,7 +94,7 @@ namespace UploadWebapp.DB
                     s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
-                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(19)).ToString().Replace(",", ".");
                 }
                 else
                 {
@@ -117,7 +117,7 @@ namespace UploadWebapp.DB
                     s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
-                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
+                    s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(19)).ToString().Replace(",", ".");
                 }
 
                 data.Add(s);
