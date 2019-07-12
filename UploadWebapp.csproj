@@ -383,8 +383,6 @@
     <Content Include="Views\Home\FileUpload.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Web References\usersitesservice\UserSiteService.wsdl" />
-    <Content Include="Views\Home\PictureUploadCopy.cshtml" />
-    <Content Include="Views\Home\PictureUploadMinCopy.cshtml" />
     <Content Include="Views\Home\Manage.cshtml" />
     <Content Include="Views\Home\AddSite.cshtml" />
     <Content Include="Views\Home\CalibrateCenter.cshtml" />
@@ -392,6 +390,7 @@
     <Content Include="Views\Home\CameraSetups.cshtml" />
     <Content Include="Views\Home\UploadSetQualityChecks.cshtml" />
     <Content Include="Views\Home\EditQualityCheck.cshtml" />
+    <Content Include="Views\Home\ProcessImages.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

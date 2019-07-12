@@ -64,5 +64,7 @@ namespace UploadWebapp.Models
         public string lensBstr { get; set; }
         public string lensXstr { get; set; }
         public string lensYstr { get; set; }
+
+        public int? siteID { get; set; }
     }
 }

@@ -148,7 +148,7 @@ namespace UploadWebapp.DB
             }
             result.Close();
 
-            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name] FROM [cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
+            result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name] , [siteID] FROM [cameraSetup] WHERE ID = " + uploadSet.cameraSetup.ID);
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
             //SELECT [ID], [uploadSetID], [plotID] FROM [plotSets] WHERE uploadSetID = 
@@ -254,9 +254,14 @@ namespace UploadWebapp.DB
         public static List<CameraSetup> GetCameraSetupsForUser(int userID, DB db = null)
         {
             db = new DB();
+            SqlDataReader result;
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [cameraSetup] c where deleted = 0 and c.userID = " + userID);
+            if (UserDA.CurrentUserETC)
+                 result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID]  FROM [cameraSetup] c left join utenti u on c.userID = u.ID where deleted = 0 and u.ETCuser = 1");
+            else
+                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name], [siteID]  FROM [cameraSetup] c where deleted = 0 and c.userID = " + userID);
+
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
             db.Dispose();
@@ -266,7 +271,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name]  FROM [cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name], [siteID] FROM [cameraSetup] WHERE ID = " + cameraSetupID);
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -441,7 +446,7 @@ namespace UploadWebapp.DB
                     s.title = string.Format("{2}: {0} + {1}", s.cameraType, s.lensType, s.name);
                 else
                     s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
-
+                s.siteID = data.IsDBNull(14) ? (int?)null : data.GetInt32(14);
                 result.Add(s);
             }
             data.Close();

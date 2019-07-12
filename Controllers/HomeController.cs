@@ -53,37 +53,6 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
-        public ActionResult PictureUploadMinCopy()
-        {
-            return View();
-        }
-
-        public ActionResult PictureUploadCopy()
-        {
-            //if (UserDA.CurrentUserId == null || UserDA.CurrentUserId == 0)
-            //{
-            //    Session["UserId"] = 127;
-            //    Session["ICOSuser"] = true;
-            //    Session["username"] = "database";
-            //}
-            ViewBag.Message = "Modify this template to jump-start your ASP.NET MVC application.";
-            //UploadWebapp.Models.User user = UserDA.GetByUserID(UserDA.CurrentUserId);
-            User user = new User();
-            user.name = "database";
-            user.sites = UserDA.GetSiteListForUser(127);
-            user.cameraSetups = ImageDA.GetCameraSetupsForUser(127);
-
-            HomeModel homeModel = new HomeModel();
-            homeModel.user = user;
-            //homeModel.images = new List<Image>();
-            //homeModel.imageViewModel = new ImageViewModel();
-
-            return View(homeModel);
-            //}
-            //else
-            //    return RedirectToAction("Login", "Account");
-        }
-
         public ActionResult PictureUploadResult()
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
@@ -848,6 +817,126 @@ namespace UploadWebapp.Controllers
             }
             else
                 return RedirectToAction("Login", "Account");
+        }
+
+        public class ProcessImage {
+            public string filename { get; set; }
+            public string path { get; set; }
+            public string siteCode { get; set; }
+            public string plotName { get; set; }
+            public string location { get; set; }
+            public DateTime date { get; set; }
+            public string cameraSetupName { get; set; }
+
+            public int siteID { get; set; }
+            public int plotSetID { get; set; }
+        }
+
+        public class PlotsPerSite {
+            public int siteID { get; set; }
+            public List<Plot> plotsList { get; set; }
+        }
+
+        public ActionResult ProcessImages()
+        {
+            //https://stackoverflow.com/questions/17486205/call-an-url-with-scheduled-powershell-script
+            //TODO: try catch
+            List<SiteData> sites = ImageDA.GetUserSites(1);
+            List<PlotsPerSite> plotsPerSite = new List<PlotsPerSite>();
+            List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
+            List<UploadSet> uploadSets = new List<UploadSet>();
+            UploadSet us = new UploadSet();
+            DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["ProcessFolder"].ToString());
+            FileInfo[] Files = d.GetFiles();
+            List<String> res = new List<String>();
+
+            //create images
+            List<ProcessImage> procImages = new List<ProcessImage>();
+            foreach (FileInfo file in Files)
+            {
+                ProcessImage procIm = new ProcessImage();
+                procIm.filename = file.Name;
+                procIm.path = file.Directory.ToString();
+                procIm.siteCode = file.Name.Substring(0, 6);
+                procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
+                procIm.plotName = file.Name.Substring(14, 4);
+                procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                procIm.cameraSetupName = file.Name.Substring(11, 2);
+
+                procImages.Add(procIm);
+            }
+            //sort images
+            procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ThenBy(p => p.plotName).ToList();
+
+            //catch plotlist for each used site 
+            foreach (int s in procImages.Select(p => p.siteID).Distinct())
+            {
+                PlotsPerSite pps = new PlotsPerSite();
+                pps.siteID = s;
+                pps.plotsList = ImageDA.GetPlotListForSite(s);
+                plotsPerSite.Add(pps);
+            }
+
+            //process images
+            foreach(ProcessImage procIm in procImages)
+            {
+                //check if new uploadset is needed and create if so
+                if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().dateTaken != procIm.date)
+                {
+                    us = new UploadSet();
+                    us.siteCode = procIm.siteCode;
+                    us.siteID = procIm.siteID;
+                    us.siteName = procIm.siteCode;
+                    us.userID = 1;
+                    us.dateTaken = procIm.date;
+                    us.cameraSetup = cameraSetups.FirstOrDefault(c => c.siteID == us.siteID && c.name == procIm.cameraSetupName);
+                    us.plotSets = new List<PlotSet>();
+                    us.uploadTime = DateTime.Now;
+                    us.person = "processor";
+
+                    uploadSets.Add(us);
+                }
+                us = uploadSets.Last();
+                PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName);
+                if (ps == null)
+                {
+                    ps = new PlotSet();
+                    ps.uploadSetID = us.ID;
+                    ps.plotname = procIm.plotName;
+                    ps.images = new List<Image>();
+
+                    Plot plot = plotsPerSite.Find(p => p.siteID == us.siteID).plotsList.Find(p => p.name == procIm.plotName);
+                    if (plot == null) {
+                        plot = new Plot();
+                        plot.insertDate = DateTime.Now;
+                        plot.insertUser = 1;
+                        plot.name = procIm.plotName;
+                        plot.siteID = us.siteID.Value;
+                        plot.slope = 0;
+                        plot.slopeAspect = 0;
+                        //TODO: slope & slopaspect
+                        plot.ID = ImageDA.SavePlot(plot, null);
+                    }
+                    ps.plot = plot;
+                    ps.plotID = plot.ID;
+
+                    us.plotSets.Add(ps);
+                }
+
+                Image image = new Image();
+                image.filename = procIm.filename;
+                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/succes", procIm.filename));
+                image.path = System.IO.Path.Combine(procIm.path + "/succes", procIm.filename);
+                ps.images.Add(image);
+                res.Add(image.filename);
+            }
+
+            foreach (UploadSet u in uploadSets)
+            {
+                ImageDA.SaveUploadSet(u);
+            }
+
+            return View(res);
         }
     }
 }

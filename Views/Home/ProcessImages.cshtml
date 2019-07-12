@@ -1,0 +1,11 @@
+﻿@model IEnumerable<String>
+
+    @{
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    Following images were processed:<br /><br />
+
+    @foreach (var item in Model)
+    {
+                @item <br />
+    }
