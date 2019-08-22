@@ -282,6 +282,8 @@
             //nieuwe regex: /^[a-zA-Z]{2}-[a-zA-Z]{3}_DHP_[a-zA-Z0-9]{2}_[a-zA-Z]{2}[0-9]{2}_[a-zA-Z]{1}[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/
             //of stricter: 
             var re = /^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
+            //voor Fana 
+            //var re = /^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[a-zA-Z]{2}[a-zA-Z0-9]{1}[0-9]{1}_[0-9a-zA-Z]{1}[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
             if ((m = re.exec(file.name)) == null) {
                 $("#wrongfilenames").append(file.name + "<br/>");
                 $("#wrongfilenames").show();
@@ -377,6 +379,8 @@
                 //Check filename            only for ICOS user
                 //var re = /^[a-zA-Z]{2}-[a-zA-Z]{3}_[0-9]{8}_[a-zA-Z]{1}[0-9]{2}.[a-zA-Z0-9]{3}$/;
                 var re = /^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
+                // voor Fana
+                //var re = /^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[a-zA-Z]{2}[a-zA-Z0-9]{1}[0-9]{1}_[0-9a-zA-Z]{1}[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$/;
                 for (i = 0; i < files.length; i++) {
                     var m;
 

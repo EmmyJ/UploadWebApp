@@ -839,104 +839,175 @@ namespace UploadWebapp.Controllers
 
         public ActionResult ProcessImages()
         {
-            //https://stackoverflow.com/questions/17486205/call-an-url-with-scheduled-powershell-script
-            //TODO: try catch
-            List<SiteData> sites = ImageDA.GetUserSites(1);
-            List<PlotsPerSite> plotsPerSite = new List<PlotsPerSite>();
-            List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
-            List<UploadSet> uploadSets = new List<UploadSet>();
-            UploadSet us = new UploadSet();
-            DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["ProcessFolder"].ToString());
-            FileInfo[] Files = d.GetFiles();
-            List<String> res = new List<String>();
-
-            //create images
-            List<ProcessImage> procImages = new List<ProcessImage>();
-            foreach (FileInfo file in Files)
+            try
             {
-                ProcessImage procIm = new ProcessImage();
-                procIm.filename = file.Name;
-                procIm.path = file.Directory.ToString();
-                procIm.siteCode = file.Name.Substring(0, 6);
-                procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
-                procIm.plotName = file.Name.Substring(14, 4);
-                procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
-                procIm.cameraSetupName = file.Name.Substring(11, 2);
+                //https://stackoverflow.com/questions/17486205/call-an-url-with-scheduled-powershell-script
+                //TODO: try catch
+                List<SiteData> sites = ImageDA.GetUserSites(1);
+                List<PlotsPerSite> plotsPerSite = new List<PlotsPerSite>();
+                List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
+                List<UploadSet> uploadSets = new List<UploadSet>();
+                UploadSet us = new UploadSet();
+                DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["ProcessFolder"].ToString());
+                FileInfo[] Files = d.GetFiles();
+                List<String> res = new List<String>();
+                List<String> erStr = new List<String>();
 
-                procImages.Add(procIm);
-            }
-            //sort images
-            procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ThenBy(p => p.plotName).ToList();
+                bool error = false;
+                string erMes = "";
+                string pattern = "^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$";
+                Regex rg = new Regex(pattern);
 
-            //catch plotlist for each used site 
-            foreach (int s in procImages.Select(p => p.siteID).Distinct())
-            {
-                PlotsPerSite pps = new PlotsPerSite();
-                pps.siteID = s;
-                pps.plotsList = ImageDA.GetPlotListForSite(s);
-                plotsPerSite.Add(pps);
-            }
-
-            //process images
-            foreach(ProcessImage procIm in procImages)
-            {
-                //check if new uploadset is needed and create if so
-                if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().dateTaken != procIm.date)
+                //create images
+                List<ProcessImage> procImages = new List<ProcessImage>();
+                foreach (FileInfo file in Files)
                 {
-                    us = new UploadSet();
-                    us.siteCode = procIm.siteCode;
-                    us.siteID = procIm.siteID;
-                    us.siteName = procIm.siteCode;
-                    us.userID = 1;
-                    us.dateTaken = procIm.date;
-                    us.cameraSetup = cameraSetups.FirstOrDefault(c => c.siteID == us.siteID && c.name == procIm.cameraSetupName);
-                    us.plotSets = new List<PlotSet>();
-                    us.uploadTime = DateTime.Now;
-                    us.person = "processor";
+                    //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
+                    if (rg.IsMatch(file.Name))
+                    {
+                        ProcessImage procIm = new ProcessImage();
+                        procIm.filename = file.Name;
+                        procIm.path = file.Directory.ToString();
+                        procIm.siteCode = file.Name.Substring(0, 6);
+                        procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
+                        procIm.plotName = file.Name.Substring(14, 4);
+                        procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                        procIm.cameraSetupName = file.Name.Substring(11, 2);
 
-                    uploadSets.Add(us);
-                }
-                us = uploadSets.Last();
-                PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName);
-                if (ps == null)
-                {
-                    ps = new PlotSet();
-                    ps.uploadSetID = us.ID;
-                    ps.plotname = procIm.plotName;
-                    ps.images = new List<Image>();
-
-                    Plot plot = plotsPerSite.Find(p => p.siteID == us.siteID).plotsList.Find(p => p.name == procIm.plotName);
-                    if (plot == null) {
-                        plot = new Plot();
-                        plot.insertDate = DateTime.Now;
-                        plot.insertUser = 1;
-                        plot.name = procIm.plotName;
-                        plot.siteID = us.siteID.Value;
-                        plot.slope = 0;
-                        plot.slopeAspect = 0;
-                        //TODO: slope & slopaspect
-                        plot.ID = ImageDA.SavePlot(plot, null);
+                        procImages.Add(procIm);
                     }
-                    ps.plot = plot;
-                    ps.plotID = plot.ID;
+                    else
+                    {
+                        erStr.Add(string.Format("{0}: {1}", file.Name, "Wrong filename format."));
+                        try
+                        {
+                            System.IO.File.Move(System.IO.Path.Combine(file.Directory.ToString(), file.Name), System.IO.Path.Combine(file.Directory.ToString() + "/fail", file.Name));
+                        }
+                        catch { }
+                    }
+                }
+                //sort images
+                procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ThenBy(p => p.plotName).ToList();
 
-                    us.plotSets.Add(ps);
+                //catch plotlist for each used site 
+                foreach (int s in procImages.Select(p => p.siteID).Distinct())
+                {
+                    PlotsPerSite pps = new PlotsPerSite();
+                    pps.siteID = s;
+                    pps.plotsList = ImageDA.GetPlotListForSite(s);
+                    plotsPerSite.Add(pps);
                 }
 
-                Image image = new Image();
-                image.filename = procIm.filename;
-                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/succes", procIm.filename));
-                image.path = System.IO.Path.Combine(procIm.path + "/succes", procIm.filename);
-                ps.images.Add(image);
-                res.Add(image.filename);
-            }
+                
 
-            foreach (UploadSet u in uploadSets)
-            {
-                ImageDA.SaveUploadSet(u);
-            }
+                //process images
+                foreach (ProcessImage procIm in procImages)
+                {
+                    error = false;
+                    erMes = "";
 
-            return View(res);
+                    //check if camerasetup exists
+                    CameraSetup camSetup = cameraSetups.FirstOrDefault(c => c.siteID == procIm.siteID && c.name == procIm.cameraSetupName);
+                    if (camSetup == null)
+                    {
+                        error = true;
+                        erMes = string.Format("Camerasetup {0} for site {1} is missing.", procIm.cameraSetupName, procIm.siteCode);
+                    }
+
+                    else {
+                        //check if new uploadset is needed and create if so
+                        if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().dateTaken != procIm.date)
+                        {
+                            us = new UploadSet();
+                            us.siteCode = procIm.siteCode;
+                            us.siteID = procIm.siteID;
+                            us.siteName = procIm.siteCode;
+                            us.userID = 1;
+                            us.dateTaken = procIm.date;
+                            us.cameraSetup = camSetup;
+                            us.plotSets = new List<PlotSet>();
+                            us.uploadTime = DateTime.Now;
+                            us.person = "processor";
+
+                            uploadSets.Add(us);
+                        }
+                        us = uploadSets.Last();
+                        PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName);
+                        if (ps == null)
+                        {
+                            ps = new PlotSet();
+                            ps.uploadSetID = us.ID;
+                            ps.plotname = procIm.plotName;
+                            ps.images = new List<Image>();
+
+                            Plot plot = plotsPerSite.Find(p => p.siteID == us.siteID).plotsList.Find(p => p.name == procIm.plotName);
+                            if (plot == null)
+                            {
+                                plot = new Plot();
+                                plot.insertDate = DateTime.Now;
+                                plot.insertUser = 1;
+                                plot.name = procIm.plotName;
+                                plot.siteID = us.siteID.Value;
+                                plot.slope = 0;
+                                plot.slopeAspect = 0;
+                                //TODO: slope & slopaspect
+                                plot.ID = ImageDA.SavePlot(plot, null);
+                            }
+                            ps.plot = plot;
+                            ps.plotID = plot.ID;
+
+                            us.plotSets.Add(ps);
+                        }
+
+                        //if (!error)
+                        {
+                            Image image = new Image();
+                            image.filename = procIm.filename;
+                            try
+                            {
+                                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/succes", procIm.filename));
+                            }
+                            catch { }
+                                image.path = System.IO.Path.Combine(procIm.path + "/succes", procIm.filename); 
+                            ps.images.Add(image);
+                            res.Add(string.Format("{0}: {1}", image.filename, "succes"));
+                        }
+                    }
+                    //else
+                    if(error)
+                    {
+                        Image image = new Image();
+                        image.filename = procIm.filename;
+                        try
+                        {
+                            System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/fail", procIm.filename));
+                        }
+                        catch { }
+                        image.path = System.IO.Path.Combine(procIm.path + "/fail", procIm.filename);
+
+                        erStr.Add(string.Format("{0}: {1}", image.filename, erMes));
+                    }
+                }
+
+                foreach (UploadSet u in uploadSets)
+                {
+                    ImageDA.SaveUploadSet(u);
+                }
+
+                if (erStr.Count > 0)
+                {
+                    res.Add("");
+                    res.Add("Following images were not processed:");
+                    res.Add("");
+                    foreach (string e in erStr)
+                    { res.Add(e); }
+                }
+
+                return View(res);
+            }
+            catch (Exception e){
+                return View(e.ToString());
+            }
         }
     }
 }
