@@ -257,10 +257,12 @@ namespace UploadWebapp.DB
             SqlDataReader result;
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
-            if (UserDA.CurrentUserETC)
-                 result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID]  FROM [cameraSetup] c left join utenti u on c.userID = u.ID where deleted = 0 and u.ETCuser = 1");
-            else
-                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name], [siteID]  FROM [cameraSetup] c where deleted = 0 and c.userID = " + userID);
+
+            //comment, niet logisch
+            //if (UserDA.CurrentUserETC && userID != 1)
+            //     result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID], s.site FROM [cameraSetup] c left join utenti u on c.userID = u.ID left join sites s on c.siteID = s.ID where deleted = 0 and u.ETCuser = 1");
+            //else
+                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], [siteID], s.site FROM [cameraSetup] c left join sites s on c.siteID = s.ID where deleted = 0 and c.userID = " + userID);
 
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
@@ -447,6 +449,7 @@ namespace UploadWebapp.DB
                 else
                     s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
                 s.siteID = data.IsDBNull(14) ? (int?)null : data.GetInt32(14);
+                s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
                 result.Add(s);
             }
             data.Close();
@@ -646,7 +649,7 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
             //INSERT INTO [cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height])
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b], [x], [y], [name]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b, @x, @y, @name);SELECT IDENT_CURRENT('[cameraSetup]');"
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [cameraSetup] ([userID], [camType], [camSerial], [lensType], [lensSerial], [maxRadius], [pathCenter], [pathProj], [processed], [width], [height], [a], [b], [x], [y], [name], [siteID]) VALUES (@userID, @camType, @camSerial, @lensType, @lensSerial, @maxRadius, @pathCenter, @pathProj, @processed, @width, @height, @a, @b, @x, @y, @name, @siteID);SELECT IDENT_CURRENT('[cameraSetup]');"
                    , new SqlParameter("userID", cameraSetup.userID)
                    , new SqlParameter("camType", cameraSetup.cameraType)
                    , new SqlParameter("camSerial", cameraSetup.cameraSerial)
@@ -663,6 +666,7 @@ namespace UploadWebapp.DB
                    , new SqlParameter("x", cameraSetup.lensX)
                    , new SqlParameter("y", cameraSetup.lensY)
                    , new SqlParameter("name", cameraSetup.name)
+                   , new SqlParameter("siteID", cameraSetup.siteID)
                    ));
 
             cameraSetup.ID = id;

@@ -1,4 +1,4 @@
-﻿@model UploadWebapp.Models.CameraSetup
+﻿@model UploadWebapp.Models.CreateCamerSetupModel
 
 @{
     ViewBag.Title = "CreateCameraSetup";
@@ -9,73 +9,85 @@
 <form action="" method="post" enctype="multipart/form-data" id="setupform">
     <div class="container" id="container">
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.name, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.name, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.name, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.name)
-            </div>
-        </div>
-        <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.cameraType, new { @class = "control-label col-md-3" })
-            <div class="col-md-9">
-                @Html.EditorFor(model => model.cameraType, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.cameraType)
+                @Html.EditorFor(model => model.cameraSetup.name, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.name)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.cameraSerial, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.siteID, new { @class = "control-label col-md-3" })
+            <div class="col-md-4">
+                @if (!Model.user.isFreeUser)
+                {
+                    @Html.DropDownListFor(model => model.cameraSetup.siteID, new SelectList(Model.user.sites, "ID", "title"), new { @class = "form-control" })
+                }
+            </div>
+        </div>
+
+
+        <div class="form-group row clearfix">
+            @Html.LabelFor(model => model.cameraSetup.cameraType, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.cameraSerial, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.cameraSerial)
+                @Html.EditorFor(model => model.cameraSetup.cameraType, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.cameraType)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensType, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.cameraSerial, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensType, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.lensType)
+                @Html.EditorFor(model => model.cameraSetup.cameraSerial, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.cameraSerial)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.lensSerial, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.lensType, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensSerial, new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.lensSerial)
+                @Html.EditorFor(model => model.cameraSetup.lensType, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.lensType)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.maxRadius, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.lensSerial, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.maxRadius, new { @class = "form-control numericOnly" })
-                @Html.ValidationMessageFor(model => model.maxRadius)
+                @Html.EditorFor(model => model.cameraSetup.lensSerial, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.lensSerial)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.width, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.maxRadius, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.width, new { @class = "form-control numericOnly" })
-                @Html.ValidationMessageFor(model => model.width)
+                @Html.EditorFor(model => model.cameraSetup.maxRadius, new { @class = "form-control numericOnly" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.maxRadius)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.height, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.width, new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.height, new { @class = "form-control numericOnly" })
-                @Html.ValidationMessageFor(model => model.height)
+                @Html.EditorFor(model => model.cameraSetup.width, new { @class = "form-control numericOnly" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.width)
             </div>
         </div>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.pathCenter, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.height, new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.cameraSetup.height, new { @class = "form-control numericOnly" })
+                @Html.ValidationMessageFor(model => model.cameraSetup.height)
+            </div>
+        </div>
+
+        <div class="form-group row clearfix">
+            @Html.LabelFor(model => model.cameraSetup.pathCenter, new { @class = "control-label col-md-3" })
             <div class="col-md-6">
                 <input type="file" name="pathCenter" id="pathCenter" accept=".csv" class="form-control" data-val="true"  />
-                @Html.ValidationMessageFor(model => model.pathCenter)
+                @Html.ValidationMessageFor(model => model.cameraSetup.pathCenter)
             </div>
             <div class="col-md-3">
                 <a href="~/Content/centercalibrationtemplate.csv">Download template</a>
@@ -89,24 +101,24 @@
         <div class="form-group row clearfix">
             @Html.Label("Lens X", new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensXstr, new { @class = "form-control numberOnly" })
-                @*@Html.ValidationMessageFor(model => model.lensX)*@
+                @Html.EditorFor(model => model.cameraSetup.lensXstr, new { @class = "form-control numberOnly" })
+                @*@Html.ValidationMessageFor(model => model.cameraSetup.lensX)*@
             </div>
         </div>
         <div class="form-group row clearfix">
             @Html.Label("Lens Y", new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensYstr, new { @class = "form-control numberOnly" })
-                @*@Html.ValidationMessageFor(model => model.lensY)*@
+                @Html.EditorFor(model => model.cameraSetup.lensYstr, new { @class = "form-control numberOnly" })
+                @*@Html.ValidationMessageFor(model => model.cameraSetup.lensY)*@
             </div>
         </div>
         <span class="field-validation-error" id="lenscentererror" hidden="hidden">The Center Calibration File or Lens X and Y parameters are required.</span>
 
         <div class="form-group row clearfix">
-            @Html.LabelFor(model => model.pathProj, new { @class = "control-label col-md-3" })
+            @Html.LabelFor(model => model.cameraSetup.pathProj, new { @class = "control-label col-md-3" })
             <div class="col-md-6">
                 <input type="file" name="pathProj" id="pathProj" accept=".csv" class="form-control data-val="true"" />
-                @Html.ValidationMessageFor(model => model.pathProj)
+                @Html.ValidationMessageFor(model => model.cameraSetup.pathProj)
             </div>
              <div class="col-md-3">
                  <a href="~/Content/lenscalibrationtemplate.csv">Download template</a>
@@ -121,15 +133,15 @@
         <div class="form-group row clearfix">
             @Html.Label("Lens A", new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensAstr, new { @class = "form-control decimalOnly" })
-                @*@Html.ValidationMessageFor(model => model.lensA)*@
+                @Html.EditorFor(model => model.cameraSetup.lensAstr, new { @class = "form-control decimalOnly" })
+                @*@Html.ValidationMessageFor(model => model.cameraSetup.lensA)*@
             </div>
         </div>
         <div class="form-group row clearfix">
             @Html.Label("Lens B", new { @class = "control-label col-md-3" })
             <div class="col-md-9">
-                @Html.EditorFor(model => model.lensBstr, new { @class = "form-control decimalOnly" })
-                @*@Html.ValidationMessageFor(model => model.lensB)*@
+                @Html.EditorFor(model => model.cameraSetup.lensBstr, new { @class = "form-control decimalOnly" })
+                @*@Html.ValidationMessageFor(model => model.cameraSetup.lensB)*@
             </div>
         </div>
         <span class="field-validation-error" id="lensprojerror" hidden="hidden">The Lens Projection File or Lens A and B parameters are required.</span>

@@ -598,7 +598,12 @@ namespace UploadWebapp.Controllers
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
-                return View();
+                CreateCamerSetupModel model = new CreateCamerSetupModel();
+                User user = UserDA.CurrentUser;
+                if (!user.isFreeUser)
+                    user.sites = UserDA.GetSiteListForUser(UserDA.CurrentUserId);
+                model.user = user;
+                return View(model);
             }
             else
                 return RedirectToAction("Login", "Account");

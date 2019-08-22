@@ -188,6 +188,7 @@
     <Compile Include="Models\CameraSetup.cs" />
     <Compile Include="Models\Circle.cs" />
     <Compile Include="Models\Country.cs" />
+    <Compile Include="Models\CreateCamerSetupModel.cs" />
     <Compile Include="Models\CreateSiteModel.cs" />
     <Compile Include="Models\Ecosystem.cs" />
     <Compile Include="Models\EditQualityCheckModel.cs" />
