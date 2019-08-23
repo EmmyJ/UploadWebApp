@@ -888,7 +888,9 @@ namespace UploadWebapp.Controllers
                         {
                             System.IO.File.Move(System.IO.Path.Combine(file.Directory.ToString(), file.Name), System.IO.Path.Combine(file.Directory.ToString() + "/fail", file.Name));
                         }
-                        catch { }
+                        catch {
+                            System.IO.File.Delete(System.IO.Path.Combine(file.Directory.ToString(), file.Name));
+                        }
                     }
                 }
                 //sort images
@@ -972,7 +974,9 @@ namespace UploadWebapp.Controllers
                             {
                                 System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/succes", procIm.filename));
                             }
-                            catch { }
+                            catch {
+                                System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
+                            }
                                 image.path = System.IO.Path.Combine(procIm.path + "/succes", procIm.filename); 
                             ps.images.Add(image);
                             res.Add(string.Format("{0}: {1}", image.filename, "succes"));
@@ -987,7 +991,9 @@ namespace UploadWebapp.Controllers
                         {
                             System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/fail", procIm.filename));
                         }
-                        catch { }
+                        catch {
+                            System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
+                        }
                         image.path = System.IO.Path.Combine(procIm.path + "/fail", procIm.filename);
 
                         erStr.Add(string.Format("{0}: {1}", image.filename, erMes));
@@ -1004,8 +1010,26 @@ namespace UploadWebapp.Controllers
                     res.Add("");
                     res.Add("Following images were not processed:");
                     res.Add("");
+
+                    string errorlog = string.Format("Time: {0}", DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"));
+                    errorlog += Environment.NewLine;
+                    errorlog += "-----------------------------------------------------------";
+                    errorlog += Environment.NewLine;
+
                     foreach (string e in erStr)
-                    { res.Add(e); }
+                    {
+                        res.Add(e);
+
+                        errorlog += e;
+                        errorlog += Environment.NewLine;
+                    }
+
+                    string path = System.IO.Path.Combine(ConfigurationManager.AppSettings["ProcessFolder"].ToString() + "/fail", "errorlog.txt");
+                    using (StreamWriter writer = new StreamWriter(path, true))
+                    {
+                        writer.WriteLine(errorlog);
+                        writer.Close();
+                    }
                 }
 
                 return View(res);
