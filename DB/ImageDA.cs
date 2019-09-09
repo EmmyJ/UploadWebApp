@@ -449,7 +449,8 @@ namespace UploadWebapp.DB
                 else
                     s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
                 s.siteID = data.IsDBNull(14) ? (int?)null : data.GetInt32(14);
-                s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
+                if(data.FieldCount > 15)
+                    s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
                 result.Add(s);
             }
             data.Close();

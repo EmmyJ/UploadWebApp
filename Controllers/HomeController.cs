@@ -923,7 +923,7 @@ namespace UploadWebapp.Controllers
 
                     else {
                         //check if new uploadset is needed and create if so
-                        if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().dateTaken != procIm.date)
+                        if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().cameraSetup.name != procIm.cameraSetupName) // || uploadSets.Last().dateTaken != procIm.date)
                         {
                             us = new UploadSet();
                             us.siteCode = procIm.siteCode;
@@ -939,7 +939,7 @@ namespace UploadWebapp.Controllers
                             uploadSets.Add(us);
                         }
                         us = uploadSets.Last();
-                        PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName);
+                        PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName); // TODO verschillende dates
                         if (ps == null)
                         {
                             ps = new PlotSet();
