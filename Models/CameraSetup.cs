@@ -67,5 +67,6 @@ namespace UploadWebapp.Models
 
         public int? siteID { get; set; }
         public string siteCode { get; set; }
+        public string username { get; set; }
     }
 }

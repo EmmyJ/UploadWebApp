@@ -258,10 +258,9 @@ namespace UploadWebapp.DB
             //todo:italy nu alle setups van user
             //var result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b] FROM [cameraSetup] c  LEFT JOIN uploadSet u on u.camSetupID = c.ID  LEFT JOIN usersites s on s.idsito = u.siteID  where u.userID = " + userID);
 
-            //comment, niet logisch
-            //if (UserDA.CurrentUserETC && userID != 1)
-            //     result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID], s.site FROM [cameraSetup] c left join utenti u on c.userID = u.ID left join sites s on c.siteID = s.ID where deleted = 0 and u.ETCuser = 1");
-            //else
+            if (UserDA.CurrentUserETC && userID != 1)
+                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID], s.site, u.Name FROM [cameraSetup] c left join utenti u on c.userID = u.ID left join sites s on c.siteID = s.ID where deleted = 0 and u.ETCuser = 1");
+            else
                 result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], [siteID], s.site FROM [cameraSetup] c left join sites s on c.siteID = s.ID where deleted = 0 and c.userID = " + userID);
 
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
@@ -449,8 +448,14 @@ namespace UploadWebapp.DB
                 else
                     s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
                 s.siteID = data.IsDBNull(14) ? (int?)null : data.GetInt32(14);
-                if(data.FieldCount > 15)
+                if (data.FieldCount > 15)
+                {
                     s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
+                }
+                if (data.FieldCount > 16)
+                {                    
+                    s.username = data.IsDBNull(16) ? "" : data.GetString(16);
+                }
                 result.Add(s);
             }
             data.Close();
