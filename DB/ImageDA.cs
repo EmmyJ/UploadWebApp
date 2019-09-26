@@ -667,7 +667,7 @@ namespace UploadWebapp.DB
                    , new SqlParameter("x", cameraSetup.lensX)
                    , new SqlParameter("y", cameraSetup.lensY)
                    , new SqlParameter("name", cameraSetup.name)
-                   , new SqlParameter("siteID", cameraSetup.siteID)
+                   , new SqlParameter("siteID", cameraSetup.siteID == null ? 0 : cameraSetup.siteID)
                    ));
 
             cameraSetup.ID = id;
