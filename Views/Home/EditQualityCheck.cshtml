@@ -28,6 +28,14 @@
 </div>
 <form action="" method="post" enctype="multipart/form-data" id="qcform">
     <div class="col-md-8 qceditor">
+        <div class="display-field col-md-12">
+            <div class="display-field col-md-6">
+                <a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>
+            </div>
+            <div class="display-field col-md-6">
+                <a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>
+            </div>
+        </div>
         <h3>
             @Model.image.filename.Substring(0, 6) @Model.image.filename.Substring(14, 4) @Model.image.filename.Substring(19, 3)
             @Model.image.filename.Substring(29, 2)/@Model.image.filename.Substring(27, 2)/@Model.image.filename.Substring(23, 4)
@@ -65,25 +73,26 @@
             <label>Other Comments</label><br />
             @Html.TextAreaFor(model => model.qualityCheck.otherComments)
         </div>
+
         <div class="display-field col-md-12">
             <label>Status</label>
             @*@{
-                switch ((int)Model.qualityCheck.status)
-                {
-                    case 0:*@
+            switch ((int)Model.qualityCheck.status)
+            {
+                case 0:*@
             <text><h3 id="unverified" style="color:grey;">Unverified</h3></text>
             @*break;
-                case 1:*@
+            case 1:*@
             <text><h3 id="pass" class="text-highlight">Pass</h3></text>
             @*break;
-                case 2:*@
+            case 2:*@
             <text><h3 id="fail" class="text-additional">Fail</h3></text>
             @*break;
-                    }
-                }*@<p>
-                       @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID })
-    <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
-</p>
+                }
+            }*@<p>
+                @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID })
+                <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
+            </p>
         </div>
         @Html.HiddenFor(model => model.qualityCheck.ID)
         @Html.HiddenFor(model => model.qualityCheck.imageID)

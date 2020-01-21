@@ -157,7 +157,7 @@ namespace UploadWebapp.DB
 
             foreach (PlotSet plot in uploadSet.plotSets)
             {
-                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path],[dngFilename] ,[dngPath] FROM [images] WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path] FROM [images] WHERE plotSetID = " + plot.ID);
                 plot.images = FromImageData(result);
 
                 result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[processed] ,[LAI] ,[LAI_SD] ,[resultLog], [data] FROM [results] WHERE plotSetID = " + plot.ID);
@@ -492,8 +492,8 @@ namespace UploadWebapp.DB
                 image.ID = data.GetInt32(0);
                 image.filename = data.GetString(2);
                 image.path = data.GetString(3);
-                image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
-                image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
+                //image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
+                //image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
                 result.Add(image);
             }
             data.Close();
@@ -804,10 +804,6 @@ namespace UploadWebapp.DB
             id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[qualityCheck] ([imageID], [status], [dateModified], [userID]) VALUES (@imageID, @status , @dateModified, @userID);SELECT IDENT_CURRENT('[qualityCheck]');",// , [LAI], [LAIe], [threshold], [clumping] @LAI , @LAIe, @threshold , @clumping,
                     new SqlParameter("imageID", qc.image.ID),
                     new SqlParameter("status", qc.status),
-                    //new SqlParameter("LAI", qc.LAI),
-                    //new SqlParameter("LAIe", qc.LAIe),
-                    //new SqlParameter("threshold", qc.threshold),
-                    //new SqlParameter("clumping", qc.clumping),
                     new SqlParameter("dateModified", qc.dateModified),
                     new SqlParameter("userID", qc.userID)));
 
@@ -859,7 +855,7 @@ namespace UploadWebapp.DB
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 
@@ -897,10 +893,19 @@ namespace UploadWebapp.DB
                 i.threshold = data.IsDBNull(17) ? (double?)null : data.GetDouble(17);
                 i.clumping = data.IsDBNull(18) ? (double?)null : data.GetDouble(18);
                 i.overexposure = data.IsDBNull(43) ? (double?)null : data.GetDouble(43);
+                i.binPath = data.IsDBNull(44) ? null : data.GetString(44);
+                i.jpgPath = data.IsDBNull(45) ? null : data.GetString(45);
+                i.gapfraction = data.IsDBNull(46) ? null : data.GetString(46);
+                i.histogram = data.IsDBNull(47) ? null : data.GetString(47);
+                i.exif = data.IsDBNull(48) ? null : data.GetString(48);
+                i.stats = data.IsDBNull(49) ? null : data.GetString(49);
+
                 qc.dateModified = data.GetDateTime(40);
                 qc.userID = data.GetInt32(41);
                 qc.userName = data.GetString(42);
                 qcm.qualityCheck = qc;
+                //, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats
+
 
                 i.ID = data.GetInt32(19);
                 i.filename = data.GetString(20);

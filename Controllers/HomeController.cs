@@ -806,6 +806,12 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
+
+        public ActionResult Imagify(string url)
+        {
+            return File(@url, "image/jpeg");
+        }
+
         [HttpPost]
         public ActionResult EditQualityCheck(EditQualityCheckModel qc)
         {
@@ -846,14 +852,13 @@ namespace UploadWebapp.Controllers
         {
             try
             {
-                //https://stackoverflow.com/questions/17486205/call-an-url-with-scheduled-powershell-script
-                //TODO: try catch
                 List<SiteData> sites = ImageDA.GetUserSites(1);
                 List<PlotsPerSite> plotsPerSite = new List<PlotsPerSite>();
                 List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
                 List<UploadSet> uploadSets = new List<UploadSet>();
                 UploadSet us = new UploadSet();
                 DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["ProcessFolder"].ToString());
+                DirectoryInfo ds = new DirectoryInfo(ConfigurationManager.AppSettings["UploadFolder"].ToString());
                 FileInfo[] Files = d.GetFiles();
                 List<String> res = new List<String>();
                 List<String> erStr = new List<String>();
@@ -868,7 +873,7 @@ namespace UploadWebapp.Controllers
                 foreach (FileInfo file in Files)
                 {
                     //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
-                    if (rg.IsMatch(file.Name))
+                    if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1")
                     {
                         ProcessImage procIm = new ProcessImage();
                         procIm.filename = file.Name;
@@ -881,17 +886,20 @@ namespace UploadWebapp.Controllers
 
                         procImages.Add(procIm);
                     }
-                    else
-                    {
-                        erStr.Add(string.Format("{0}: {1}", file.Name, "Wrong filename format."));
-                        try
-                        {
-                            System.IO.File.Move(System.IO.Path.Combine(file.Directory.ToString(), file.Name), System.IO.Path.Combine(file.Directory.ToString() + "/fail", file.Name));
-                        }
-                        catch {
-                            System.IO.File.Delete(System.IO.Path.Combine(file.Directory.ToString(), file.Name));
-                        }
-                    }
+                    //else
+                    //{
+                    //    if (file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1") { 
+                    //        erStr.Add(string.Format("{0}: {1}", file.Name, "Wrong filename format."));
+                    //        try
+                    //        {
+                    //            System.IO.File.Move(System.IO.Path.Combine(file.Directory.ToString(), file.Name), System.IO.Path.Combine(file.Directory.ToString() + "/fail", file.Name));
+                    //        }
+                    //        catch
+                    //        {
+                    //            System.IO.File.Delete(System.IO.Path.Combine(file.Directory.ToString(), file.Name));
+                    //        }
+                    //    }
+                    //}
                 }
                 //sort images
                 procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ThenBy(p => p.plotName).ToList();
@@ -903,9 +911,7 @@ namespace UploadWebapp.Controllers
                     pps.siteID = s;
                     pps.plotsList = ImageDA.GetPlotListForSite(s);
                     plotsPerSite.Add(pps);
-                }
-
-                
+                }                              
 
                 //process images
                 foreach (ProcessImage procIm in procImages)
@@ -934,7 +940,7 @@ namespace UploadWebapp.Controllers
                             us.cameraSetup = camSetup;
                             us.plotSets = new List<PlotSet>();
                             us.uploadTime = DateTime.Now;
-                            us.person = "processor";
+                            us.person = procIm.siteCode + "_" + procIm.date.ToString("yyyyMMdd");
 
                             uploadSets.Add(us);
                         }
@@ -970,34 +976,40 @@ namespace UploadWebapp.Controllers
                         {
                             Image image = new Image();
                             image.filename = procIm.filename;
+                            string pathString = ds.ToString() + procIm.siteCode + "\\LAI";
                             try
                             {
-                                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/succes", procIm.filename));
+                                
+                                if (!System.IO.Directory.Exists(pathString))
+                                    System.IO.Directory.CreateDirectory(pathString);
+                                
+                                System.IO.File.Delete(System.IO.Path.Combine(pathString, procIm.filename));
+                                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(pathString, procIm.filename));
                             }
                             catch {
                                 System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
                             }
-                                image.path = System.IO.Path.Combine(procIm.path + "/succes", procIm.filename); 
+                                image.path = System.IO.Path.Combine(pathString, procIm.filename); 
                             ps.images.Add(image);
                             res.Add(string.Format("{0}: {1}", image.filename, "succes"));
                         }
                     }
                     //else
-                    if(error)
-                    {
-                        Image image = new Image();
-                        image.filename = procIm.filename;
-                        try
-                        {
-                            System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/fail", procIm.filename));
-                        }
-                        catch {
-                            System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
-                        }
-                        image.path = System.IO.Path.Combine(procIm.path + "/fail", procIm.filename);
+                    //if(error)
+                    //{
+                    //    Image image = new Image();
+                    //    image.filename = procIm.filename;
+                    //    try
+                    //    {
+                    //        System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(procIm.path + "/fail", procIm.filename));
+                    //    }
+                    //    catch {
+                    //        System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
+                    //    }
+                    //    image.path = System.IO.Path.Combine(procIm.path + "/fail", procIm.filename);
 
-                        erStr.Add(string.Format("{0}: {1}", image.filename, erMes));
-                    }
+                    //    erStr.Add(string.Format("{0}: {1}", image.filename, erMes));
+                    //}
                 }
 
                 foreach (UploadSet u in uploadSets)
@@ -1005,32 +1017,32 @@ namespace UploadWebapp.Controllers
                     ImageDA.SaveUploadSet(u);
                 }
 
-                if (erStr.Count > 0)
-                {
-                    res.Add("");
-                    res.Add("Following images were not processed:");
-                    res.Add("");
+                //if (erStr.Count > 0)
+                //{
+                //    res.Add("");
+                //    res.Add("Following images were not processed:");
+                //    res.Add("");
 
-                    string errorlog = string.Format("Time: {0}", DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"));
-                    errorlog += Environment.NewLine;
-                    errorlog += "-----------------------------------------------------------";
-                    errorlog += Environment.NewLine;
+                //    string errorlog = string.Format("Time: {0}", DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"));
+                //    errorlog += Environment.NewLine;
+                //    errorlog += "-----------------------------------------------------------";
+                //    errorlog += Environment.NewLine;
 
-                    foreach (string e in erStr)
-                    {
-                        res.Add(e);
+                //    foreach (string e in erStr)
+                //    {
+                //        res.Add(e);
 
-                        errorlog += e;
-                        errorlog += Environment.NewLine;
-                    }
+                //        errorlog += e;
+                //        errorlog += Environment.NewLine;
+                //    }
 
-                    string path = System.IO.Path.Combine(ConfigurationManager.AppSettings["ProcessFolder"].ToString() + "/fail", "errorlog.txt");
-                    using (StreamWriter writer = new StreamWriter(path, true))
-                    {
-                        writer.WriteLine(errorlog);
-                        writer.Close();
-                    }
-                }
+                //    string path = System.IO.Path.Combine(ConfigurationManager.AppSettings["ProcessFolder"].ToString() + "/fail", "errorlog.txt");
+                //    using (StreamWriter writer = new StreamWriter(path, true))
+                //    {
+                //        writer.WriteLine(errorlog);
+                //        writer.Close();
+                //    }
+                //}
 
                 return View(res);
             }
