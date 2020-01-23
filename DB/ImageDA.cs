@@ -864,6 +864,35 @@ namespace UploadWebapp.DB
             return qc;
         }
 
+        public static QualityCheck getPreviousQualityCheck(Image image, DB db = null) 
+        {
+            string imageprefix = image.filename.Substring(0, 22);
+            db = new DB();
+            QualityCheck qc = new QualityCheck();
+
+            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments] FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
+
+            if (result.HasRows)
+            {
+                result.Read();
+                qc.image = new Image();
+                qc.image.filename = result.GetString(0);
+                qc.ID = result.GetInt32(1);
+                qc.setupObjectsComments = result.IsDBNull(2) ? null : result.GetString(2);
+                qc.foreignObjectsComments = result.IsDBNull(3) ? null : result.GetString(3);
+                qc.raindropsDirtComments = result.IsDBNull(4) ? null : result.GetString(4);
+                qc.lightingComments = result.IsDBNull(5) ? null : result.GetString(5);
+                qc.overexposureComments = result.IsDBNull(6) ? null : result.GetString(6);
+                qc.otherComments = result.IsDBNull(7) ? null : result.GetString(7);
+
+                result.Close();
+            }
+            else
+                qc = null;
+            db.Dispose();
+            return qc;
+        }
+
         public static List<EditQualityCheckModel> FromQualityCheckData(SqlDataReader data) {
             var result = new List<EditQualityCheckModel>();
             while (data.Read())

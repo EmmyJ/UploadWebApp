@@ -792,7 +792,7 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
-
+                model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
 
                 if (model != null)
                 {

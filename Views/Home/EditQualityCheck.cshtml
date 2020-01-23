@@ -28,6 +28,7 @@
 </div>
 <form action="" method="post" enctype="multipart/form-data" id="qcform">
     <div class="col-md-8 qceditor">
+        @if(Model.image.jpgPath != null) { 
         <div class="display-field col-md-12">
             <div class="display-field col-md-6">
                 <a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>
@@ -36,6 +37,7 @@
                 <a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>
             </div>
         </div>
+        }
         <h3>
             @Model.image.filename.Substring(0, 6) @Model.image.filename.Substring(14, 4) @Model.image.filename.Substring(19, 3)
             @Model.image.filename.Substring(29, 2)/@Model.image.filename.Substring(27, 2)/@Model.image.filename.Substring(23, 4)
@@ -43,11 +45,20 @@
         <div class="display-field col-md-12">
             @Html.EditorFor(model => model.qualityCheck.setupObjects)
             <label>Setup Objects As Expected</label>
+            @if (Model.previousQualityCheck != null)
+            {
+                <br /><text>Previous:</text>
+                @(Model.previousQualityCheck.setupObjectsComments)}
             @Html.EditorFor(model => model.qualityCheck.setupObjectsComments)
         </div>
+
         <div class="display-field col-md-12">
             @Html.EditorFor(model => model.qualityCheck.noForeignObjects)
             <label>No Foreign Objects</label>
+            @if (Model.previousQualityCheck != null)
+            {
+                <br /><text>Previous:</text>
+                @(Model.previousQualityCheck.foreignObjectsComments)}
             @Html.EditorFor(model => model.qualityCheck.foreignObjectsComments)
         </div>
         <div class="display-field col-md-12">
@@ -71,6 +82,10 @@
         </div>
         <div class="display-field col-md-12">
             <label>Other Comments</label><br />
+            @if (Model.previousQualityCheck != null)
+            {
+                <text>Previous:</text>
+                @(Model.previousQualityCheck.otherComments)}
             @Html.TextAreaFor(model => model.qualityCheck.otherComments)
         </div>
 
@@ -112,6 +127,11 @@
     <div class="row clearfix">
         <div class="display-field col-md-12">
             @Html.DisplayFor(model => model.image.filename)
+            @if (Model.previousQualityCheck != null)
+            {
+                <br /><text>Previous:</text><br />
+                @Html.DisplayFor(model => model.previousQualityCheck.image.filename)
+            }
         </div>
     </div>
     <br />

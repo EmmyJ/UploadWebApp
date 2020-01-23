@@ -9,6 +9,8 @@ namespace UploadWebapp.Models
     {
         public QualityCheck qualityCheck { get; set; }
 
+        public QualityCheck previousQualityCheck { get; set; }
+
         public CameraSetup cameraSetup { get; set; }
 
         public Image image { get; set; }
