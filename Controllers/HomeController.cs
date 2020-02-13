@@ -792,10 +792,12 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
-                model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
+
+                
 
                 if (model != null)
                 {
+                    model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
                     model.uploadSetID = setID;
                     return View(model);
                 }
@@ -976,7 +978,7 @@ namespace UploadWebapp.Controllers
                         {
                             Image image = new Image();
                             image.filename = procIm.filename;
-                            string pathString = ds.ToString() + procIm.siteCode + "\\LAI";
+                            string pathString = ds.ToString() + procIm.siteCode + "/LAI";
                             try
                             {
                                 

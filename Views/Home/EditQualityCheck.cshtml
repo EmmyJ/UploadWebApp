@@ -105,9 +105,11 @@
             @*break;
                 }
             }*@<p>
-                @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID })
-                <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
-            </p>
+    @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID }) &nbsp;|&nbsp;
+    @Html.ActionLink("Previous", "EditQualityCheck", new { checkID = Model.qualityCheck.ID - 1, setID = Model.uploadSetID })
+
+    <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
+</p>
         </div>
         @Html.HiddenFor(model => model.qualityCheck.ID)
         @Html.HiddenFor(model => model.qualityCheck.imageID)

@@ -25,5 +25,12 @@ namespace UploadWebapp.Models
         public string histogram { get; set; }
         public string exif { get; set; }
         public string stats { get; set; }
+
+        public int ISO { get; set; }
+
+        public int fNumber { get; set; }
+
+        public double exposureTime { get; set; }
+
     }
 }
