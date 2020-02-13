@@ -28,15 +28,16 @@
 </div>
 <form action="" method="post" enctype="multipart/form-data" id="qcform">
     <div class="col-md-8 qceditor">
-        @if(Model.image.jpgPath != null) { 
-        <div class="display-field col-md-12">
-            <div class="display-field col-md-6">
-                <a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>
+        @if (Model.image.jpgPath != null)
+        {
+            <div class="display-field col-md-12">
+                <div class="display-field col-md-6">
+                    <a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>
+                </div>
+                <div class="display-field col-md-6">
+                    <a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>
+                </div>
             </div>
-            <div class="display-field col-md-6">
-                <a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>
-            </div>
-        </div>
         }
         <h3>
             @Model.image.filename.Substring(0, 6) @Model.image.filename.Substring(14, 4) @Model.image.filename.Substring(19, 3)
@@ -81,6 +82,11 @@
             @Html.EditorFor(model => model.qualityCheck.overexposureComments)
         </div>
         <div class="display-field col-md-12">
+            @Html.EditorFor(model => model.qualityCheck.settings)
+            <label>Image Settings</label>
+            @Html.EditorFor(model => model.qualityCheck.settingsComments)
+        </div>
+        <div class="display-field col-md-12">
             <label>Other Comments</label><br />
             @if (Model.previousQualityCheck != null)
             {
@@ -105,11 +111,11 @@
             @*break;
                 }
             }*@<p>
-    @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID }) &nbsp;|&nbsp;
-    @Html.ActionLink("Previous", "EditQualityCheck", new { checkID = Model.qualityCheck.ID - 1, setID = Model.uploadSetID })
+                @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID }) &nbsp;|&nbsp;
+                @Html.ActionLink("Previous", "EditQualityCheck", new { checkID = Model.qualityCheck.ID - 1, setID = Model.uploadSetID })
 
-    <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
-</p>
+                <input type="submit" value="Save & Next" class="button rounded fill-highlight" style="float:right" />
+            </p>
         </div>
         @Html.HiddenFor(model => model.qualityCheck.ID)
         @Html.HiddenFor(model => model.qualityCheck.imageID)
@@ -176,7 +182,6 @@
         <div class="display-field col-md-6">
             @Html.DisplayFor(model => model.image.clumping)
         </div>
-
     </div>
     <div class="row clearfix">
         <div class="col-md-6">
@@ -187,7 +192,38 @@
         <div class="display-field col-md-6">
             @Html.DisplayFor(model => model.image.overexposure)
         </div>
-
+    </div>
+    <br />
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                ISO
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.image.ISO)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                FNumber
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.image.fNumber)
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-md-6">
+            <label class="display-label">
+                ExposureTime
+            </label>
+        </div>
+        <div class="display-field col-md-6">
+            @Html.DisplayFor(model => model.image.exposureTimeStr)
+            @*@Html.DisplayFor(model => model.image.exposureTimeVal)*@
+        </div>
     </div>
 
     <h3 class="text-highlight">Camera Setup</h3>
@@ -336,7 +372,7 @@
         var count = $("[type='checkbox']:checked").length;
         var otherComments = $("#qualityCheck_otherComments").val();
         $("#unverified").hide();
-        if (count < 6 || (otherComments != "" && otherComments != null)) {
+        if (count < 7 || (otherComments != "" && otherComments != null)) {
             $("#pass").hide();
             $("#fail").show();
         }

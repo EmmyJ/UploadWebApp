@@ -792,13 +792,63 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
-
-                
+                Dictionary<string, string> exifs = new Dictionary<string, string>();             
 
                 if (model != null)
                 {
                     model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
                     model.uploadSetID = setID;
+
+                    //read exif values
+                    if (model.image.exif != null)
+                    {
+
+                        string[] e = model.image.exif.Split('\n');
+                        for (int i = 1; i < e.Length - 1; i++)
+                        {
+                            string[] ei = e[i].Split(',');
+                            exifs.Add(ei[0].Trim(), ei[1].Trim());
+                        }
+
+                        model.image.fNumber = int.Parse(exifs["EXIF FNumber"]);
+                        model.image.ISO = int.Parse(exifs["EXIF ISOSpeedRatings"]);
+                        model.image.exposureTimeStr = exifs["EXIF ExposureTime"];
+
+                        if (model.image.exposureTimeStr.Contains("/"))
+                        {
+                            string[] et = model.image.exposureTimeStr.Split('/');
+                            float teller = int.Parse(et[0]);
+                            float noemer = int.Parse(et[1]);
+                            model.image.exposureTimeVal = teller / noemer;
+                        }
+                        else
+                            model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr);
+
+                        //check if values are OK
+                        if (model.qualityCheck.status == QCstatus.created)
+                        {
+                            if (model.image.ISO < 200 || model.image.ISO > 1000)
+                            {
+                                model.qualityCheck.settings = false;
+                                model.qualityCheck.settingsComments += string.Format(" ISO: {0} not between 200 and 1000.", model.image.ISO);
+                            }
+                            if (model.image.fNumber != 8)
+                            {
+                                model.qualityCheck.settings = false;
+                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber);
+                            }
+                            if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30"))))) 
+                            {
+                                model.qualityCheck.settings = false;
+                                model.qualityCheck.settingsComments += string.Format(" Shutterspeed: {0} > 1/30", model.image.exposureTimeStr);
+                            }
+
+                            if (!model.qualityCheck.settings)
+                                model.qualityCheck.status = QCstatus.fail;
+                        }
+
+                    }
+
                     return View(model);
                 }
                 else
@@ -819,7 +869,7 @@ namespace UploadWebapp.Controllers
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
-                if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
+                if (qc.qualityCheck.setupObjects && qc.qualityCheck.noForeignObjects && qc.qualityCheck.noRaindropsDirt && qc.qualityCheck.noLensRing && qc.qualityCheck.noOverexposure && qc.qualityCheck.lighting && qc.qualityCheck.settings && String.IsNullOrEmpty(qc.qualityCheck.otherComments))
                     qc.qualityCheck.status = QCstatus.pass;
                 else
                     qc.qualityCheck.status = QCstatus.fail;

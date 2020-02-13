@@ -27,6 +27,10 @@ namespace UploadWebapp.Models
         public string lightingComments { get; set; }
         public bool noOverexposure { get; set; }
         public string overexposureComments { get; set; }
+
+        public bool settings { get; set; }
+
+        public string settingsComments { get; set; }
         public string otherComments { get; set; }
         public QCstatus status { get; set; }
 

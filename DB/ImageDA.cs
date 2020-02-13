@@ -62,9 +62,9 @@ namespace UploadWebapp.DB
         public static List<string> GetUploadSetQualityChecksData(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure]   FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure], qc.settings, qc.settingsComments  FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
             List<string> data = new List<string>();
-            data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Other Reason Image Unfit,Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
+            data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Image Settings, Image Settings Comments, Other Reason Image Unfit, Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
             string filename = null;
             while (result.Read())
             {
@@ -88,6 +88,8 @@ namespace UploadWebapp.DB
                     s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
                     s += ",";
                     s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
+                    s += ",";
+                    s += "," + (result.IsDBNull(21) ? "" : result.GetString(21));
                     s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
                     s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
                     s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
@@ -111,6 +113,8 @@ namespace UploadWebapp.DB
                     s += "," + (result.IsDBNull(10) ? "" : result.GetString(10));
                     s += "," + (result.GetBoolean(11) ? "OK" : "NOK");
                     s += "," + (result.IsDBNull(12) ? "" : result.GetString(12));
+                    s += "," + (result.GetBoolean(20) ? "OK" : "NOK");
+                    s += "," + (result.IsDBNull(21) ? "" : result.GetString(21));
                     s += "," + (result.IsDBNull(13) ? "" : result.GetString(13));
                     s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
                     s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
@@ -855,7 +859,7 @@ namespace UploadWebapp.DB
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats, qc.settings, qc.settingsComments FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 
@@ -870,7 +874,7 @@ namespace UploadWebapp.DB
             db = new DB();
             QualityCheck qc = new QualityCheck();
 
-            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments] FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
+            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments],  qc.settingsComments FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
 
             if (result.HasRows)
             {
@@ -884,6 +888,7 @@ namespace UploadWebapp.DB
                 qc.lightingComments = result.IsDBNull(5) ? null : result.GetString(5);
                 qc.overexposureComments = result.IsDBNull(6) ? null : result.GetString(6);
                 qc.otherComments = result.IsDBNull(7) ? null : result.GetString(7);
+                qc.settingsComments = result.IsDBNull(8) ? null : result.GetString(8);
 
                 result.Close();
             }
@@ -915,6 +920,8 @@ namespace UploadWebapp.DB
                 qc.lightingComments = data.IsDBNull(10) ? null : data.GetString(10);
                 qc.noOverexposure = data.GetBoolean(11);
                 qc.overexposureComments = data.IsDBNull(12) ? null : data.GetString(12);
+                qc.settings = data.GetBoolean(50);
+                qc.settingsComments = data.IsDBNull(51) ? null : data.GetString(51);
                 qc.otherComments = data.IsDBNull(13) ? null : data.GetString(13);
                 qc.status = (QCstatus)data.GetByte(14);
                 i.LAI = data.IsDBNull(15) ? (double?)null : data.GetDouble(15);
@@ -970,7 +977,7 @@ namespace UploadWebapp.DB
         public static QualityCheck SaveQualityCheck(QualityCheck qc, DB db = null) {
             //UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID
             db = new DB();
-            db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status, [dateModified] = @dateModified, [userID] = @userID WHERE ID = @ID",
+            db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [settings] = @settings, [settingsComments] = @settingsComments,[otherComments] = @otherComments, [status] = @status, [dateModified] = @dateModified, [userID] = @userID WHERE ID = @ID",
                     new SqlParameter("setupObjects", qc.setupObjects),
                     new SqlParameter("setupObjectsComments", qc.setupObjectsComments ?? ""),
                     new SqlParameter("noForeignObjects", qc.noForeignObjects),
@@ -982,6 +989,8 @@ namespace UploadWebapp.DB
                     new SqlParameter("lightingComments", qc.lightingComments ?? ""),
                     new SqlParameter("noOverexposure", qc.noOverexposure),
                     new SqlParameter("overexposureComments", qc.overexposureComments ?? ""),
+                    new SqlParameter("settings", qc.settings),
+                    new SqlParameter("settingsComments", qc.settingsComments ?? ""),
                     new SqlParameter("otherComments", qc.otherComments ?? ""),
                     new SqlParameter("status", (int)qc.status),
                     new SqlParameter("dateModified", DateTime.Now),

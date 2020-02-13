@@ -30,7 +30,9 @@ namespace UploadWebapp.Models
 
         public int fNumber { get; set; }
 
-        public double exposureTime { get; set; }
+        public float exposureTimeVal { get; set; }
+
+        public string exposureTimeStr { get; set; }
 
     }
 }
