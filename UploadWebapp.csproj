@@ -193,6 +193,7 @@
     <Compile Include="Models\CreateSiteModel.cs" />
     <Compile Include="Models\Ecosystem.cs" />
     <Compile Include="Models\EditQualityCheckModel.cs" />
+    <Compile Include="Models\ExportETCmodel.cs" />
     <Compile Include="Models\FileUploadPlot.cs" />
     <Compile Include="Models\FileUpload.cs" />
     <Compile Include="Models\HomeModel.cs" />

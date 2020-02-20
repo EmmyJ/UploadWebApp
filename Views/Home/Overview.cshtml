@@ -29,6 +29,7 @@
         <th >Download Results</th>@*style="width:200px"*@
         @if (Model.isETCuser) {
             <th>Quality Check</th> 
+            <th>Send to ETC</th>
         }
     </tr>
 
@@ -89,6 +90,9 @@
                                         }
                                         @*@Html.DisplayFor(modelItem => item.qualityCheck)*@
 </td>
+            <td>
+                @Html.ActionLink("Preview", "DownloadDataForETC", new { setID = item.ID })
+            </td>
         }
     </tr>
 }

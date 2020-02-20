@@ -113,6 +113,128 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
+        public ActionResult DownloadDataForETC(int setID)
+        {
+            if(UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                List<ExportETCmodel> list = ImageDA.GetDataForETC(setID);
+
+                if (list.Count > 0)
+                {
+                    List<string> data = new List<string>();
+                    data.Add("Filename,Camera Setup,QC,QC_Motivation,QC_Comment,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        string s;
+                        ExportETCmodel m = list[i];
+                        s = m.image.filename;
+                        s += "," + m.cameraSetupName.Substring(1);
+                        if (m.qc.status == QCstatus.pass)
+                        {
+                            s += ",OK,,";
+                            s += "," + m.image.LAI.ToString().Replace(',','.');
+                            s += "," + m.image.LAIe.ToString().Replace(',', '.');
+                            s += "," + m.image.threshold.ToString().Replace(',', '.');
+                            s += "," + m.image.clumping.ToString().Replace(',', '.');
+                            s += "," + m.image.overexposure.ToString().Replace(',', '.');
+                        }
+                        else if (m.qc.status == QCstatus.created)
+                        {
+                            s += ",NOK";
+                            s += ", Other or multiple";
+                            s += ", Not checked yet";
+                            s += ",,,,,";
+                        }
+                        else
+                        {
+                            string motivation = "";
+                            string comment = "";
+                            
+                            if (!m.qc.setupObjects)
+                            {
+                                motivation = "Setup Objects";
+                                comment = "Setup Objects: " + m.qc.setupObjectsComments + "| ";
+                            }
+                            if (!m.qc.noForeignObjects)
+                            {
+                                if (motivation == "")
+                                    motivation = "Foreign Objects";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Foreign Objects: " + m.qc.foreignObjectsComments + "| ";
+                            }
+                            if (!m.qc.noRaindropsDirt)
+                            {
+                                if (motivation == "")
+                                    motivation = "Raindrops/Dirt";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Raindrops/Dirt: " + m.qc.raindropsDirtComments + "| ";
+                            }
+                            if (!m.qc.noLensRing)
+                            {
+                                if (motivation == "")
+                                    motivation = "Lens Ring";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Lens Ring | ";
+                            }
+                            if (!m.qc.lighting)
+                            {
+                                if (motivation == "")
+                                    motivation = "Lighting Conditions";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Lighting Conditions: " + m.qc.lightingComments + "| ";
+                            }
+                            if (!m.qc.noOverexposure)
+                            {
+                                if (motivation == "")
+                                    motivation = "Overexposure";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Overexposure: " + m.qc.overexposureComments + "| ";
+                            }
+                            if (!m.qc.settings)
+                            {
+                                if (motivation == "")
+                                    motivation = "Settings";
+                                else
+                                    motivation = "Other or multiple";
+                                comment += "Settings: " + m.qc.settingsComments + "| ";
+                            }
+                            if (m.qc.otherComments != "")
+                            {
+                                motivation = "Other or multiple";
+                                comment += "Other: " + m.qc.otherComments;
+                            }
+                            comment = comment.Trim();
+                            comment = comment.Trim(new Char[] { '|' });
+
+                            s += ",NOK";
+                            s += "," + motivation;
+                            s += "," +comment;
+                            s += ",,,,,";
+                        }
+
+                        data.Add(s);
+                    }
+
+                    
+                    string fileName = "DHPforETC.csv";
+                    string fileContent = String.Join("\n", data);
+                    var byteArray = Encoding.ASCII.GetBytes(fileContent);
+
+                    return File(byteArray, "text/csv", fileName);
+                }
+
+                return null;
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
         public ActionResult SetDetails(int setID)
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)

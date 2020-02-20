@@ -59,6 +59,49 @@ namespace UploadWebapp.DB
 
         }
 
+        public static List<ExportETCmodel> GetDataForETC(int uploadSetID, DB db = null) {
+            db = new DB();            
+
+            var result = db.ExecuteReader("SELECT i.filename, cs.name,qc.[setupObjects],qc.[setupObjectsComments],qc.[noForeignObjects],qc.[foreignObjectsComments],qc.[noRaindrops],qc.[raindropsComments],qc.[noLensRing],qc.[lighting],qc.[lightingComments],qc.[noOverexposure],qc.[overexposureComments],qc.[settings],qc.[settingsComments],qc.[otherComments],i.LAI, i.LAIe, i.threshold, i.clumping, i.overexposure,qc.[status] FROM [dbo].[qualityCheck] qc join images i on i.id = qc.imageID join plotSets ps on i.plotSetID = ps.ID join uploadSet us on ps.uploadSetID = us.ID join cameraSetup cs on us.camSetupID = cs.ID where us.ID = " + uploadSetID);
+
+            List<ExportETCmodel> list = new List<ExportETCmodel>();
+
+            while (result.Read())
+            {
+                ExportETCmodel item = new ExportETCmodel();
+                item.image = new Image();
+                item.qc = new QualityCheck();
+
+                item.image.filename = result.GetString(0);
+                item.cameraSetupName = (result.IsDBNull(1) ? "0" : result.GetString(1));
+                
+                item.qc.setupObjects = result.GetBoolean(2);
+                item.qc.setupObjectsComments = result.IsDBNull(3) ? null : result.GetString(3);
+                item.qc.noForeignObjects = result.GetBoolean(4);
+                item.qc.foreignObjectsComments = result.IsDBNull(5) ? null : result.GetString(5);
+                item.qc.noRaindropsDirt = result.GetBoolean(6);
+                item.qc.raindropsDirtComments = result.IsDBNull(7) ? null : result.GetString(7);
+                item.qc.noLensRing = result.GetBoolean(8);
+                item.qc.lighting = result.GetBoolean(9);
+                item.qc.lightingComments = result.IsDBNull(10) ? null : result.GetString(10);
+                item.qc.noOverexposure = result.GetBoolean(11);
+                item.qc.overexposureComments = result.IsDBNull(12) ? null : result.GetString(12);
+                item.qc.settings = result.GetBoolean(13);
+                item.qc.settingsComments = result.IsDBNull(14) ? null : result.GetString(14);
+                item.qc.otherComments = result.IsDBNull(15) ? null : result.GetString(15);
+                item.image.LAI = (result.IsDBNull(16) ? (double?)null : result.GetDouble(16));
+                item.image.LAIe = (result.IsDBNull(17) ? (double?)null : result.GetDouble(17));
+                item.image.threshold = (result.IsDBNull(18) ? (double?)null : result.GetDouble(18));
+                item.image.clumping = (result.IsDBNull(19) ? (double?)null : result.GetDouble(19));
+                item.image.overexposure = (result.IsDBNull(20) ? (double?)null : result.GetDouble(20));
+                item.qc.status = (QCstatus)result.GetByte(21);
+
+                list.Add(item);
+            }
+
+            return list;
+        }
+
         public static List<string> GetUploadSetQualityChecksData(int uploadSetID, DB db = null)
         {
             db = new DB();
