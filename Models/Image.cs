@@ -28,7 +28,8 @@ namespace UploadWebapp.Models
 
         public int ISO { get; set; }
 
-        public int fNumber { get; set; }
+        public float fNumber { get; set; }
+        public string fNumberStr { get; set; }
 
         public float exposureTimeVal { get; set; }
 

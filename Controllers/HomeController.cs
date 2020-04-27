@@ -952,7 +952,7 @@ namespace UploadWebapp.Controllers
                             exifs.Add(ei[0].Trim(), ei[1].Trim());
                         }
 
-                        model.image.fNumber = int.Parse(exifs["EXIF FNumber"]);
+                        model.image.fNumberStr = exifs["EXIF FNumber"];
                         model.image.ISO = int.Parse(exifs["EXIF ISOSpeedRatings"]);
                         model.image.exposureTimeStr = exifs["EXIF ExposureTime"];
 
@@ -965,6 +965,16 @@ namespace UploadWebapp.Controllers
                         }
                         else
                             model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr);
+
+                        if (model.image.fNumberStr.Contains("/"))
+                        {
+                            string[] et = model.image.fNumberStr.Split('/');
+                            float teller = int.Parse(et[0]);
+                            float noemer = int.Parse(et[1]);
+                            model.image.fNumber = teller / noemer;
+                        }
+                        else
+                            model.image.fNumber = float.Parse(model.image.fNumberStr);
 
                         //check if values are OK
                         if (model.qualityCheck.status == QCstatus.created)
