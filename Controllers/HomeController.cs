@@ -150,7 +150,7 @@ namespace UploadWebapp.Controllers
                         if (!m.qc.noOverexposure || !string.IsNullOrEmpty(m.qc.overexposureComments))
                             comment += "Overexposure: " + m.qc.overexposureComments + "| ";
                         if (!m.qc.settings || !string.IsNullOrEmpty(m.qc.settingsComments))
-                            comment += "Settings: " + m.qc.settingsComments + "| ";
+                            comment += "Settings: " + m.qc.settingsComments.Replace(',','.') + "| ";
                         if (!string.IsNullOrEmpty(m.qc.otherComments))
                             comment += "Other: " + m.qc.otherComments;
                         comment = comment.Trim();
@@ -987,7 +987,7 @@ namespace UploadWebapp.Controllers
                             if (model.image.fNumber != 8)
                             {
                                 model.qualityCheck.settings = false;
-                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber);
+                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber.ToString().Replace(',','.'));
                             }
                             if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30"))))) 
                             {
