@@ -394,6 +394,7 @@
     <Content Include="Views\Home\UploadSetQualityChecks.cshtml" />
     <Content Include="Views\Home\EditQualityCheck.cshtml" />
     <Content Include="Views\Home\ProcessImages.cshtml" />
+    <Content Include="Views\Home\FillImageData.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

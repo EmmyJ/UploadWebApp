@@ -1,6 +1,8 @@
-﻿using Microsoft.SqlServer.Server;
+﻿using Antlr.Runtime.Tree;
+using Microsoft.SqlServer.Server;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
@@ -177,13 +179,33 @@ namespace UploadWebapp.DB
             return data;
         }
 
+        public static List<UploadSet> getUploadSetList(DB db = null)
+        {
+            db = new DB();
+            var data = db.ExecuteReader("select distinct (p.uploadSetID) from images i join plotSets p on p.ID = i.plotSetID where filename like '%2019%'");
+
+            List<int> usIDs = new List<int>();
+            while (data.Read())
+            {
+                usIDs.Add(data.GetInt32(0));
+            }
+            data.Close();
+
+            List<UploadSet> us = new List<UploadSet>();
+            foreach (int id in usIDs)
+            {
+                us.Add(GetUploadSetByID(id));
+            }
+            return us;
+        }
+
         public static UploadSet GetUploadSetByID(int uploadSetID, DB db = null)
         {
             db = new DB();
             UploadSet uploadSet = new UploadSet();
             var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName], [qualityCheck] FROM [uploadSet] WHERE ID = " + uploadSetID);
             uploadSet = FromSetData(result).FirstOrDefault();
-            if (!UserDA.CurrentUserFree)
+            if (!UserDA.CurrentUserFree && uploadSet.siteID != 0)
             {
                 //if (UserDA.CurrentUserICOS)
                 //{
@@ -870,6 +892,21 @@ namespace UploadWebapp.DB
             return id;
         }
 
+        public static void saveImageData(Image image, DB db = null)
+        {
+            db = new DB();
+
+            db.ExecuteScalar("UPDATE [dbo].[images] SET [LAI] = @LAI,[LAIe] = @LAIe,[threshold] = @threshold,[clumping] = @clumping, [overexposure] = @overexposure WHERE ID = @ID",
+                new SqlParameter("LAI", (object)image.LAI ?? DBNull.Value),
+                new SqlParameter("LAIe", (object)image.LAIe ?? DBNull.Value),
+                new SqlParameter("threshold", (object)image.threshold ?? DBNull.Value),
+                new SqlParameter("clumping", (object)image.clumping ?? DBNull.Value),
+                new SqlParameter("overexposure", (object)image.overexposure ?? DBNull.Value),
+                new SqlParameter("ID", image.ID));
+
+            db.Dispose();
+        }
+
         public static void setUploadSetQualityCheck(int setId, DB db = null)
         {
             db = new DB();
@@ -900,6 +937,28 @@ namespace UploadWebapp.DB
 
             return qcList;
         }
+
+        public static List<Image> getFileList(DB db = null)
+        {
+            db = new DB();
+            List<Image> list = new List<Image>();
+
+            //var data = db.ExecuteReader("select distinct i.filename,i.path from images i left join qualityCheck q on q.imageID = i.ID where filename like '%" + ConfigurationManager.AppSettings["sitestr"].ToString() + "%'and q.[status] = 1");
+            var data = db.ExecuteReader("select distinct i.filename,i.path from images i join plotSets ps on ps.ID = i.plotSetID where ps.uploadSetID = " + ConfigurationManager.AppSettings["sitestr"].ToString());
+
+            while (data.Read())
+            {
+                Image i = new Image();
+                i.filename = data.GetString(0);
+                i.path = data.GetString(1);
+                list.Add(i);
+            }
+
+            db.Dispose();
+
+            return list;
+        }
+
 
         public static EditQualityCheckModel getQualityCheck(int checkID, int setID, DB db = null)
         {

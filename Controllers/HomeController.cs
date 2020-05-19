@@ -917,6 +917,83 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
+        public ActionResult FillImageData()
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0 && UserDA.CurrentUserETC)
+            {
+                List<UploadSet> us = ImageDA.getUploadSetList();
+                foreach (UploadSet uploadSet in us)
+                {
+                    FillImageData(uploadSet);
+                }
+
+                return View();
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult FillImageDataUS(int id)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0 && UserDA.CurrentUserETC)
+            {
+                UploadSet us = ImageDA.GetUploadSetByID(id);
+                FillImageData(us);
+                return View();
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        private static void FillImageData(UploadSet uploadSet)
+        {
+            foreach (PlotSet plotSet in uploadSet.plotSets)
+            {
+                List<Image> images = plotSet.images;
+                List<laiData> lais = new List<laiData>();
+
+                if (plotSet.resultsSet.processed)
+                {
+                    string dataString = plotSet.resultsSet.data;
+                    string[] split = plotSet.resultsSet.data.Split('\n');
+                    for (int i = 1; i < split.Length; i++)
+                    {
+                        if (!string.IsNullOrEmpty(split[i]))
+                        {
+                            string[] split2 = split[i].Split(',');
+                            laiData lai = new laiData();
+                            lai.filename = !string.IsNullOrEmpty(split2[0]) ? split2[0] : "";
+                            lai.LAI = !string.IsNullOrEmpty(split2[1]) ? double.Parse(split2[1], CultureInfo.InvariantCulture) : (double?)null;
+                            lai.LAIe = !string.IsNullOrEmpty(split2[2]) ? double.Parse(split2[2], CultureInfo.InvariantCulture) : (double?)null;
+                            lai.threshold = !string.IsNullOrEmpty(split2[3]) ? double.Parse(split2[3], CultureInfo.InvariantCulture) : (double?)null;
+                            lai.clumping = !string.IsNullOrEmpty(split2[4]) ? double.Parse(split2[4], CultureInfo.InvariantCulture) : (double?)null;
+                            if (split2.Length > 5)
+                                lai.overexposure = !string.IsNullOrEmpty(split2[5]) ? double.Parse(split2[5], CultureInfo.InvariantCulture) : (double?)null;
+                            else
+                                lai.overexposure = (double?)null;
+
+                            lais.Add(lai);
+                        }
+                    }
+                }
+
+                foreach (Image image in images)
+                {
+                    var res = lais.Where(l => l.filename == image.filename);
+                    if (res.Any())
+                    {
+                        laiData lai = res.First();
+                        image.LAI = lai.LAI;
+                        image.LAIe = lai.LAIe;
+                        image.threshold = lai.threshold;
+                        image.clumping = lai.clumping;
+                        image.overexposure = lai.overexposure;
+                    }
+                    ImageDA.saveImageData(image);
+                }
+            }
+        }
+
         public ActionResult UploadSetQualityChecks(int setID)
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
@@ -1254,5 +1331,144 @@ namespace UploadWebapp.Controllers
                 return View(e.ToString());
             }
         }
+
+        //public ActionResult ProcessList()
+        //{
+        //    if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+        //    {
+        //        try
+        //    {
+        //        List<SiteData> sites = ImageDA.GetUserSites(1);
+        //        List<PlotsPerSite> plotsPerSite = new List<PlotsPerSite>();
+        //        List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
+        //        List<UploadSet> uploadSets = new List<UploadSet>();
+        //        UploadSet us = new UploadSet();
+                
+        //        List<String> res = new List<String>();
+        //        List<String> erStr = new List<String>();
+
+        //        bool error = false;
+        //        string erMes = "";
+        //        string pattern = "^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$";
+        //        Regex rg = new Regex(pattern);
+
+        //        List<Image> filelist = ImageDA.getFileList();
+
+        //        //create images
+        //        List<ProcessImage> procImages = new List<ProcessImage>();
+        //        foreach (Image file in filelist)
+        //        {
+        //            //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
+        //            if (rg.IsMatch(file.filename) && file.filename != "cpd.exe" && file.filename != "cpdcaller.ps1" && file.filename != "processcaller.ps1")
+        //            {
+        //                ProcessImage procIm = new ProcessImage();
+        //                procIm.filename = file.filename;
+        //                procIm.path = file.path;
+        //                procIm.siteCode = file.filename.Substring(0, 6);
+        //                procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
+        //                procIm.plotName = file.filename.Substring(14, 4);
+        //                procIm.date = DateTime.ParseExact(file.filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+        //                procIm.cameraSetupName = file.filename.Substring(11, 2);
+
+        //                procImages.Add(procIm);
+        //            }
+        //        }
+        //        //sort images
+        //        procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ThenBy(p => p.plotName).ToList();
+
+        //        //catch plotlist for each used site 
+        //        foreach (int s in procImages.Select(p => p.siteID).Distinct())
+        //        {
+        //            PlotsPerSite pps = new PlotsPerSite();
+        //            pps.siteID = s;
+        //            pps.plotsList = ImageDA.GetPlotListForSite(s);
+        //            plotsPerSite.Add(pps);
+        //        }
+
+        //        //process images
+        //        foreach (ProcessImage procIm in procImages)
+        //        {
+        //            error = false;
+        //            erMes = "";
+
+        //            //check if camerasetup exists
+        //            CameraSetup camSetup = cameraSetups.FirstOrDefault(c => c.siteID == procIm.siteID && c.name == procIm.cameraSetupName);
+        //            if (camSetup == null)
+        //            {
+        //                error = true;
+        //                erMes = string.Format("Camerasetup {0} for site {1} is missing.", procIm.cameraSetupName, procIm.siteCode);
+        //            }
+
+        //            else
+        //            {
+        //                //check if new uploadset is needed and create if so
+        //                if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().cameraSetup.name != procIm.cameraSetupName) // || uploadSets.Last().dateTaken != procIm.date)
+        //                {
+        //                    us = new UploadSet();
+        //                    us.siteCode = procIm.siteCode;
+        //                    us.siteID = procIm.siteID;
+        //                    us.siteName = procIm.siteCode;
+        //                    us.userID = 1;
+        //                    us.dateTaken = procIm.date;
+        //                    us.cameraSetup = camSetup;
+        //                    us.plotSets = new List<PlotSet>();
+        //                    us.uploadTime = DateTime.Now;
+        //                    us.person = procIm.siteCode + ConfigurationManager.AppSettings["mess"].ToString();
+
+        //                    uploadSets.Add(us);
+        //                }
+        //                us = uploadSets.Last();
+        //                PlotSet ps = us.plotSets.Find(s => s.plotname == procIm.plotName); 
+        //                if (ps == null)
+        //                {
+        //                    ps = new PlotSet();
+        //                    ps.uploadSetID = us.ID;
+        //                    ps.plotname = procIm.plotName;
+        //                    ps.images = new List<Image>();
+
+        //                    Plot plot = plotsPerSite.Find(p => p.siteID == us.siteID).plotsList.Find(p => p.name == procIm.plotName);
+        //                    if (plot == null)
+        //                    {
+        //                        plot = new Plot();
+        //                        plot.insertDate = DateTime.Now;
+        //                        plot.insertUser = 1;
+        //                        plot.name = procIm.plotName;
+        //                        plot.siteID = us.siteID.Value;
+        //                        plot.slope = 0;
+        //                        plot.slopeAspect = 0;
+        //                        plot.ID = ImageDA.SavePlot(plot, null);
+        //                    }
+        //                    ps.plot = plot;
+        //                    ps.plotID = plot.ID;
+
+        //                    us.plotSets.Add(ps);
+        //                }
+
+        //                //if (!error)
+        //                {
+        //                    Image image = new Image();
+        //                    image.filename = procIm.filename;
+        //                    image.path = procIm.path;
+        //                    ps.images.Add(image);
+        //                    res.Add(string.Format("{0}: {1}", image.filename, "succes"));
+        //                }
+        //            }
+        //        }
+
+        //        foreach (UploadSet u in uploadSets)
+        //        {
+        //            ImageDA.SaveUploadSet(u);
+        //        }
+
+        //        return View(res);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return View(e.ToString());
+        //    }
+        //    }
+        //    else
+        //        return RedirectToAction("Login", "Account");
+        //}
     }
 }
