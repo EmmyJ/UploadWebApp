@@ -131,7 +131,7 @@ namespace UploadWebapp.Controllers
                         s = m.image.filename;
                         s += "," + m.siteName;
                         s += ",DHP" ;
-                        s += "," + m.cameraSetupName.Substring(1);
+                        s += "," + m.cameraSetupName;//.Substring(1);
                         s += "," + m.plotName;
                         s += "," + m.plotLocation;
                         s += "," + m.dateString;

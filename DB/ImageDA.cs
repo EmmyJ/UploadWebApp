@@ -79,7 +79,8 @@ namespace UploadWebapp.DB
                 item.plotName = item.image.filename.Substring(14, 2) + "_" + item.image.filename.Substring(16, 2);
                 item.plotLocation = item.image.filename.Substring(20, 2);
                 item.dateString = item.image.filename.Substring(23, 8);
-                item.cameraSetupName = (result.IsDBNull(1) ? "0" : result.GetString(1));
+                //item.cameraSetupName = (result.IsDBNull(1) ? "0" : result.GetString(1));
+                item.cameraSetupName = item.image.filename.Substring(12, 1);
                 
                 item.qc.setupObjects = result.GetBoolean(2);
                 item.qc.setupObjectsComments = result.IsDBNull(3) ? null : result.GetString(3);
