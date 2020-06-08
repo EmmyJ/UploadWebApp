@@ -284,6 +284,18 @@ namespace UploadWebapp.DB
                 foreach (UploadSet us in list)
                 {
                     us.siteCode = us.siteID.HasValue ? sitelist[us.siteID.Value] : "";
+                    if (us.qualityCheck)
+                    {
+                        var subResult = db.ExecuteReader("SELECT TOP 1 u.NAME,[submissionDate] FROM [LAI_App].[dbo].[submissions] s join utenti u on s.userID = u.ID where uploadSetID = " + us.ID + " order by s.ID desc");
+                        while (subResult.Read())
+                        {
+                            Submission sub = new Submission();
+                            sub.userName = subResult.GetString(0);
+                            sub.submissionDate = subResult.GetDateTime(1);
+                            us.lastSubmission = sub;                            
+                        }
+                        subResult.Close();
+                    }
                 }
 
             }
@@ -890,6 +902,19 @@ namespace UploadWebapp.DB
                 new SqlParameter("ID", qc.image.ID));
 
             db.Dispose();
+            return id;
+        }
+
+        public static int InsertSubmission(Submission submission, DB db = null)
+        {
+            db = new DB();
+            int id;
+
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[submissions] ([uploadSetID],[filename],[userID],[submissionDate]) VALUES(@uploadSetID,@filename,@userID,@submissionDate);SELECT IDENT_CURRENT('[submissions]');",
+                    new SqlParameter("uploadSetID", submission.uploadSetID),
+                    new SqlParameter("filename", submission.filename),
+                    new SqlParameter("userID", submission.userID),
+                    new SqlParameter("submissionDate", submission.submissionDate)));
             return id;
         }
 

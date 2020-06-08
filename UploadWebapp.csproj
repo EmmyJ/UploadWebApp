@@ -207,6 +207,7 @@
     <Compile Include="Models\ResultsSet.cs" />
     <Compile Include="Models\Site.cs" />
     <Compile Include="Models\Species.cs" />
+    <Compile Include="Models\Submission.cs" />
     <Compile Include="Models\UploadSet.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

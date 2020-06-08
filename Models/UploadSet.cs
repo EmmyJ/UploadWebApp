@@ -48,5 +48,7 @@ namespace UploadWebapp.Models
         public int QCfail { get; set; }
 
         public DateTime dateTaken { get; set; }
+
+        public Submission lastSubmission { get; set; }
     }
 }

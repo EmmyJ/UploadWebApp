@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -118,6 +119,7 @@ namespace UploadWebapp.Controllers
             if(UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 List<ExportETCmodel> list = ImageDA.GetDataForETC(setID);
+                string siteName = "";
 
                 if (list.Count > 0)
                 {
@@ -128,6 +130,8 @@ namespace UploadWebapp.Controllers
                     {
                         string s;
                         ExportETCmodel m = list[i];
+                        //TODO: REMOVE!!!
+                        //m.siteName = "FA-Lso";
                         s = m.image.filename;
                         s += "," + m.siteName;
                         s += ",DHP" ;
@@ -229,22 +233,47 @@ namespace UploadWebapp.Controllers
                                     motivation = "Other";
                                 else
                                     motivation = "Multiple";
-                            }
-                            
+                            }                            
 
                             s += ",1";
                             s += "," + motivation;
                             s += "," +comment;
                             s += ",,,,,";
-                        }                        
+                        }                   
 
                         data.Add(s);
+                        siteName = m.siteName;
                     }
 
-                    
-                    string fileName = "DHPforETC.csv";
+                    //string date = DateTime.Now.ToString("yyyyMMddHHmm");
+                    DateTime now = DateTime.Now;
+                    string fileName = String.Format("{0}_DHP-LAI_{1}.csv",siteName, now.ToString("yyyyMMddHHmm"));
                     string fileContent = String.Join("\n", data);
                     var byteArray = Encoding.ASCII.GetBytes(fileContent);
+
+                    //send to ETC
+                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + fileName);
+                    request.Method = WebRequestMethods.Ftp.UploadFile;
+
+                    request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+
+                    byte[] bytes = byteArray;
+
+                    // Write the bytes into the request stream.
+                    request.ContentLength = bytes.Length;
+                    using (Stream request_stream = request.GetRequestStream())
+                    {
+                        request_stream.Write(bytes, 0, bytes.Length);
+                        request_stream.Close();
+                    }
+
+                    Submission submission = new Submission();
+                    submission.uploadSetID = setID;
+                    submission.filename = fileName;
+                    submission.userID = UserDA.CurrentUserId;
+                    submission.submissionDate = now;
+
+                    ImageDA.InsertSubmission(submission);
 
                     return File(byteArray, "text/csv", fileName);
                 }
