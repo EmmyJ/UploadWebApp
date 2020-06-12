@@ -116,7 +116,7 @@ namespace UploadWebapp.Controllers
 
         public ActionResult DownloadDataForETC(int setID)
         {
-            if(UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 List<ExportETCmodel> list = ImageDA.GetDataForETC(setID);
                 string siteName = "";
@@ -134,16 +134,16 @@ namespace UploadWebapp.Controllers
                         //m.siteName = "FA-Lso";
                         s = m.image.filename;
                         s += "," + m.siteName;
-                        s += ",DHP" ;
+                        s += ",DHP";
                         s += "," + m.cameraSetupName;//.Substring(1);
                         s += "," + m.plotName;
                         s += "," + m.plotLocation;
                         s += "," + m.dateString;
 
                         string comment = "";
-                        if(!m.qc.setupObjects || !string.IsNullOrEmpty(m.qc.setupObjectsComments))
+                        if (!m.qc.setupObjects || !string.IsNullOrEmpty(m.qc.setupObjectsComments))
                             comment = "Setup Objects: " + m.qc.setupObjectsComments + "| ";
-                        if(!m.qc.noForeignObjects || !string.IsNullOrEmpty(m.qc.foreignObjectsComments))
+                        if (!m.qc.noForeignObjects || !string.IsNullOrEmpty(m.qc.foreignObjectsComments))
                             comment += "Foreign Objects: " + m.qc.foreignObjectsComments + "| ";
                         if (!m.qc.noRaindropsDirt || !string.IsNullOrEmpty(m.qc.raindropsDirtComments))
                             comment += "Raindrops/Dirt: " + m.qc.raindropsDirtComments + "| ";
@@ -154,7 +154,7 @@ namespace UploadWebapp.Controllers
                         if (!m.qc.noOverexposure || !string.IsNullOrEmpty(m.qc.overexposureComments))
                             comment += "Overexposure: " + m.qc.overexposureComments + "| ";
                         if (!m.qc.settings || !string.IsNullOrEmpty(m.qc.settingsComments))
-                            comment += "Settings: " + m.qc.settingsComments.Replace(',','.') + "| ";
+                            comment += "Settings: " + m.qc.settingsComments.Replace(',', '.') + "| ";
                         if (!string.IsNullOrEmpty(m.qc.otherComments))
                             comment += "Other: " + m.qc.otherComments;
                         comment = comment.Trim();
@@ -163,11 +163,11 @@ namespace UploadWebapp.Controllers
                         if (m.qc.status == QCstatus.pass)
                         {
                             s += ",0,," + comment;
-                            s += "," + Math.Round(m.image.LAI.Value,2).ToString().Replace(',','.');
-                            s += "," + Math.Round(m.image.LAIe.Value,2).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.threshold.Value,3).ToString().Replace(',', '.');
+                            s += "," + Math.Round(m.image.LAI.Value, 2).ToString().Replace(',', '.');
+                            s += "," + Math.Round(m.image.LAIe.Value, 2).ToString().Replace(',', '.');
+                            s += "," + Math.Round(m.image.threshold.Value, 3).ToString().Replace(',', '.');
                             s += "," + Math.Round(m.image.clumping.Value, 3).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.overexposure.Value,5).ToString().Replace(',', '.');
+                            s += "," + Math.Round(m.image.overexposure.Value, 5).ToString().Replace(',', '.');
                         }
                         else if (m.qc.status == QCstatus.created)
                         {
@@ -179,11 +179,11 @@ namespace UploadWebapp.Controllers
                         else
                         {
                             string motivation = "";
-                            
-                            
+
+
                             if (!m.qc.setupObjects)
                             {
-                                motivation = "Setup";                                
+                                motivation = "Setup";
                             }
                             if (!m.qc.noForeignObjects)
                             {
@@ -233,40 +233,66 @@ namespace UploadWebapp.Controllers
                                     motivation = "Other";
                                 else
                                     motivation = "Multiple";
-                            }                            
+                            }
 
                             s += ",1";
                             s += "," + motivation;
-                            s += "," +comment;
+                            s += "," + comment;
                             s += ",,,,,";
-                        }                   
+                        }
 
                         data.Add(s);
                         siteName = m.siteName;
                     }
 
-                    //string date = DateTime.Now.ToString("yyyyMMddHHmm");
                     DateTime now = DateTime.Now;
-                    string fileName = String.Format("{0}_DHP-LAI_{1}.csv",siteName, now.ToString("yyyyMMddHHmm"));
+                    string fileName = String.Format("{0}_DHP-LAI_{1}.csv", siteName, now.ToString("yyyyMMddHHmm"));
                     string fileContent = String.Join("\n", data);
                     var byteArray = Encoding.ASCII.GetBytes(fileContent);
 
                     //send to ETC
-                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + fileName);
+                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
                     request.Method = WebRequestMethods.Ftp.UploadFile;
 
                     request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
 
                     byte[] bytes = byteArray;
-
-                    // Write the bytes into the request stream.
-                    request.ContentLength = bytes.Length;
-                    using (Stream request_stream = request.GetRequestStream())
+                    try
                     {
-                        request_stream.Write(bytes, 0, bytes.Length);
-                        request_stream.Close();
-                    }
+                        // Write the bytes into the request stream.
+                        request.ContentLength = bytes.Length;
+                        using (Stream request_stream = request.GetRequestStream())
+                        {
 
+                            request_stream.Write(bytes, 0, bytes.Length);
+                            request_stream.Close();
+
+                        }
+                    }
+                    catch (Exception)
+                    //folder doesn't exist, so create folder and try again
+                    {
+                        request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/");
+                        request.Method = WebRequestMethods.Ftp.MakeDirectory;
+                        request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+                        using (var resp = (FtpWebResponse)request.GetResponse())
+                        {
+                            if(resp.StatusCode == FtpStatusCode.PathnameCreated)
+                            {
+                                request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
+                                request.Method = WebRequestMethods.Ftp.UploadFile;
+
+                                request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+
+                                request.ContentLength = bytes.Length;
+                                using (Stream request_stream = request.GetRequestStream())
+                                {
+                                    request_stream.Write(bytes, 0, bytes.Length);
+                                    request_stream.Close();
+                                }
+                            }
+                        }                        
+                    }
                     Submission submission = new Submission();
                     submission.uploadSetID = setID;
                     submission.filename = fileName;
@@ -1040,7 +1066,7 @@ namespace UploadWebapp.Controllers
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
                 EditQualityCheckModel model = ImageDA.getQualityCheck(checkID, setID);
-                Dictionary<string, string> exifs = new Dictionary<string, string>();             
+                Dictionary<string, string> exifs = new Dictionary<string, string>();
 
                 if (model != null)
                 {
@@ -1093,9 +1119,9 @@ namespace UploadWebapp.Controllers
                             if (model.image.fNumber != 8)
                             {
                                 model.qualityCheck.settings = false;
-                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber.ToString().Replace(',','.'));
+                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber.ToString().Replace(',', '.'));
                             }
-                            if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30"))))) 
+                            if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30")))))
                             {
                                 model.qualityCheck.settings = false;
                                 model.qualityCheck.settingsComments += string.Format(" Shutterspeed: {0} > 1/30", model.image.exposureTimeStr);
@@ -1140,7 +1166,8 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
-        public class ProcessImage {
+        public class ProcessImage
+        {
             public string filename { get; set; }
             public string path { get; set; }
             public string siteCode { get; set; }
@@ -1153,7 +1180,8 @@ namespace UploadWebapp.Controllers
             public int plotSetID { get; set; }
         }
 
-        public class PlotsPerSite {
+        public class PlotsPerSite
+        {
             public int siteID { get; set; }
             public List<Plot> plotsList { get; set; }
         }
@@ -1221,7 +1249,7 @@ namespace UploadWebapp.Controllers
                     pps.siteID = s;
                     pps.plotsList = ImageDA.GetPlotListForSite(s);
                     plotsPerSite.Add(pps);
-                }                              
+                }
 
                 //process images
                 foreach (ProcessImage procIm in procImages)
@@ -1237,7 +1265,8 @@ namespace UploadWebapp.Controllers
                         erMes = string.Format("Camerasetup {0} for site {1} is missing.", procIm.cameraSetupName, procIm.siteCode);
                     }
 
-                    else {
+                    else
+                    {
                         //check if new uploadset is needed and create if so
                         if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().cameraSetup.name != procIm.cameraSetupName) // || uploadSets.Last().dateTaken != procIm.date)
                         {
@@ -1289,17 +1318,18 @@ namespace UploadWebapp.Controllers
                             string pathString = ds.ToString() + procIm.siteCode + "/LAI";
                             try
                             {
-                                
+
                                 if (!System.IO.Directory.Exists(pathString))
                                     System.IO.Directory.CreateDirectory(pathString);
-                                
+
                                 System.IO.File.Delete(System.IO.Path.Combine(pathString, procIm.filename));
                                 System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(pathString, procIm.filename));
                             }
-                            catch {
+                            catch
+                            {
                                 System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
                             }
-                                image.path = System.IO.Path.Combine(pathString, procIm.filename); 
+                            image.path = System.IO.Path.Combine(pathString, procIm.filename);
                             ps.images.Add(image);
                             res.Add(string.Format("{0}: {1}", image.filename, "succes"));
                         }
@@ -1356,7 +1386,8 @@ namespace UploadWebapp.Controllers
 
                 return View(res);
             }
-            catch (Exception e){
+            catch (Exception e)
+            {
                 return View(e.ToString());
             }
         }
@@ -1372,7 +1403,7 @@ namespace UploadWebapp.Controllers
         //        List<CameraSetup> cameraSetups = ImageDA.GetCameraSetupsForUser(1);
         //        List<UploadSet> uploadSets = new List<UploadSet>();
         //        UploadSet us = new UploadSet();
-                
+
         //        List<String> res = new List<String>();
         //        List<String> erStr = new List<String>();
 
