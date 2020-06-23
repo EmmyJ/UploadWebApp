@@ -176,8 +176,10 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\ETCController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="DB\DB.cs" />
+    <Compile Include="DB\ETCDA.cs" />
     <Compile Include="DB\ImageDA.cs" />
     <Compile Include="DB\UserDA.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
@@ -186,6 +188,7 @@
     </Compile>
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\AGBuploadDetail.cs" />
+    <Compile Include="Models\ETC\AggImage.cs" />
     <Compile Include="Models\CameraSetup.cs" />
     <Compile Include="Models\Circle.cs" />
     <Compile Include="Models\Country.cs" />
@@ -193,6 +196,8 @@
     <Compile Include="Models\CreateSiteModel.cs" />
     <Compile Include="Models\Ecosystem.cs" />
     <Compile Include="Models\EditQualityCheckModel.cs" />
+    <Compile Include="Models\ETC\AggItem.cs" />
+    <Compile Include="Models\ETC\AggPlot.cs" />
     <Compile Include="Models\ExportETCmodel.cs" />
     <Compile Include="Models\FileUploadPlot.cs" />
     <Compile Include="Models\FileUpload.cs" />
@@ -396,6 +401,7 @@
     <Content Include="Views\Home\EditQualityCheck.cshtml" />
     <Content Include="Views\Home\ProcessImages.cshtml" />
     <Content Include="Views\Home\FillImageData.cshtml" />
+    <Content Include="Views\ETC\AggregateLAI.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

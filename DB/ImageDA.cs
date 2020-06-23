@@ -183,7 +183,7 @@ namespace UploadWebapp.DB
         public static List<UploadSet> getUploadSetList(DB db = null)
         {
             db = new DB();
-            var data = db.ExecuteReader("select distinct (p.uploadSetID) from images i join plotSets p on p.ID = i.plotSetID where filename like '%2019%'");
+            var data = db.ExecuteReader("select distinct (p.uploadSetID) from images i join plotSets p on p.ID = i.plotSetID where filename like '%_2019%'");
 
             List<int> usIDs = new List<int>();
             while (data.Read())

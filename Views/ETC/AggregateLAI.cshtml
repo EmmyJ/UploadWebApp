@@ -1,0 +1,174 @@
+﻿@{
+    ViewBag.Title = "AggregateLAI";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model IEnumerable<UploadWebapp.Models.ETC.AggItem>
+
+<h2>AggregateLAI</h2>
+
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.site)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.startDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.endDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LAIaverage)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LAIdeviation)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.clumpAverage)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.clumpDeviation)
+        </th>
+
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        if (item.LAIaverage != null)
+        {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.site)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.startDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.endDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LAIaverage)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LAIdeviation)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.clumpAverage)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.clumpDeviation)
+            </td>
+
+
+        </tr>
+            }
+        }
+
+</table>
+
+
+
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].site)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].dateTaken)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].plotname)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].location)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].group)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].LAI)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.plots[0].images[0].clumping)
+        </th>
+        <th>
+            @*@Html.DisplayNameFor(model => model.plots[0].images[0].LAIdeviationSquare)*@
+            LAI Dev
+        </th>
+        <th>
+            @*@Html.DisplayNameFor(model => model.plots[0].images[0].clumpDeviationSquare)*@
+            Clump dev
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        if (item.LAIaverage != null)
+        {
+            foreach (var plot in item.plots)
+            {
+                <tr>
+                    <th>
+                        @Html.DisplayFor(modelItem => item.site)
+                    </th>
+                    <th>
+                        @Html.DisplayFor(modelItem => item.startDate)
+                    </th>
+
+                    <th>
+                        @Html.DisplayFor(modelItem => plot.plotname)
+                    </th>
+                    <td></td>
+                    <td></td>
+                    <th>
+                        @Html.DisplayFor(modelItem => plot.LAIaverage)
+                    </th>
+                    <th>
+                        @Html.DisplayFor(modelItem => plot.clumpAverage)
+                    </th>
+                    <th>
+                        @Html.DisplayFor(modelItem => plot.LAIdeviationSquare)
+                    </th>
+
+                    <th>
+                        @Html.DisplayFor(modelItem => plot.clumpDeviationSquare)
+                    </th>
+
+                </tr>
+                foreach (var image in plot.images)
+                        {
+                            if (image.QCstatus == UploadWebapp.Models.QCstatus.pass)
+                            {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.site)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.dateTaken)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.plotname)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.location)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.group)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.LAI)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.clumping)
+                                </td>                                
+                                <td>
+                                    @Html.DisplayFor(modelItem => image.QCstatus)
+                                </td>
+
+                            </tr>
+                        }
+                    }
+            }
+        }
+    }
+</table>
