@@ -8,7 +8,8 @@ namespace UploadWebapp.Models.ETC
     public class AggItem
     {
         public List<AggPlot> plots { get; set; } 
-        public string site { get; set; }
+        public string siteCode { get; set; }
+        public string siteName { get; set; }
         public double? LAIaverage { get; set; }
         public double? LAIdeviation { get; set; }
         public double? clumpAverage { get; set; }

@@ -440,7 +440,7 @@ namespace UploadWebapp.DB
             //}
             //else
             //{
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE site = '" + siteCode + "'");
+                var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '" + siteCode + "'");
                 site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
             //}

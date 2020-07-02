@@ -174,7 +174,7 @@ namespace UploadWebapp.DB
             //else
             //{
                 db = new DB();
-                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
+                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME], s.[labelled], s.[labelDate] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
                 sites = result.HasRows ? FromSiteData(result) : null;
                 db.Dispose();
             //}
@@ -204,7 +204,7 @@ namespace UploadWebapp.DB
             //else
             //{
                 db = new DB();
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME] FROM [sites] WHERE ID = " + siteID);
+                var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE ID = " + siteID);
                 site = result.HasRows ? FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
             //}
@@ -241,6 +241,8 @@ namespace UploadWebapp.DB
                 s.siteCode = data.IsDBNull(1) ? "" : data.GetString(1);
                 s.name = data.GetString(2);
                 s.title = string.Format("{0} ({1})", s.name, s.siteCode);
+                s.labelled = data.GetBoolean(3);
+                s.labelDate = data.IsDBNull(4) ? (DateTime?)null : data.GetDateTime(4);
 
                 result.Add(s);
             }

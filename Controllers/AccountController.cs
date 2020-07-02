@@ -135,7 +135,7 @@ namespace UploadWebapp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            WebSecurity.Logout();
+            //WebSecurity.Logout();
             UserDA.CurrentUserId = 0;
             UserDA.CurrentUserName = null;
 

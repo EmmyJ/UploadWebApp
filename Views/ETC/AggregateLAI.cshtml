@@ -4,12 +4,12 @@
 }
 @model IEnumerable<UploadWebapp.Models.ETC.AggItem>
 
-<h2>AggregateLAI</h2>
+<h2>Aggregated LAI results @ViewBag.Year</h2>
 
 <table class="ovv" style="border-collapse: collapse; width: 1170px;">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.site)
+            @Html.DisplayNameFor(model => model.siteCode)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.startDate)
@@ -38,7 +38,7 @@
         {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.site)
+                @Html.DisplayFor(modelItem => item.siteCode)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.startDate)
@@ -109,7 +109,7 @@
             {
                 <tr>
                     <th>
-                        @Html.DisplayFor(modelItem => item.site)
+                        @Html.DisplayFor(modelItem => item.siteCode)
                     </th>
                     <th>
                         @Html.DisplayFor(modelItem => item.startDate)

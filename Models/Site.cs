@@ -16,6 +16,8 @@ namespace UploadWebapp.Models
         public int ecosystemID { get; set; }
         public double lattitude { get; set; }
         public double longitude { get; set; }
+        public bool labelled { get; set; }
+        public DateTime? labelDate{ get; set; }
 
         public string title { get; set; }
     }
