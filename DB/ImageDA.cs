@@ -231,7 +231,7 @@ namespace UploadWebapp.DB
 
             foreach (PlotSet plot in uploadSet.plotSets)
             {
-                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path] FROM [images] WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path], exif FROM [images] WHERE plotSetID = " + plot.ID);
                 plot.images = FromImageData(result);
 
                 result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[processed] ,[LAI] ,[LAI_SD] ,[resultLog], [data] FROM [results] WHERE plotSetID = " + plot.ID);
@@ -578,6 +578,7 @@ namespace UploadWebapp.DB
                 image.ID = data.GetInt32(0);
                 image.filename = data.GetString(2);
                 image.path = data.GetString(3);
+                image.exif = data.IsDBNull(4) ? null : data.GetString(4);
                 //image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
                 //image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
                 result.Add(image);

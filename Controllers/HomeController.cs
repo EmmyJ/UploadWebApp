@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -1073,6 +1074,26 @@ namespace UploadWebapp.Controllers
                     model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
                     model.uploadSetID = setID;
 
+                    if(string.IsNullOrEmpty(model.image.exif) || model.image.exif == "todo")
+                    {
+                        //retrieve exif info
+                        FileStream fileStream = new FileStream(model.image.path, FileMode.Open);
+                        string exifstr = "key, value\n";
+
+                        using (var image = new MagickImage(fileStream))
+                        {
+                            string fnumber = image.GetAttribute("exif:FNumber");
+                            exifstr += "EXIF FNumber, " + fnumber + "\n";
+                            string exposure = image.GetAttribute("exif:ExposureTime");
+                            exifstr += "EXIF ExposureTime, " + exposure + "\n";
+                            string ISO = image.GetAttribute("exif:ISOSpeedRatings");
+                            exifstr += "EXIF ISOSpeedRatings, " + ISO + "\n";
+                        }
+
+                        model.image.exif = exifstr;
+                        fileStream.Close();
+                    }
+
                     //read exif values
                     if (model.image.exif != null)
                     {
@@ -1096,7 +1117,7 @@ namespace UploadWebapp.Controllers
                             model.image.exposureTimeVal = teller / noemer;
                         }
                         else
-                            model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr);
+                            model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr.Replace('.', ','));
 
                         if (model.image.fNumberStr.Contains("/"))
                         {
@@ -1106,7 +1127,7 @@ namespace UploadWebapp.Controllers
                             model.image.fNumber = teller / noemer;
                         }
                         else
-                            model.image.fNumber = float.Parse(model.image.fNumberStr);
+                            model.image.fNumber = float.Parse(model.image.fNumberStr.Replace('.', ','));
 
                         //check if values are OK
                         if (model.qualityCheck.status == QCstatus.created)
@@ -1212,7 +1233,7 @@ namespace UploadWebapp.Controllers
                 {
                     //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
                     if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1")
-                    {
+                    {                        
                         ProcessImage procIm = new ProcessImage();
                         procIm.filename = file.Name;
                         procIm.path = file.Directory.ToString();

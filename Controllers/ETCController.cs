@@ -176,9 +176,9 @@ namespace UploadWebapp.Controllers
                         s += "," + si.clumpAverage.ToString().Replace(",", ".");
                         s += ",Hemispherical photo";
                         if(si.plots[0].plotname.Substring(0, 2) == "CP")
-                            s += ",Up to 13 DHP pictures were taken in each continuous plots (CP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the CPs used (number reported in the STATISCIT_NUMBER variable). For more info visit www.icos-etc.eu.";
+                            s += ",Up to 13 DHP pictures were taken in each continuous plots (CP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the CPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
                         else
-                            s += ",Up to 7 DHP pictures were taken in each sparse plots (SP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the SPs used (number reported in the STATISCIT_NUMBER variable). For more info visit www.icos-etc.eu.";
+                            s += ",Up to 7 DHP pictures were taken in each sparse plots (SP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the SPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
                         if (si.startDate == si.endDate)
                         {
                             s += "," + si.startDate.ToString("yyyyMMdd");
@@ -209,9 +209,9 @@ namespace UploadWebapp.Controllers
                         s += "," + si.clumpDeviation.ToString().Replace(",", ".");
                         s += ",Hemispherical photo";
                         if (si.plots[0].plotname.Substring(0, 2) == "CP")
-                            s += ",Up to 13 DHP pictures were taken in each continuous plots (CP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the CPs used (number reported in the STATISCIT_NUMBER variable). For more info visit www.icos-etc.eu.";
+                            s += ",Up to 13 DHP pictures were taken in each continuous plots (CP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the CPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
                         else
-                            s += ",Up to 7 DHP pictures were taken in each sparse plots (SP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the SPs used (number reported in the STATISCIT_NUMBER variable). For more info visit www.icos-etc.eu.";
+                            s += ",Up to 7 DHP pictures were taken in each sparse plots (SP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the SPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
                         if (si.startDate == si.endDate)
                         {
                             s += "," + si.startDate.ToString("yyyyMMdd");
