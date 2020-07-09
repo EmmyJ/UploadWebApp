@@ -934,6 +934,16 @@ namespace UploadWebapp.DB
             db.Dispose();
         }
 
+        public static void saveImageExif(Image image, DB db = null)
+        {
+            db = new DB();
+
+            db.ExecuteScalar("UPDATE [dbo].[images] SET [exif] = @exif WHERE ID = @ID",
+                new SqlParameter("exif", (object)image.exif ?? DBNull.Value),
+                new SqlParameter("ID", image.ID));
+            db.Dispose();
+        }
+
         public static void setUploadSetQualityCheck(int setId, DB db = null)
         {
             db = new DB();

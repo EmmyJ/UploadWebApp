@@ -1092,6 +1092,7 @@ namespace UploadWebapp.Controllers
 
                         model.image.exif = exifstr;
                         fileStream.Close();
+                        ImageDA.saveImageExif(model.image);
                     }
 
                     //read exif values
