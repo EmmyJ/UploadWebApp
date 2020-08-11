@@ -26,12 +26,12 @@ namespace UploadWebapp.Models
         public string exif { get; set; }
         public string stats { get; set; }
 
-        public int ISO { get; set; }
+        public float? ISO { get; set; }
 
-        public float fNumber { get; set; }
+        public float? fNumber { get; set; }
         public string fNumberStr { get; set; }
 
-        public float exposureTimeVal { get; set; }
+        public float? exposureTimeVal { get; set; }
 
         public string exposureTimeStr { get; set; }
 

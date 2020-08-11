@@ -292,7 +292,7 @@ namespace UploadWebapp.Controllers
                                     request_stream.Close();
                                 }
                             }
-                        }                        
+                        }
                     }
                     Submission submission = new Submission();
                     submission.uploadSetID = setID;
@@ -1074,7 +1074,7 @@ namespace UploadWebapp.Controllers
                     model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
                     model.uploadSetID = setID;
 
-                    if(string.IsNullOrEmpty(model.image.exif) || model.image.exif == "todo")
+                    if (string.IsNullOrEmpty(model.image.exif) || model.image.exif == "todo")
                     {
                         //retrieve exif info
                         FileStream fileStream = new FileStream(model.image.path, FileMode.Open);
@@ -1083,10 +1083,13 @@ namespace UploadWebapp.Controllers
                         using (var image = new MagickImage(fileStream))
                         {
                             string fnumber = image.GetAttribute("exif:FNumber");
+                            fnumber =  string.IsNullOrEmpty(fnumber) ? image.GetAttribute("dng:f.number") : fnumber;
                             exifstr += "EXIF FNumber, " + fnumber + "\n";
                             string exposure = image.GetAttribute("exif:ExposureTime");
+                            exposure = string.IsNullOrEmpty(exposure) ? image.GetAttribute("dng:exposure.time") : exposure;
                             exifstr += "EXIF ExposureTime, " + exposure + "\n";
                             string ISO = image.GetAttribute("exif:ISOSpeedRatings");
+                            ISO = string.IsNullOrEmpty(ISO) ? image.GetAttribute("dng:iso.setting") : ISO;
                             exifstr += "EXIF ISOSpeedRatings, " + ISO + "\n";
                         }
 
@@ -1107,48 +1110,70 @@ namespace UploadWebapp.Controllers
                         }
 
                         model.image.fNumberStr = exifs["EXIF FNumber"];
-                        model.image.ISO = int.Parse(exifs["EXIF ISOSpeedRatings"]);
+                        model.image.ISO = string.IsNullOrEmpty(exifs["EXIF ISOSpeedRatings"]) ? (float?)null : float.Parse(exifs["EXIF ISOSpeedRatings"].Replace('.', ','));
                         model.image.exposureTimeStr = exifs["EXIF ExposureTime"];
 
-                        if (model.image.exposureTimeStr.Contains("/"))
+                        if (!string.IsNullOrEmpty(model.image.exposureTimeStr))
                         {
-                            string[] et = model.image.exposureTimeStr.Split('/');
-                            float teller = int.Parse(et[0]);
-                            float noemer = int.Parse(et[1]);
-                            model.image.exposureTimeVal = teller / noemer;
+                            if (model.image.exposureTimeStr.Contains("/"))
+                            {
+                                string[] et = model.image.exposureTimeStr.Split('/');
+                                float teller = float.Parse(et[0].Replace('.', ','));
+                                float noemer = float.Parse(et[1].Replace('.', ','));
+                                model.image.exposureTimeVal = teller / noemer;
+                                model.image.exposureTimeStr = string.Format("{0}/{1}", teller.ToString(), noemer.ToString());
+                            }
+                            else
+                                model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr.Replace('.', ','));
                         }
                         else
-                            model.image.exposureTimeVal = float.Parse(model.image.exposureTimeStr.Replace('.', ','));
+                            model.image.exposureTimeVal = null;
 
-                        if (model.image.fNumberStr.Contains("/"))
+                        if (!string.IsNullOrEmpty(model.image.fNumberStr))
                         {
-                            string[] et = model.image.fNumberStr.Split('/');
-                            float teller = int.Parse(et[0]);
-                            float noemer = int.Parse(et[1]);
-                            model.image.fNumber = teller / noemer;
+                            if (model.image.fNumberStr.Contains("/"))
+                            {
+                                string[] et = model.image.fNumberStr.Split('/');
+                                float teller = float.Parse(et[0].Replace('.', ','));
+                                float noemer = float.Parse(et[1].Replace('.', ','));
+                                model.image.fNumber = teller / noemer;
+                                model.image.fNumberStr = string.Format("{0}/{1}", teller.ToString(), noemer.ToString());
+                            }
+                            else { 
+                                model.image.fNumber = float.Parse(model.image.fNumberStr.Replace('.', ','));
+                                model.image.fNumberStr = model.image.fNumber.ToString();
+                            }
+
                         }
                         else
-                            model.image.fNumber = float.Parse(model.image.fNumberStr.Replace('.', ','));
+                            model.image.fNumber = null;
 
                         //check if values are OK
                         if (model.qualityCheck.status == QCstatus.created)
                         {
-                            if (model.image.ISO < 200 || model.image.ISO > 1000)
+                            if (model.image.ISO == null || model.image.fNumber == null || model.image.exposureTimeVal == null)
                             {
                                 model.qualityCheck.settings = false;
-                                model.qualityCheck.settingsComments += string.Format(" ISO: {0} not between 200 and 1000.", model.image.ISO);
+                                model.qualityCheck.settingsComments += " EXIF info incomplete.";
                             }
-                            if (model.image.fNumber != 8)
+                            else
                             {
-                                model.qualityCheck.settings = false;
-                                model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber.ToString().Replace(',', '.'));
+                                if (model.image.ISO < 200 || model.image.ISO > 1000)
+                                {
+                                    model.qualityCheck.settings = false;
+                                    model.qualityCheck.settingsComments += string.Format(" ISO: {0} not between 200 and 1000.", model.image.ISO);
+                                }
+                                if (model.image.fNumber != 8)
+                                {
+                                    model.qualityCheck.settings = false;
+                                    model.qualityCheck.settingsComments += string.Format(" F-value: {0} <> 8.", model.image.fNumber.ToString().Replace(',', '.'));
+                                }
+                                if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30")))))
+                                {
+                                    model.qualityCheck.settings = false;
+                                    model.qualityCheck.settingsComments += string.Format(" Shutterspeed: {0} > 1/30", model.image.exposureTimeStr);
+                                }
                             }
-                            if (model.image.exposureTimeVal > ((float.Parse("1") / (float.Parse("30")))))
-                            {
-                                model.qualityCheck.settings = false;
-                                model.qualityCheck.settingsComments += string.Format(" Shutterspeed: {0} > 1/30", model.image.exposureTimeStr);
-                            }
-
                             if (!model.qualityCheck.settings)
                                 model.qualityCheck.status = QCstatus.fail;
                         }
@@ -1234,7 +1259,7 @@ namespace UploadWebapp.Controllers
                 {
                     //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
                     if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1")
-                    {                        
+                    {
                         ProcessImage procIm = new ProcessImage();
                         procIm.filename = file.Name;
                         procIm.path = file.Directory.ToString();
