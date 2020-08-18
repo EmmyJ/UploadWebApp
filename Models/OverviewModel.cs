@@ -10,5 +10,9 @@ namespace UploadWebapp.Models
         public bool isETCuser { get; set; }
 
         public List<UploadSet> uploadSets { get; set; }
+        public int selectedSite { get; set; }
+        public Dictionary<int,string> siteList { get; set; }
+        public int selectedYear { get; set; }
+        public List<int> yearList { get; set; }
     }
 }

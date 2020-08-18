@@ -247,7 +247,7 @@ namespace UploadWebapp.Controllers
                     }
 
                     DateTime now = DateTime.Now;
-                    string fileName = String.Format("{0}_DHP-LAI_{1}.csv", siteName, now.ToString("yyyyMMddHHmm"));
+                    string fileName = String.Format("{0}_DHP-LAI_{1}.csv", siteName, now.ToString("yyyyMMddHHmmss"));
                     string fileContent = String.Join("\n", data);
                     var byteArray = Encoding.ASCII.GetBytes(fileContent);
 
@@ -741,6 +741,28 @@ namespace UploadWebapp.Controllers
                 OverviewModel model = new OverviewModel();
                 model.uploadSets = ImageDA.GetUploadSetsByUserID(UserDA.CurrentUserId);
                 model.isETCuser = UserDA.CurrentUserETC;
+                model.siteList = new Dictionary<int, string>();
+                model.yearList = new List<int>();
+                foreach(UploadSet u in model.uploadSets.OrderBy(u => u.siteCode))
+                {
+                    if (!model.siteList.ContainsKey(u.siteID.Value))
+                        model.siteList.Add(u.siteID.Value, u.siteCode);
+                }
+                model.selectedSite = string.IsNullOrEmpty(Request.Params["selectedSite"]) ? 0 : int.Parse(Request.Params["selectedSite"]);
+                if (model.selectedSite != 0)
+                {
+                    model.uploadSets = model.uploadSets.Where(u => u.siteID == model.selectedSite).ToList();
+                }
+                foreach(UploadSet u in model.uploadSets.OrderBy(u => u.yearTaken))
+                {
+                    if (!model.yearList.Contains(u.yearTaken))
+                        model.yearList.Add(u.yearTaken);
+                }
+                model.selectedYear = string.IsNullOrEmpty(Request.Params["selectedYear"]) ? 0 : int.Parse(Request.Params["selectedYear"]);
+                if (model.selectedYear != 0)
+                {
+                    model.uploadSets = model.uploadSets.Where(u => u.yearTaken == model.selectedYear).OrderByDescending(v => v.dateTaken).ThenByDescending(v => v.uploadTime).ToList();
+                }
                 return View(model);
             }
             else

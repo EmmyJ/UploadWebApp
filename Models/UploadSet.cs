@@ -46,8 +46,11 @@ namespace UploadWebapp.Models
         public int QCcreated { get; set; }
         public int QCpass { get; set; }
         public int QCfail { get; set; }
-
+        [Display(Name = "Image Date")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
         public DateTime dateTaken { get; set; }
+        [Display(Name = "Year")]
+        public int yearTaken { get; set; }
 
         public Submission lastSubmission { get; set; }
     }

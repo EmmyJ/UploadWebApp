@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using UploadWebapp.Models;
@@ -61,8 +62,9 @@ namespace UploadWebapp.DB
 
         }
 
-        public static List<ExportETCmodel> GetDataForETC(int uploadSetID, DB db = null) {
-            db = new DB();            
+        public static List<ExportETCmodel> GetDataForETC(int uploadSetID, DB db = null)
+        {
+            db = new DB();
 
             var result = db.ExecuteReader("SELECT i.filename, cs.name,qc.[setupObjects],qc.[setupObjectsComments],qc.[noForeignObjects],qc.[foreignObjectsComments],qc.[noRaindrops],qc.[raindropsComments],qc.[noLensRing],qc.[lighting],qc.[lightingComments],qc.[noOverexposure],qc.[overexposureComments],qc.[settings],qc.[settingsComments],qc.[otherComments],i.LAI, i.LAIe, i.threshold, i.clumping, i.overexposure,qc.[status] FROM [dbo].[qualityCheck] qc join images i on i.id = qc.imageID join plotSets ps on i.plotSetID = ps.ID join uploadSet us on ps.uploadSetID = us.ID join cameraSetup cs on us.camSetupID = cs.ID where us.ID = " + uploadSetID);
 
@@ -81,7 +83,7 @@ namespace UploadWebapp.DB
                 item.dateString = item.image.filename.Substring(23, 8);
                 //item.cameraSetupName = (result.IsDBNull(1) ? "0" : result.GetString(1));
                 item.cameraSetupName = item.image.filename.Substring(12, 1);
-                
+
                 item.qc.setupObjects = result.GetBoolean(2);
                 item.qc.setupObjectsComments = result.IsDBNull(3) ? null : result.GetString(3);
                 item.qc.noForeignObjects = result.GetBoolean(4);
@@ -124,7 +126,8 @@ namespace UploadWebapp.DB
                     data.Insert(0, filename);
                 }
                 string s;
-                if ((QCstatus)result.GetByte(14) == QCstatus.created) {
+                if ((QCstatus)result.GetByte(14) == QCstatus.created)
+                {
                     s = result.GetString(0);
                     s += "," + result.GetString(1);
                     s += ",";
@@ -215,9 +218,9 @@ namespace UploadWebapp.DB
                 //}
                 //else
                 //{
-                    result = db.ExecuteReader("SELECT [site] FROM [sites] WHERE ID =" + uploadSet.siteID);
-                    result.Read();
-                    uploadSet.siteCode = result.GetString(0);
+                result = db.ExecuteReader("SELECT [site] FROM [sites] WHERE ID =" + uploadSet.siteID);
+                result.Read();
+                uploadSet.siteCode = result.GetString(0);
                 //}
             }
             result.Close();
@@ -272,7 +275,7 @@ namespace UploadWebapp.DB
                     whereStr = "WHERE us.userID = " + userID;
 
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) ,(SELECT top 1 i.filename from plotsets ps LEFT JOIN images i on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID order by i.filename) FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
@@ -292,7 +295,7 @@ namespace UploadWebapp.DB
                             Submission sub = new Submission();
                             sub.userName = subResult.GetString(0);
                             sub.submissionDate = subResult.GetDateTime(1);
-                            us.lastSubmission = sub;                            
+                            us.lastSubmission = sub;
                         }
                         subResult.Close();
                     }
@@ -313,7 +316,7 @@ namespace UploadWebapp.DB
         {
             DB db = new DB();
             SqlDataReader rd;
-            List<SiteData> sites = new List<SiteData>();            
+            List<SiteData> sites = new List<SiteData>();
 
             SiteData s;
             if (UserDA.CurrentUserETC)
@@ -440,9 +443,9 @@ namespace UploadWebapp.DB
             //}
             //else
             //{
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '" + siteCode + "'");
-                site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
-                db.Dispose();
+            var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '" + siteCode + "'");
+            site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
+            db.Dispose();
             //}
             return site;
         }
@@ -477,6 +480,17 @@ namespace UploadWebapp.DB
                     s.QCcreated = data.GetInt32(12);
                     s.QCpass = data.GetInt32(13);
                     s.QCfail = data.GetInt32(14);
+                    //DateTime.ParseExact(image.filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture)
+                    try
+                    {
+                        string filename = data.GetString(15);
+                        if (!string.IsNullOrEmpty(filename))
+                        {
+                            s.dateTaken = DateTime.ParseExact(filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                            s.yearTaken = s.dateTaken.Year;
+                        }
+                    }
+                    catch { }
                 }
 
                 result.Add(s);
@@ -524,12 +538,12 @@ namespace UploadWebapp.DB
                 s.lensY = data.IsDBNull(6) ? (int?)null : data.GetInt32(6);
                 s.lensA = data.IsDBNull(7) ? (double?)null : data.GetDouble(7);
                 s.lensB = data.IsDBNull(8) ? (double?)null : data.GetDouble(8);
-                s.maxRadius =  data.IsDBNull(9) ? (int?)null : data.GetInt32(9);
+                s.maxRadius = data.IsDBNull(9) ? (int?)null : data.GetInt32(9);
                 s.width = data.IsDBNull(10) ? (int?)null : data.GetInt32(10);
                 s.height = data.IsDBNull(11) ? (int?)null : data.GetInt32(11);
                 s.processed = data.GetBoolean(12);
                 s.name = data.IsDBNull(13) ? "" : data.GetString(13);
-                if(s.name != "")
+                if (s.name != "")
                     s.title = string.Format("{2}: {0} + {1}", s.cameraType, s.lensType, s.name);
                 else
                     s.title = string.Format("{0} + {1}", s.cameraType, s.lensType);
@@ -539,7 +553,7 @@ namespace UploadWebapp.DB
                     s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
                 }
                 if (data.FieldCount > 16)
-                {                    
+                {
                     s.username = data.IsDBNull(16) ? "" : data.GetString(16);
                 }
                 result.Add(s);
@@ -747,7 +761,7 @@ namespace UploadWebapp.DB
                    , new SqlParameter("camType", cameraSetup.cameraType)
                    , new SqlParameter("camSerial", cameraSetup.cameraSerial)
                    , new SqlParameter("lensType", cameraSetup.lensType)
-                   , new SqlParameter("lensSerial", cameraSetup.lensSerial)                   
+                   , new SqlParameter("lensSerial", cameraSetup.lensSerial)
                    , new SqlParameter("maxRadius", cameraSetup.maxRadius)
                    , new SqlParameter("pathCenter", cameraSetup.pathCenter)
                    , new SqlParameter("pathProj", cameraSetup.pathProj)
@@ -817,7 +831,7 @@ namespace UploadWebapp.DB
                 foreach (Image image in plotset.images)
                 {
                     id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path])  VALUES (@plotSetID ,@filename ,@path);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
-                        //,[dngFilename],[dngPath]
+                                                                                                                                                                                          //,[dngFilename],[dngPath]
                     new SqlParameter("plotSetID", plotset.ID),
                     new SqlParameter("filename", image.filename),
                     new SqlParameter("path", image.path)
@@ -947,7 +961,7 @@ namespace UploadWebapp.DB
         public static void setUploadSetQualityCheck(int setId, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("UPDATE [dbo].[uploadSet] SET [qualityCheck] = 1 WHERE ID = " +  setId);
+            db.ExecuteScalar("UPDATE [dbo].[uploadSet] SET [qualityCheck] = 1 WHERE ID = " + setId);
             db.Dispose();
         }
 
@@ -958,7 +972,8 @@ namespace UploadWebapp.DB
 
             var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId + "ORDER BY qc.ID");
 
-            while (data.Read()) {
+            while (data.Read())
+            {
                 QualityCheckListItem item = new QualityCheckListItem();
                 item.ID = data.GetInt32(0);
                 item.filename = data.GetString(1);
@@ -966,7 +981,7 @@ namespace UploadWebapp.DB
                 item.userName = data.IsDBNull(3) ? "" : data.GetString(3);
                 item.dateModified = data.GetDateTime(4);
                 item.uploadSetID = setId;
-                
+
                 qcList.Add(item);
             }
 
@@ -1011,7 +1026,7 @@ namespace UploadWebapp.DB
             return qc;
         }
 
-        public static QualityCheck getPreviousQualityCheck(Image image, DB db = null) 
+        public static QualityCheck getPreviousQualityCheck(Image image, DB db = null)
         {
             string imageprefix = image.filename.Substring(0, 22);
             db = new DB();
@@ -1041,7 +1056,8 @@ namespace UploadWebapp.DB
             return qc;
         }
 
-        public static List<EditQualityCheckModel> FromQualityCheckData(SqlDataReader data) {
+        public static List<EditQualityCheckModel> FromQualityCheckData(SqlDataReader data)
+        {
             var result = new List<EditQualityCheckModel>();
             while (data.Read())
             {
@@ -1117,7 +1133,8 @@ namespace UploadWebapp.DB
             return result;
         }
 
-        public static QualityCheck SaveQualityCheck(QualityCheck qc, DB db = null) {
+        public static QualityCheck SaveQualityCheck(QualityCheck qc, DB db = null)
+        {
             //UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [otherComments] = @otherComments, [status] = @status WHERE ID = @ID
             db = new DB();
             db.ExecuteScalar("UPDATE [dbo].[qualityCheck] SET [setupObjects] = @setupObjects, [setupObjectsComments] = @setupObjectsComments, [noForeignObjects] = @noForeignObjects, [foreignObjectsComments] = @foreignObjectsComments, [noRaindrops] = @noRaindrops, [raindropsComments] = @raindropsComments, [noLensRing] = @noLensRing, [lighting] = @lighting, [lightingComments] = @lightingComments, [noOverexposure] = @noOverexposure, [overexposureComments] = @overexposureComments, [settings] = @settings, [settingsComments] = @settingsComments,[otherComments] = @otherComments, [status] = @status, [dateModified] = @dateModified, [userID] = @userID WHERE ID = @ID",
