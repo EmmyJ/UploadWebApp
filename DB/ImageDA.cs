@@ -590,6 +590,7 @@ namespace UploadWebapp.DB
             {
                 Image image = new Image();
                 image.ID = data.GetInt32(0);
+                image.plotSetID = data.GetInt32(1);
                 image.filename = data.GetString(2);
                 image.path = data.GetString(3);
                 image.exif = data.IsDBNull(4) ? null : data.GetString(4);
