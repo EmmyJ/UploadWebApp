@@ -35,9 +35,5 @@ namespace UploadWebapp.Models
 
         public string exposureTimeStr { get; set; }
 
-        public int plotSetID { get; set; }
-
-        public int? plotLocationID { get; set; }
-
     }
 }
