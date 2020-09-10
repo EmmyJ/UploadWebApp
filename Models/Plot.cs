@@ -17,20 +17,5 @@ namespace UploadWebapp.Models
         public bool active { get; set; }
         public DateTime? deleteDate { get; set; }
         public int? deleteUser { get; set; }
-        public List<PlotLocation> plotLocations { get; set; }
-    }
-
-    public class PlotLocation
-    {
-        public int ID { get; set; }
-        public int plotID { get; set; }
-        public int location { get; set; }
-        public double? slope { get; set; }
-        public double? slopeAspect { get; set; }
-        public DateTime insertDate { get; set; }
-        public int insertUser { get; set; }
-        public bool active { get; set; }
-        public DateTime? deleteDate { get; set; }
-        public int? deleteUser { get; set; }
     }
 }
