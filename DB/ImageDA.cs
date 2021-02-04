@@ -78,7 +78,10 @@ namespace UploadWebapp.DB
 
                 item.image.filename = result.GetString(0);
                 item.siteName = item.image.filename.Substring(0, 6);
-                item.plotName = item.image.filename.Substring(14, 2) + "_" + item.image.filename.Substring(16, 2);
+                if(item.image.filename.Substring(14, 2) == "SP")
+                    item.plotName = item.image.filename.Substring(14, 2) + "-I_" + item.image.filename.Substring(16, 2);
+                else
+                    item.plotName = item.image.filename.Substring(14, 2) + "_" + item.image.filename.Substring(16, 2);
                 item.plotLocation = item.image.filename.Substring(20, 2);
                 item.dateString = item.image.filename.Substring(23, 8);
                 //item.cameraSetupName = (result.IsDBNull(1) ? "0" : result.GetString(1));
