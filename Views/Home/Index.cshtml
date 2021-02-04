@@ -8,22 +8,45 @@
 <h5>Choose your action:</h5>
 <style>
     .button {
-        margin: 50px 20px 50px 20px;        
+        margin: 50px 20px 50px 20px;
     }
-    .button:hover {
-        text-decoration:none;
-    }
+
+        .button:hover {
+            text-decoration: none;
+        }
 </style>
-<div class="col-md-4 col-md-offset-1"> <a href="@Url.Action("PictureUpload")" class="button rounded fill-highlight">
-    Upload Hemispherical Pictures
-</a></div>
-<div class="col-md-4 col-md-offset-1"> <a href="@Url.Action("CreateCameraSetup")" class="button rounded fill-highlight">
-    Create New Camera Setup
-</a></div>
+<div class="col-md-4 col-md-offset-1">
+    <a href="@Url.Action("PictureUpload")" class="button rounded fill-highlight">
+        Upload Hemispherical Pictures
+    </a>
+</div>
+<div class="col-md-4 col-md-offset-1">
+    <a href="@Url.Action("CreateCameraSetup")" class="button rounded fill-highlight">
+        Create New Camera Setup
+    </a>
+</div>
 <div class="row clearfix"></div>
-<div class="col-md-4 col-md-offset-1"> <a href="@Url.Action("Overview")" class="button rounded fill-highlight">
-    Overview Uploads
-</a></div>
-<div class="col-md-4 col-md-offset-1"> <a href="@Url.Action("CameraSetups")" class="button rounded fill-highlight">
-    Manage Camera Setups
-</a></div>
+<div class="col-md-4 col-md-offset-1">
+    <a href="@Url.Action("Overview")" class="button rounded fill-highlight">
+        Overview Uploads
+    </a>
+</div>
+<div class="col-md-4 col-md-offset-1">
+    <a href="@Url.Action("CameraSetups")" class="button rounded fill-highlight">
+        Manage Camera Setups
+    </a>
+</div>
+@if (ViewBag.ETCuser)
+{
+    <div class="col-md-4 col-md-offset-1">
+        <a href="@Url.Action("ProcessImages")" class="button rounded fill-highlight">
+            Process queue
+        </a>
+    </div>
+    <div class="col-md-4 col-md-offset-1">
+        <a href="@Url.Action("AggregateLAI","ETC")" class="button rounded fill-highlight">
+            Aggregate LAI 2019
+        </a>
+    </div>
+
+}

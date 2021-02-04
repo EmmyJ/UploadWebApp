@@ -183,7 +183,12 @@
                     @Html.DisplayFor(model => model.cameraSetup.maxRadius)
                 </div>
             </div>
-        </div>
+            <div class="row clear-fix">
+                <div class="col-md-4">
+                    @Html.ActionLink("Rerun Calculation", "rerunUploadSet", new { setID = Model.ID})
+                </div>
+                </div>
+            </div>
     </div>
 
     @foreach (var plotSet in Model.plotSets)

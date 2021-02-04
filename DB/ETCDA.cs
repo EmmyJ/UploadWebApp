@@ -43,5 +43,12 @@ namespace UploadWebapp.DB
             data.Close();
             return result;
         }
+
+        public static void rerunUploadSet(int setId, DB db = null)
+        {
+            db = new DB();
+            db.ExecuteScalar("update results set processed = 'false' where plotSetID in (select ID from plotSets where uploadSetID = " + setId + ")");
+            db.Dispose();
+        }
     }
 }

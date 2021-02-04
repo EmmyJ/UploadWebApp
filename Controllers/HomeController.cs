@@ -26,6 +26,7 @@ namespace UploadWebapp.Controllers
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
+                ViewBag.ETCuser = UserDA.CurrentUserETC;
                 return View();
 
             }
@@ -319,6 +320,17 @@ namespace UploadWebapp.Controllers
                 UploadSet uploadset = ImageDA.GetUploadSetByID(setID);
                 //uploadset.resultsSet = ImageDA.GetResultsSet(uploadset.ID);
                 return View("", uploadset);
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult rerunUploadSet(int setID)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0 && UserDA.CurrentUserETC)
+            {
+                ETCDA.rerunUploadSet(setID);
+                return RedirectToAction("SetDetails", new { setID = setID });
             }
             else
                 return RedirectToAction("Login", "Account");
@@ -932,7 +944,7 @@ namespace UploadWebapp.Controllers
                     List<Image> images = plotSet.images;
                     List<laiData> lais = new List<laiData>();
 
-                    if (plotSet.resultsSet.processed)
+                    if (plotSet.resultsSet.processed && !string.IsNullOrEmpty(plotSet.resultsSet.data) && plotSet.images[0].LAI == null)
                     {
                         string dataString = plotSet.resultsSet.data;
                         string[] split = plotSet.resultsSet.data.Split('\n');
