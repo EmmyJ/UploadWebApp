@@ -202,21 +202,29 @@
                             <th>
                                 Uploaded Pictures
                             </th>
+                            <th>Slope</th>
+                            <th>Slope Aspect</th>
                         </tr>
                     </thead>
 
                     @foreach (var item in plotSet.images)
                     {
-                        <tr>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.filename)
-                            </td>
-                        </tr>
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.filename)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.slope)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.slopeAspect)
+                    </td>
+                </tr>
                     }
                 </table>
             </div>
             <div class="col-md-6 ">
-                <div class="row clearfix">
+                @*<div class="row clearfix">
                     <div class="col-md-4">
                         <label class="display-label">
                             @Html.DisplayNameFor(model => plotSet.plot.slope)
@@ -235,7 +243,7 @@
                     <div class="display-field col-md-8">
                         @Html.DisplayFor(model => plotSet.plot.slopeAspect)
                     </div>
-                </div>
+                </div>*@
                 <div class="row clearfix">
                     <div class="col-md-4">
                         <label class="display-label">

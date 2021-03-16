@@ -532,6 +532,7 @@ namespace UploadWebapp.Controllers
                         plot.slopeAspect = double.Parse(ar[2]);
 
                         plot.ID = ImageDA.SavePlot(plot, uploadSet.siteID.Value);
+                        plot.plotLocations = ImageDA.GetLocationListForPlot(plot.ID);
                         plotList.Add(plot);
                     }
 
@@ -558,6 +559,7 @@ namespace UploadWebapp.Controllers
                     HttpPostedFileBase file = Request.Files[fileName];
                     string plotname = "";
                     int plotID = 0;
+                    Plot plot = null;
                     //Save file content goes here
                     bool newplotset = false;
                     if (file != null && file.ContentLength > 0)
@@ -566,7 +568,8 @@ namespace UploadWebapp.Controllers
                         if (!UserDA.CurrentUserFree)
                         {
                             plotname = fName.Substring(14, 4);
-                            plotID = plotList.Find(p => p.name == plotname).ID;
+                            plot = plotList.Find(p => p.name == plotname);
+                            plotID = plot.ID;
                             plotset = uploadSet.plotSets.Find(p => p.plotID == plotID);
                             if (plotset == null)
                             {
@@ -599,6 +602,17 @@ namespace UploadWebapp.Controllers
                         plotset.images.Add(image);
                         if (newplotset)
                             uploadSet.plotSets.Add(plotset);
+                        int location = 0;
+                        int.TryParse(file.FileName.Substring(20, 2), out location);
+                        if (plot != null && plot.plotLocations != null && plot.plotLocations.Count != 0 && location != 0)
+                        {
+                            if (plot.plotLocations.Where(l => l.location == location).Count() > 1)
+                            {
+                                image.plotLocationID = plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;
+                            }
+                            else
+                                image.plotLocationID = plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
+                        }
                     }
 
                 }
@@ -1300,6 +1314,7 @@ namespace UploadWebapp.Controllers
                         procIm.siteCode = file.Name.Substring(0, 6);
                         procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
                         procIm.plotName = file.Name.Substring(14, 4);
+                        procIm.location = file.Name.Substring(20, 2);
                         procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
                         procIm.cameraSetupName = file.Name.Substring(11, 2);
 
@@ -1329,6 +1344,10 @@ namespace UploadWebapp.Controllers
                     PlotsPerSite pps = new PlotsPerSite();
                     pps.siteID = s;
                     pps.plotsList = ImageDA.GetPlotListForSite(s);
+                    foreach (Plot p in pps.plotsList)
+                    {
+                        p.plotLocations = ImageDA.GetLocationListForPlot(p.ID);
+                    }
                     plotsPerSite.Add(pps);
                 }
 
@@ -1411,6 +1430,17 @@ namespace UploadWebapp.Controllers
                                 System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
                             }
                             image.path = System.IO.Path.Combine(pathString, procIm.filename);
+                            int location = 0;
+                            int.TryParse(procIm.location, out location);
+                            if (ps.plot.plotLocations != null && ps.plot.plotLocations.Count != 0 && location != 0)
+                            {
+                                if (ps.plot.plotLocations.Where(l => l.location == location).Count() > 1)
+                                {
+                                    image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;  
+                                }
+                                else
+                                    image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
+                            }
                             ps.images.Add(image);
                             res.Add(string.Format("{0}: {1}", image.filename, "succes"));
                         }

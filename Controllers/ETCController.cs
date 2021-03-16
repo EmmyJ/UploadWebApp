@@ -23,6 +23,13 @@ namespace UploadWebapp.Controllers
             return View();
         }
 
+        public ActionResult FillImagePlotLocations()
+        {
+            ETCDA.FillImagePlotLocations();
+
+            return View();
+        }
+
         public ActionResult AggregateLAI(string year, bool download = true)
         {
             List<AggImage> images;

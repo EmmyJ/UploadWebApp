@@ -7,6 +7,8 @@ using System.Linq;
 using System.Web;
 using UploadWebapp.Models;
 using UploadWebapp.Models.ETC;
+using Image = UploadWebapp.Models.Image;
+using System.Text.RegularExpressions;
 
 namespace UploadWebapp.DB
 {
@@ -48,6 +50,39 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             db.ExecuteScalar("update results set processed = 'false' where plotSetID in (select ID from plotSets where uploadSetID = " + setId + ")");
+            db.Dispose();
+        }
+
+        public static void FillImagePlotLocations(DB db = null)
+        {
+            db = new DB();
+            string pattern = "^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$";
+            Regex rg = new Regex(pattern);
+
+            var result = db.ExecuteReader("SELECT[ID],[plotSetID],[filename],[path], exif FROM[images]");
+            List<Image> images = ImageDA.FromImageData(result);
+
+            foreach (Image i in images)
+            {
+                if (rg.IsMatch(i.filename))
+                {
+                    int location = 0;
+                    int.TryParse(i.filename.Substring(20, 2), out location);
+
+                    if (location != 0)
+                    {
+                        result = db.ExecuteReader("select pl.ID from plotLocations pl left join plots p on pl.plotID = p.ID left join plotSets ps on ps.plotID = p.ID where pl.active =1 and ps.ID = " + i.plotSetID + " and pl.location = " + location);
+
+                        while (result.Read())
+                        {
+                            i.plotLocationID = result.GetInt32(0);
+                            db.ExecuteScalar("update images set plotLocationID = " + i.plotLocationID + " where ID = " + i.ID);
+                        }
+                        result.Close();
+                    }
+                }
+            }
+
             db.Dispose();
         }
     }

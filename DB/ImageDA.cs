@@ -237,7 +237,9 @@ namespace UploadWebapp.DB
 
             foreach (PlotSet plot in uploadSet.plotSets)
             {
-                result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path], exif FROM [images] WHERE plotSetID = " + plot.ID);
+                //result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path], exif FROM [images] WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT i.[ID],[plotSetID] ,[filename] ,[path], exif, slope, slopeAspect FROM [images] i left join plotLocations p on i.plotLocationID = p.ID WHERE plotSetID = " + plot.ID);
+
                 plot.images = FromImageData(result);
 
                 result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[processed] ,[LAI] ,[LAI_SD] ,[resultLog], [data] FROM [results] WHERE plotSetID = " + plot.ID);
@@ -394,6 +396,15 @@ namespace UploadWebapp.DB
             List<Plot> plots = FromPlotData(result);
             db.Dispose();
             return plots;
+        }
+
+        public static List<PlotLocation> GetLocationListForPlot(int plotID, DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader("SELECT [ID],plotID,[location],[slope],[slopeAspect]  FROM [LAI_App].[dbo].[plotLocations]  where active = 1 and plotID = " + plotID);
+            List<PlotLocation> locs = FromLocationData(result);
+            db.Dispose();
+            return locs;
         }
 
         public static List<string> GetPlotNamesForUploadSet(int uploadSetID, DB db = null)
@@ -593,11 +604,14 @@ namespace UploadWebapp.DB
             {
                 Image image = new Image();
                 image.ID = data.GetInt32(0);
+                image.plotSetID = data.GetInt32(1);
                 image.filename = data.GetString(2);
                 image.path = data.GetString(3);
                 image.exif = data.IsDBNull(4) ? null : data.GetString(4);
                 //image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
                 //image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
+                image.slope = data.IsDBNull(5) ? null : (double?)data.GetDouble(5);
+                image.slopeAspect = data.IsDBNull(6) ? null : (double?)data.GetDouble(6);
                 result.Add(image);
             }
             data.Close();
@@ -656,6 +670,22 @@ namespace UploadWebapp.DB
                 plot.slope = data.IsDBNull(3) ? (double?)null : data.GetDouble(3);
                 plot.slopeAspect = data.IsDBNull(4) ? (double?)null : data.GetDouble(4);
                 result.Add(plot);
+            }
+            data.Close();
+            return result;
+        }
+        public static List<PlotLocation> FromLocationData(SqlDataReader data)
+        {
+            var result = new List<PlotLocation>();
+            while (data.Read())
+            {
+                PlotLocation loc = new PlotLocation();
+                loc.ID = data.GetInt32(0);
+                loc.plotID = data.GetInt32(1);
+                loc.location = data.GetInt32(2);
+                loc.slope = data.IsDBNull(3) ? (double?)null : data.GetDouble(3);
+                loc.slopeAspect = data.IsDBNull(4) ? (double?)null : data.GetDouble(4);
+                result.Add(loc);
             }
             data.Close();
             return result;
@@ -833,11 +863,12 @@ namespace UploadWebapp.DB
 
                 foreach (Image image in plotset.images)
                 {
-                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path])  VALUES (@plotSetID ,@filename ,@path);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
-                                                                                                                                                                                          //,[dngFilename],[dngPath]
+                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path],[plotLocationID])  VALUES (@plotSetID ,@filename ,@path,@plotLocationID);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
+                                                                                                                                                                                                                           //,[dngFilename],[dngPath]
                     new SqlParameter("plotSetID", plotset.ID),
                     new SqlParameter("filename", image.filename),
-                    new SqlParameter("path", image.path)
+                    new SqlParameter("path", image.path),
+                    new SqlParameter("plotLocationID", (object)image.plotLocationID ?? DBNull.Value)
                     //,
                     //new SqlParameter("dngFilename", image.dngFilename),
                     //new SqlParameter("dngPath", image.dngPath)
