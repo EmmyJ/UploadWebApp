@@ -110,6 +110,7 @@
                     @*@Html.DisplayFor(modelItem => item.qualityCheck)*@
                 </td>
                 <td>
+                    @Html.DisplayFor(modelItem => item.campaign)
                     @Html.ActionLink("Submit", "DownloadDataForETC", new { setID = item.ID })<br />
                     @Html.DisplayFor(modelItem => item.lastSubmission.userName)
                     @Html.DisplayFor(modelItem => item.lastSubmission.submissionDate)

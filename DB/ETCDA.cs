@@ -20,8 +20,35 @@ namespace UploadWebapp.DB
             var result = db.ExecuteReader("select i.ID, i.filename, i.LAI, i.clumping, q.status from images i join qualityCheck q on q.imageID = i.ID where q.status <> 0 and filename like '%_" + year + "%' and not i.LAI is null");
 
             List<AggImage> images = FromAggImageData(result);
+            db.Dispose();
             return images;
         }
+
+        //public static void fillCampaign(DB db = null)
+        //{
+        //    db = new DB();
+        //    var uploads = db.ExecuteReader("select ID from uploadSet");
+        //    //List<int,string> uploadsets = new 
+        //    int uploadsetID;
+        //    string campaignID = null;
+        //    while (uploads.Read()) {
+        //        uploadsetID = uploads.GetInt32(0);
+        //        var campaign = db.ExecuteReader("select GAI_Campaign from tmp where filename = (select top(1) SUBSTRING (i.filename,0,32) from images i join plotSets p on i.plotSetID = p.ID where p.uploadSetID = " + uploadsetID + ")");
+        //        while (campaign.Read()) {
+        //            campaignID = campaign.GetString(0);
+        //        }
+        //        campaign.Close();
+        //        if (campaignID != null) { 
+        //        db.ExecuteScalar("UPDATE [dbo].[uploadSet] SET [campaign] = '" + campaignID + "' WHERE ID = " + uploadsetID);
+        //        }
+        //        campaignID = null;
+        //    }
+        //    uploads.Close();
+
+
+
+        //    db.Dispose();
+        //}
 
         public static List<AggImage> FromAggImageData(SqlDataReader data)
         {

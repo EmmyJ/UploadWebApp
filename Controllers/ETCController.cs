@@ -30,6 +30,13 @@ namespace UploadWebapp.Controllers
             return View();
         }
 
+        //public ActionResult fillCampaign()
+        //{
+        //    ETCDA.fillCampaign();
+
+        //    return View();
+        //}
+
         public ActionResult AggregateLAI(string year, bool download = true)
         {
             List<AggImage> images;

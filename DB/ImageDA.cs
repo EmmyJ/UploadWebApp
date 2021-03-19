@@ -44,6 +44,8 @@ namespace UploadWebapp.DB
 
             int count = Convert.ToInt32(db.ExecuteScalar("select  COUNT(i.id) from images i left join results r on i.plotSetID = r.plotSetID left join plotSets ps on i.plotSetID = ps.ID where processed = 0 and ps.uploadSetID <= " + uploadSetID));
 
+            db.Dispose();
+
             return count;
         }
 
@@ -58,6 +60,7 @@ namespace UploadWebapp.DB
                     results.Add(result.GetString(0));
             }
             result.Close();
+            db.Dispose();
             return results;
 
         }
@@ -110,6 +113,7 @@ namespace UploadWebapp.DB
 
                 list.Add(item);
             }
+            db.Dispose();
 
             return list;
         }
@@ -183,6 +187,7 @@ namespace UploadWebapp.DB
                 data.Add(s);
             }
             result.Close();
+            db.Dispose();
             return data;
         }
 
@@ -203,6 +208,7 @@ namespace UploadWebapp.DB
             {
                 us.Add(GetUploadSetByID(id));
             }
+            db.Dispose();
             return us;
         }
 
@@ -280,7 +286,7 @@ namespace UploadWebapp.DB
                     whereStr = "WHERE us.userID = " + userID;
 
                 //var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site ,	(SELECT count(r.[ID]), us.[qualityCheck] 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName FROM [uploadSet] us  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName ORDER BY us.uploadTime DESC");
-                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) ,(SELECT top 1 i.filename from plotsets ps LEFT JOIN images i on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID order by i.filename) FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME ORDER BY us.uploadTime DESC");
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) ,(SELECT top 1 i.filename from plotsets ps LEFT JOIN images i on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID order by i.filename), us.campaign FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME, us.campaign ORDER BY us.uploadTime DESC");
                 list = FromUserSetData(result);
 
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
@@ -341,6 +347,7 @@ namespace UploadWebapp.DB
             }
 
             rd.Close();
+            db.Dispose();
 
             return sites;
         }
@@ -416,6 +423,7 @@ namespace UploadWebapp.DB
             {
                 plotnames.Add(result.GetString(0));
             }
+            db.Dispose();
             return plotnames;
         }
 
@@ -505,6 +513,7 @@ namespace UploadWebapp.DB
                         }
                     }
                     catch { }
+                    s.campaign = data.IsDBNull(16) ? null : data.GetString(16);
                 }
 
                 result.Add(s);
@@ -893,6 +902,7 @@ namespace UploadWebapp.DB
                     new SqlParameter("insertDate", DateTime.Now),
                     new SqlParameter("insertUser", UserDA.CurrentUserId),
                     new SqlParameter("active", true)));
+            db.Dispose();
             return id;
         }
 
@@ -964,6 +974,7 @@ namespace UploadWebapp.DB
                     new SqlParameter("filename", submission.filename),
                     new SqlParameter("userID", submission.userID),
                     new SqlParameter("submissionDate", submission.submissionDate)));
+            db.Dispose();
             return id;
         }
 
