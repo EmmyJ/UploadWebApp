@@ -14,5 +14,6 @@ namespace UploadWebapp.Models
         public string plotLocation { get; set; }
         public string dateString { get; set; }
         public QualityCheck qc { get; set; }
+        public string campaign { get; set; }
     }
 }

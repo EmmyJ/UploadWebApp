@@ -126,7 +126,7 @@ namespace UploadWebapp.Controllers
                 if (list.Count > 0)
                 {
                     List<string> data = new List<string>();
-                    data.Add("Filename,Site,Method,Camera Setup,Plot Name,Plot Location,Date,QC,QC_Motivation,QC_Comment,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
+                    data.Add("Filename,Site,Method,Camera Setup,Plot Name,Plot Location,Date,QC,QC_Motivation,QC_Comment,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value,GAI_CAMPAIGN");
 
                     for (int i = 0; i < list.Count; i++)
                     {
@@ -242,6 +242,7 @@ namespace UploadWebapp.Controllers
                             s += "," + comment;
                             s += ",,,,,";
                         }
+                        s += "," + m.campaign;
 
                         data.Add(s);
                         siteName = m.siteName;
