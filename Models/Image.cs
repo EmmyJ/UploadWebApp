@@ -42,6 +42,7 @@ namespace UploadWebapp.Models
         public double? slope { get; set; }
 
         public double? slopeAspect { get; set; }
+        public DateTime dateTaken { get; set; }
 
     }
 }

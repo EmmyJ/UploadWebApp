@@ -515,6 +515,7 @@ namespace UploadWebapp.Controllers
                 uploadSet.cameraSetup.maxRadius = int.Parse(Request.Params["maxRadius"]);
                 uploadSet.uploadTime = DateTime.Now;
                 uploadSet.userID = UserDA.CurrentUserId;
+                
                 uploadSet.plotSets = new List<PlotSet>();
                 List<Plot> plotList = new List<Plot>();
                 Site site = null;
@@ -599,6 +600,10 @@ namespace UploadWebapp.Controllers
                         Image image = new Image();
                         image.filename = file.FileName;
                         image.path = path;
+                        if (!UserDA.CurrentUserFree)
+                            image.dateTaken = DateTime.ParseExact(image.filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                        else
+                            image.dateTaken = DateTime.Now;
                         plotset.images.Add(image);
                         if (newplotset)
                             uploadSet.plotSets.Add(plotset);
@@ -618,6 +623,10 @@ namespace UploadWebapp.Controllers
                 }
                 if (UserDA.CurrentUserFree)
                     uploadSet.plotSets.Add(plotset);
+
+                if (UserDA.CurrentUserETC && uploadSet.plotSets[0].images[0].filename.Substring(14,2) == "CP")
+                    uploadSet.campaign = ImageDA.getNewCampaignCode(uploadSet.siteID.Value, int.Parse(uploadSet.plotSets[0].images[0].filename.Substring(23, 4)));
+
                 uploadSet = ImageDA.SaveUploadSet(uploadSet);
                 ImageDA.CurrentUploadSetId = uploadSet.ID;
 
@@ -1407,6 +1416,8 @@ namespace UploadWebapp.Controllers
                             us.plotSets = new List<PlotSet>();
                             us.uploadTime = DateTime.Now;
                             us.person = procIm.siteCode + "_" + procIm.date.ToString("yyyyMMdd");
+                            if(procIm.filename.Substring(14, 2) == "CP")
+                            us.campaign = ImageDA.getNewCampaignCode(us.siteID.Value, int.Parse(procIm.filename.Substring(23, 4)));
 
                             uploadSets.Add(us);
                         }
@@ -1468,6 +1479,7 @@ namespace UploadWebapp.Controllers
                                 else
                                     image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
                             }
+                            image.dateTaken = procIm.date;
                             ps.images.Add(image);
                             res.Add(string.Format("{0}: {1}", image.filename, "succes"));
                         }

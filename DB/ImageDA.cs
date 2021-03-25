@@ -850,13 +850,14 @@ namespace UploadWebapp.DB
             }
 
             id = Convert.ToInt32(
-                db.ExecuteScalar("INSERT INTO [uploadSet] ([camSetupID],[siteID],[userID],[person],[uploadTime],[siteName]) VALUES (@camSetupID ,@siteID,@userID,@person,@uploadTime, @siteName);SELECT IDENT_CURRENT('[uploadSet]');",
+                db.ExecuteScalar("INSERT INTO [uploadSet] ([camSetupID],[siteID],[userID],[person],[uploadTime],[siteName],[campaign]) VALUES (@camSetupID ,@siteID,@userID,@person,@uploadTime, @siteName,@campaign);SELECT IDENT_CURRENT('[uploadSet]');",
                 new SqlParameter("camSetupID", uploadset.cameraSetup.ID),
                 new SqlParameter("siteID", uploadset.siteID.HasValue ? uploadset.siteID.Value : 0),
                 new SqlParameter("userID", uploadset.userID.ToString()),
                 new SqlParameter("person", uploadset.person),
                 new SqlParameter("uploadTime", uploadset.uploadTime),
-                new SqlParameter("siteName", uploadset.siteName)));
+                new SqlParameter("siteName", uploadset.siteName),
+                new SqlParameter("campaign", (object)uploadset.campaign ?? DBNull.Value)));
             //new SqlParameter("slope", uploadset.slope),
             //new SqlParameter("slopeAspect", uploadset.slopeAspect)));
 
@@ -877,12 +878,13 @@ namespace UploadWebapp.DB
 
                 foreach (Image image in plotset.images)
                 {
-                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path],[plotLocationID])  VALUES (@plotSetID ,@filename ,@path,@plotLocationID);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
+                    id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [images] ([plotSetID],[filename],[path],[plotLocationID],[dateTaken])  VALUES (@plotSetID ,@filename ,@path,@plotLocationID,@dateTaken);SELECT IDENT_CURRENT('[images]');",//, @dngFilename, @dngPath
                                                                                                                                                                                                                            //,[dngFilename],[dngPath]
                     new SqlParameter("plotSetID", plotset.ID),
                     new SqlParameter("filename", image.filename),
                     new SqlParameter("path", image.path),
-                    new SqlParameter("plotLocationID", (object)image.plotLocationID ?? DBNull.Value)
+                    new SqlParameter("plotLocationID", (object)image.plotLocationID ?? DBNull.Value),
+                    new SqlParameter("dateTaken",image.dateTaken)
                     //,
                     //new SqlParameter("dngFilename", image.dngFilename),
                     //new SqlParameter("dngPath", image.dngPath)
