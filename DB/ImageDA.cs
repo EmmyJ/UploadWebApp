@@ -467,10 +467,13 @@ namespace UploadWebapp.DB
             //{
             var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '" + siteCode + "'");
             site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
+            result.Close();
             db.Dispose();
             //}
             return site;
         }
+
+        
 
         public static List<UploadSet> FromUserSetData(SqlDataReader data)
         {
@@ -619,8 +622,10 @@ namespace UploadWebapp.DB
                 image.exif = data.IsDBNull(4) ? null : data.GetString(4);
                 //image.dngFilename = data.IsDBNull(4) ? (string)null : data.GetString(4);
                 //image.dngPath = data.IsDBNull(5) ? (string)null : data.GetString(5);
-                image.slope = data.IsDBNull(5) ? null : (double?)data.GetDouble(5);
-                image.slopeAspect = data.IsDBNull(6) ? null : (double?)data.GetDouble(6);
+                if (data.FieldCount > 5) { 
+                    image.slope = data.IsDBNull(5) ? null : (double?)data.GetDouble(5);
+                    image.slopeAspect = data.IsDBNull(6) ? null : (double?)data.GetDouble(6);
+                }
                 result.Add(image);
             }
             data.Close();
@@ -1015,7 +1020,7 @@ namespace UploadWebapp.DB
             db = new DB();
             List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
 
-            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId + "ORDER BY qc.ID");
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified, i.dateTaken from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId + "ORDER BY qc.ID");
 
             while (data.Read())
             {
@@ -1026,6 +1031,7 @@ namespace UploadWebapp.DB
                 item.userName = data.IsDBNull(3) ? "" : data.GetString(3);
                 item.dateModified = data.GetDateTime(4);
                 item.uploadSetID = setId;
+                item.imageDateTaken = data.GetDateTime(5);
 
                 qcList.Add(item);
             }
@@ -1050,12 +1056,78 @@ namespace UploadWebapp.DB
                 i.path = data.GetString(1);
                 list.Add(i);
             }
-
+            data.Close();
             db.Dispose();
 
             return list;
         }
 
+        public static UploadSetQualityChecksModel getCampaignAndSite(UploadSetQualityChecksModel model, DB db = null)
+        {
+            db = new DB();
+            var data = db.ExecuteReader("SELECT [campaign], [siteID]  FROM [LAI_App].[dbo].[uploadSet] where ID = " + model.uploadSetID);
+            data.Read();
+            model.campaignID = data.IsDBNull(0) ? null : data.GetString(0);
+            model.siteID = data.GetInt32(1);
+            data.Close();
+
+            db.Dispose();
+
+            return model;
+        }
+
+        public static string attachCampaignToPrevious(int setID, int siteID, string dateTaken, string currentCampaign, DB db = null)
+        {
+            db = new DB();
+            string campaign = null;
+
+            var result = db.ExecuteReader("select top 1 u.[campaign], dateTaken from uploadSet u join plotSets p on p.uploadSetID = u.ID join images i on i.plotSetID = p.ID where not u.campaign is null and u.campaign != '" + currentCampaign + "' and dateTaken <= '" + dateTaken + "' and siteID = " + siteID + " and campaign like '" + currentCampaign.Substring(0, 4) + "%' order by dateTaken desc, campaign DESC");
+            if (result.HasRows)
+            {
+                result.Read();
+                campaign = result.GetString(0);
+                result.Close();
+                saveCampaign(setID, campaign);
+            }
+            else
+                campaign = "No previous campaign";            
+            
+            db.Dispose();
+
+            return campaign;
+        }
+
+        public static void removeCampaign(int setID, DB db = null) {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = NULL WHERE ID = " + setID);
+            db.Dispose();
+        }
+
+        public static string getNewCampaignCode(int siteID, int year, DB db = null)
+        {
+            db = new DB();
+            string highest = null;
+            var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like '" + year + "C%' and siteID = " + siteID);
+            if (result.HasRows)
+            {
+                result.Read();
+                highest = result.GetString(0);
+                int nr = int.Parse(highest.Substring(5, 2));
+                nr += 1;
+                string newCampaign = highest.Substring(0, 5) + nr.ToString("00");
+                return newCampaign;
+            }
+            result.Close();
+            db.Dispose();
+            return null;
+        }
+
+        public static void saveCampaign(int setID, string campaign, DB db = null)
+        {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = '" + campaign + "' WHERE ID = " + setID);
+            db.Dispose();
+        }
 
         public static EditQualityCheckModel getQualityCheck(int checkID, int setID, DB db = null)
         {

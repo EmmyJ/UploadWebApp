@@ -13,5 +13,6 @@ namespace UploadWebapp.Models
         public int uploadSetID { get; set; }
         public string userName { get; set; }
         public DateTime dateModified { get; set; }
+        public DateTime imageDateTaken { get; set; }
     }
 }

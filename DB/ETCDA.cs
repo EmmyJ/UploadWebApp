@@ -112,5 +112,30 @@ namespace UploadWebapp.DB
 
             db.Dispose();
         }
+
+        public static void fillImageDateTaken(DB db = null) {
+            db = new DB();
+            string pattern = "^[a-zA-Z]{2}-[a-zA-Z0-9]{3}_DHP_[a-zA-Z0-9]{2}_[SC]{1}P[0-9]{2}_L[0-9]{2}_[0-9]{8}.[a-zA-Z0-9]{3}$";
+            Regex rg = new Regex(pattern);
+
+            var result = db.ExecuteReader("SELECT[ID],[plotSetID],[filename],[path], exif FROM[images]");
+            List<Image> images = ImageDA.FromImageData(result);
+
+            foreach (Image i in images)
+            {
+                if (rg.IsMatch(i.filename))
+                {
+                    try
+                    {
+                        DateTime date = DateTime.ParseExact(i.filename.Substring(23, 8), "yyyyMMdd", null);
+                        string format = "yyyy-MM-dd HH:mm:ss";
+                        db.ExecuteScalar("UPDATE images SET dateTaken = '" + date.ToString(format) + "' WHERE ID = " + i.ID);
+                    }
+                    catch (Exception e) { }
+                }
+            }
+            result.Close();
+            db.Dispose();
+        }
     }
 }

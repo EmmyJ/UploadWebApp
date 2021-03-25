@@ -1,70 +1,137 @@
-﻿@model IEnumerable<UploadWebapp.Models.QualityCheckListItem>
+﻿@model UploadWebapp.Models.UploadSetQualityChecksModel
 
-    @{
-        Layout = "~/Views/Shared/_Layout.cshtml";
-    }
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
-    <h1>Quality Checks</h1>
+<h1>Quality Checks</h1>
 
-    <table class="ovv" style="border-collapse: collapse; width: 1170px;">
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
+    <tr>
+        <th>
+            Filename
+        </th>
+        <th>Date Modified</th>
+        <th>User</th>
+        <th>
+            Status
+        </th>
+        <th>
+        </th>
+    </tr>
+
+    @foreach (var item in Model.qualityChecks)
+    {
         <tr>
-            <th>
-                Filename
-            </th>
-            <th>Date Modified</th>
-            <th>User</th>
-            <th>
-                Status
-            </th>
-            <th>
-            </th>
-        </tr>
-
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.filename)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.dateModified)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.userName)
-                </td>
-                <td>
-                    @if ((item.status) == UploadWebapp.Models.QCstatus.created)
+            <td>
+                @Html.DisplayFor(modelItem => item.filename)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.dateModified)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.userName)
+            </td>
+            <td>
+                @if ((item.status) == UploadWebapp.Models.QCstatus.created)
+                {
+                    <span style="color:gray">
+                        @Html.DisplayFor(modelItem => item.status)
+                    </span>
+                }
+                else
+                {
+                    if (item.status == UploadWebapp.Models.QCstatus.pass)
                     {
-                        <span style="color:gray">
+                        <span class="text-highlight">
                             @Html.DisplayFor(modelItem => item.status)
                         </span>
                     }
                     else
                     {
-                        if (item.status == UploadWebapp.Models.QCstatus.pass)
-                        {
-                            <span class="text-highlight">
+                        <span class="text-additional">
                             @Html.DisplayFor(modelItem => item.status)
-                            </span>
-                        }
-                        else
-                        { 
-                            <span class="text-additional">
-                            @Html.DisplayFor(modelItem => item.status)
-                            
-                            </span>
-                        }
+
+                        </span>
                     }
-        </td>
+                }
+            </td>
             <td style="text-align:center">
 
                 @Html.ActionLink("Edit", "EditQualityCheck", new { checkID = item.ID, setID = item.uploadSetID })
             </td>
         </tr>
+    }
+
+</table>
+<p>Campaign: <span id="campaign">@(Model.campaignID)</span></p>
+<div class="display-field">
+    <input class="check-box" type="checkbox" id="noCampaign" name="noCampaign" @if (string.IsNullOrEmpty(Model.campaignID)) {<text>checked="checked"</text>} /> No campaign
+</div>
+<div class="display-field">
+    <input class="check-box" type="checkbox" id="prevCampaign" name="prevCampaign" /> Attach to previous campaign
+</div>
+<p>@Html.ActionLink("Download results", "DownloadUploadSetQualityChecks", new { setID = Model.uploadSetID })</p>
+
+
+
+<script>
+    $(document).ready(function () {
+        //if ($('#campaign').text() == "") {
+        //    $('#noCampaign').prop('checked', true);
+        //}
+
+        $('#noCampaign').change(function () {
+            if (this.checked == true) {
+                $('#prevCampaign').prop('checked', false);
+                debugger;
+                $.ajax({
+                    url: "/Home/removeCampaign",
+                    data: { setID: @Model.uploadSetID },
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data, status) {
+                        $('#campaign').text("")
                     }
+                });
+            }
+            else {
+                $.ajax({
+                    url: "/Home/getNewCampaignCode",
+                    data: { setID: @Model.uploadSetID, siteID: @Model.siteID, year: @Model.year},
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        debugger;
+                        $('#campaign').text(data);
+                    }
+                });
+            }
+        });
 
-                </table>
-                <p>@Html.ActionLink("Download results", "DownloadUploadSetQualityChecks", new { setID = Model.First().uploadSetID })</p>
-
-
-
+        $('#prevCampaign').change(function () {
+            if (this.checked == true) {
+                $('#noCampaign').prop('checked', false);
+                debugger;
+                $.ajax({
+                    url: "/Home/attachCampaignToPrevious",
+                    data: { setID: @Model.uploadSetID, siteID: @Model.siteID, dateTaken: '@Model.qualityChecks[0].imageDateTaken.ToString("yyyy-MM-dd")', currentCampaign : '@Model.campaignID'},
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        debugger;
+                        $('#campaign').text(data);
+                    }
+                });
+            }
+            else {
+                 $.ajax({
+                    url: "/Home/getNewCampaignCode",
+                    data: { setID: @Model.uploadSetID, siteID: @Model.siteID, year: @Model.year},
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        debugger;
+                        $('#campaign').text(data);
+                    }
+                });
+            }
+        });
+    });
+</script>

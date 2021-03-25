@@ -1102,12 +1102,39 @@ namespace UploadWebapp.Controllers
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
             {
-                List<QualityCheckListItem> model = ImageDA.getUploadSetQualityChecks(setID);
+                UploadSetQualityChecksModel model = new UploadSetQualityChecksModel();
+                model.uploadSetID = setID;
+                model = ImageDA.getCampaignAndSite(model);
+                model.qualityChecks = ImageDA.getUploadSetQualityChecks(setID);
+                model.year = int.Parse(model.qualityChecks[0].filename.Substring(23, 4));
 
                 return View(model);
             }
             else
                 return RedirectToAction("Login", "Account");
+        }
+
+        public ActionResult removeCampaign(int setID)
+        {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                ImageDA.removeCampaign(setID);
+                return null;
+            }
+
+            else
+                return RedirectToAction("Login", "Account");
+        }
+        public  ActionResult getNewCampaignCode(int setID, int siteID, int year) {
+            string campaignCode = ImageDA.getNewCampaignCode(siteID, year);
+            ImageDA.saveCampaign(setID, campaignCode);
+            return Content(campaignCode);
+        }
+
+        public ActionResult attachCampaignToPrevious(int setID, int siteID, string dateTaken, string currentCampaign)
+        {
+            string campaignCode = ImageDA.attachCampaignToPrevious(setID, siteID, dateTaken, currentCampaign);
+            return Content(campaignCode);
         }
 
         public ActionResult EditQualityCheck(int checkID, int setID)
