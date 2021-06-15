@@ -1355,6 +1355,40 @@ namespace UploadWebapp.Controllers
                         procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
                         procIm.cameraSetupName = file.Name.Substring(11, 2);
 
+                        string extension = Path.GetExtension(file.Name);
+                        if (extension.ToUpper() == ".CR3")
+                        {
+                            var proc1 = new ProcessStartInfo();
+                            proc1.UseShellExecute = true;
+
+                            proc1.WorkingDirectory = @"C:\Windows\System32";
+
+                            proc1.FileName = @"C:\Windows\System32\cmd.exe";
+                            proc1.Verb = "runas";
+                            proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + file.FullName;
+                            proc1.WindowStyle = ProcessWindowStyle.Hidden;
+                            using (Process cmd = Process.Start(proc1))
+                            {
+                                cmd.WaitForExit();
+                            }
+
+                            //keep .CR3 files and move them
+                            string pathString = ds.ToString() + procIm.siteCode + "/LAI";
+                            try
+                            {
+
+                                if (!System.IO.Directory.Exists(pathString))
+                                    System.IO.Directory.CreateDirectory(pathString);
+
+                                System.IO.File.Delete(System.IO.Path.Combine(pathString, procIm.filename));
+                                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(pathString, procIm.filename));
+                            }
+                            catch
+                            {
+                                System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
+                            }
+                            procIm.filename = procIm.filename.Replace(Path.GetExtension(file.Name), ".dng");
+                        }
                         procImages.Add(procIm);
                     }
                     //else

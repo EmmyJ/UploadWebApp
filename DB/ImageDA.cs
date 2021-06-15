@@ -1111,13 +1111,21 @@ namespace UploadWebapp.DB
             db = new DB();
             string highest = null;
             var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like '" + year + "C%' and siteID = " + siteID);
-            if (result.HasRows)
+            try
             {
-                result.Read();
-                highest = result.GetString(0);
-                int nr = int.Parse(highest.Substring(5, 2));
-                nr += 1;
-                string newCampaign = highest.Substring(0, 5) + nr.ToString("00");
+                if (result.HasRows)
+                {
+                    result.Read();
+                    highest = result.GetString(0);
+                    int nr = int.Parse(highest.Substring(5, 2));
+                    nr += 1;
+                    string newCampaign = highest.Substring(0, 5) + nr.ToString("00");
+                    return newCampaign;
+                }
+            }
+            catch(Exception e)
+            {
+                string newCampaign = string.Format("{0}C01", year);
                 return newCampaign;
             }
             result.Close();
