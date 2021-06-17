@@ -593,13 +593,36 @@ namespace UploadWebapp.Controllers
 
                         bool isExists = System.IO.Directory.Exists(pathString);
                         if (!isExists)
-                            System.IO.Directory.CreateDirectory(pathString);
-
+                            System.IO.Directory.CreateDirectory(pathString);                        
+                        
                         var path = string.Format("{0}/{1}", pathString, file.FileName);
                         file.SaveAs(path);
 
                         Image image = new Image();
                         image.filename = file.FileName;
+                        //if .cr3 extension, convert to .dng
+
+                        string extension = Path.GetExtension(file.FileName);
+                        if (extension.ToUpper() == ".CR3")
+                        {
+                            var proc1 = new ProcessStartInfo();
+                            proc1.UseShellExecute = true;
+
+                            proc1.WorkingDirectory = @"C:\Windows\System32";
+
+                            proc1.FileName = @"C:\Windows\System32\cmd.exe";
+                            proc1.Verb = "runas";
+                            proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + path;
+                            proc1.WindowStyle = ProcessWindowStyle.Hidden;
+                            using (Process cmd = Process.Start(proc1))
+                            {
+                                cmd.WaitForExit();
+                            }
+                            image.filename = image.filename.Replace(Path.GetExtension(file.FileName), ".dng");
+                            path = string.Format("{0}/{1}", pathString, image.filename);
+                        }
+
+                        
                         image.path = path;
                         if (!UserDA.CurrentUserFree)
                             image.dateTaken = DateTime.ParseExact(image.filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
