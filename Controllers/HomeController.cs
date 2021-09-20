@@ -132,120 +132,121 @@ namespace UploadWebapp.Controllers
                     {
                         string s;
                         ExportETCmodel m = list[i];
-                        //TODO: REMOVE!!!
-                        //m.siteName = "FA-Lso";
-                        s = m.image.filename;
-                        s += "," + m.siteName;
-                        s += ",DHP";
-                        s += "," + m.cameraSetupName;//.Substring(1);
-                        s += "," + m.plotName;
-                        s += "," + m.plotLocation;
-                        s += "," + m.dateString;
+                        if(m.qc.status == QCstatus.pass || m.qc.status == QCstatus.fail) 
+                        { 
+                            s = m.image.filename;
+                            s += "," + m.siteName;
+                            s += ",DHP";
+                            s += "," + m.cameraSetupName;//.Substring(1);
+                            s += "," + m.plotName;
+                            s += "," + m.plotLocation;
+                            s += "," + m.dateString;
 
-                        string comment = "";
-                        if (!m.qc.setupObjects || !string.IsNullOrEmpty(m.qc.setupObjectsComments))
-                            comment = "Setup Objects: " + m.qc.setupObjectsComments + "| ";
-                        if (!m.qc.noForeignObjects || !string.IsNullOrEmpty(m.qc.foreignObjectsComments))
-                            comment += "Foreign Objects: " + m.qc.foreignObjectsComments + "| ";
-                        if (!m.qc.noRaindropsDirt || !string.IsNullOrEmpty(m.qc.raindropsDirtComments))
-                            comment += "Raindrops/Dirt: " + m.qc.raindropsDirtComments + "| ";
-                        if (!m.qc.noLensRing)
-                            comment += "Lens Ring | ";
-                        if (!m.qc.lighting || !string.IsNullOrEmpty(m.qc.lightingComments))
-                            comment += "Lighting Conditions: " + m.qc.lightingComments + "| ";
-                        if (!m.qc.noOverexposure || !string.IsNullOrEmpty(m.qc.overexposureComments))
-                            comment += "Overexposure: " + m.qc.overexposureComments + "| ";
-                        if (!m.qc.settings || !string.IsNullOrEmpty(m.qc.settingsComments))
-                            comment += "Settings: " + m.qc.settingsComments.Replace(',', '.') + "| ";
-                        if (!string.IsNullOrEmpty(m.qc.otherComments))
-                            comment += "Other: " + m.qc.otherComments;
-                        comment = comment.Trim();
-                        comment = comment.Trim(new Char[] { '|' });
-
-                        if (m.qc.status == QCstatus.pass)
-                        {
-                            s += ",0,," + comment;
-                            s += "," + Math.Round(m.image.LAI.Value, 2).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.LAIe.Value, 2).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.threshold.Value, 3).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.clumping.Value, 3).ToString().Replace(',', '.');
-                            s += "," + Math.Round(m.image.overexposure.Value, 5).ToString().Replace(',', '.');
-                        }
-                        else if (m.qc.status == QCstatus.created)
-                        {
-                            s += ",1";
-                            s += ", Multiple";
-                            s += ", Not checked yet";
-                            s += ",,,,,";
-                        }
-                        else
-                        {
-                            string motivation = "";
-
-
-                            if (!m.qc.setupObjects)
-                            {
-                                motivation = "Setup";
-                            }
-                            if (!m.qc.noForeignObjects)
-                            {
-                                if (motivation == "")
-                                    motivation = "Foreign";
-                                else
-                                    motivation = "Multiple";
-                            }
-                            if (!m.qc.noRaindropsDirt)
-                            {
-                                if (motivation == "")
-                                    motivation = "Rain";
-                                else
-                                    motivation = "Multiple";
-                            }
+                            string comment = "";
+                            if (!m.qc.setupObjects || !string.IsNullOrEmpty(m.qc.setupObjectsComments))
+                                comment = "Setup Objects: " + m.qc.setupObjectsComments + "| ";
+                            if (!m.qc.noForeignObjects || !string.IsNullOrEmpty(m.qc.foreignObjectsComments))
+                                comment += "Foreign Objects: " + m.qc.foreignObjectsComments + "| ";
+                            if (!m.qc.noRaindropsDirt || !string.IsNullOrEmpty(m.qc.raindropsDirtComments))
+                                comment += "Raindrops/Dirt: " + m.qc.raindropsDirtComments + "| ";
                             if (!m.qc.noLensRing)
-                            {
-                                if (motivation == "")
-                                    motivation = "Ring";
-                                else
-                                    motivation = "Multiple";
-                            }
-                            if (!m.qc.lighting)
-                            {
-                                if (motivation == "")
-                                    motivation = "Light";
-                                else
-                                    motivation = "Multiple";
-                            }
-                            if (!m.qc.noOverexposure)
-                            {
-                                if (motivation == "")
-                                    motivation = "Overexp";
-                                else
-                                    motivation = "Multiple";
-                            }
-                            if (!m.qc.settings)
-                            {
-                                if (motivation == "")
-                                    motivation = "Settings";
-                                else
-                                    motivation = "Multiple";
-                            }
-                            if (m.qc.otherComments != "")
-                            {
-                                if (motivation == "")
-                                    motivation = "Other";
-                                else
-                                    motivation = "Multiple";
-                            }
+                                comment += "Lens Ring | ";
+                            if (!m.qc.lighting || !string.IsNullOrEmpty(m.qc.lightingComments))
+                                comment += "Lighting Conditions: " + m.qc.lightingComments + "| ";
+                            if (!m.qc.noOverexposure || !string.IsNullOrEmpty(m.qc.overexposureComments))
+                                comment += "Overexposure: " + m.qc.overexposureComments + "| ";
+                            if (!m.qc.settings || !string.IsNullOrEmpty(m.qc.settingsComments))
+                                comment += "Settings: " + m.qc.settingsComments.Replace(',', '.') + "| ";
+                            if (!string.IsNullOrEmpty(m.qc.otherComments))
+                                comment += "Other: " + m.qc.otherComments;
+                            comment = comment.Trim();
+                            comment = comment.Trim(new Char[] { '|' });
 
-                            s += ",1";
-                            s += "," + motivation;
-                            s += "," + comment;
-                            s += ",,,,,";
+                            if (m.qc.status == QCstatus.pass)
+                            {
+                                s += ",0,," + comment;
+                                s += "," + Math.Round(m.image.LAI.Value, 2).ToString().Replace(',', '.');
+                                s += "," + Math.Round(m.image.LAIe.Value, 2).ToString().Replace(',', '.');
+                                s += "," + Math.Round(m.image.threshold.Value, 3).ToString().Replace(',', '.');
+                                s += "," + Math.Round(m.image.clumping.Value, 3).ToString().Replace(',', '.');
+                                s += "," + Math.Round(m.image.overexposure.Value, 5).ToString().Replace(',', '.');
+                            }
+                            //else if (m.qc.status == QCstatus.created)
+                            //{
+                            //    s += ",1";
+                            //    s += ", Multiple";
+                            //    s += ", Not checked yet";
+                            //    s += ",,,,,";
+                            //}
+                            else if (m.qc.status == QCstatus.fail)
+                            {
+                                string motivation = "";
+
+
+                                if (!m.qc.setupObjects)
+                                {
+                                    motivation = "Setup";
+                                }
+                                if (!m.qc.noForeignObjects)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Foreign";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (!m.qc.noRaindropsDirt)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Rain";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (!m.qc.noLensRing)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Ring";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (!m.qc.lighting)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Light";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (!m.qc.noOverexposure)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Overexp";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (!m.qc.settings)
+                                {
+                                    if (motivation == "")
+                                        motivation = "Settings";
+                                    else
+                                        motivation = "Multiple";
+                                }
+                                if (m.qc.otherComments != "")
+                                {
+                                    if (motivation == "")
+                                        motivation = "Other";
+                                    else
+                                        motivation = "Multiple";
+                                }
+
+                                s += ",1";
+                                s += "," + motivation;
+                                s += "," + comment;
+                                s += ",,,,,";
+                            }
+                            s += "," + m.campaign;
+
+                            data.Add(s);
+                            siteName = m.siteName;
                         }
-                        s += "," + m.campaign;
-
-                        data.Add(s);
-                        siteName = m.siteName;
                     }
 
                     DateTime now = DateTime.Now;
@@ -280,7 +281,7 @@ namespace UploadWebapp.Controllers
                         request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
                         using (var resp = (FtpWebResponse)request.GetResponse())
                         {
-                            if(resp.StatusCode == FtpStatusCode.PathnameCreated)
+                            if (resp.StatusCode == FtpStatusCode.PathnameCreated)
                             {
                                 request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
                                 request.Method = WebRequestMethods.Ftp.UploadFile;
@@ -637,6 +638,9 @@ namespace UploadWebapp.Controllers
                         {
                             if (plot.plotLocations.Where(l => l.location == location).Count() > 1)
                             {
+                                if(plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).Count() > 0)
+                                    image.plotLocationID = plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).OrderByDescending(m => m.insertDate).First().ID;
+                                else
                                 image.plotLocationID = plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;
                             }
                             else
@@ -1532,7 +1536,10 @@ namespace UploadWebapp.Controllers
                             {
                                 if (ps.plot.plotLocations.Where(l => l.location == location).Count() > 1)
                                 {
-                                    image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;  
+                                    if (ps.plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).Count() > 0)
+                                        image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).OrderByDescending(m => m.insertDate).First().ID;
+                                    else
+                                        image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;  
                                 }
                                 else
                                     image.plotLocationID = ps.plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();

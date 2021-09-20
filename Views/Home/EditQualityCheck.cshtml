@@ -98,19 +98,19 @@
         <div class="display-field col-md-12">
             <label>Status</label>
             @*@{
-            switch ((int)Model.qualityCheck.status)
-            {
-                case 0:*@
+                switch ((int)Model.qualityCheck.status)
+                {
+                    case 0:*@
             <text><h3 id="unverified" style="color:grey;">Unverified</h3></text>
             @*break;
-            case 1:*@
+                case 1:*@
             <text><h3 id="pass" class="text-highlight">Pass</h3></text>
             @*break;
-            case 2:*@
+                case 2:*@
             <text><h3 id="fail" class="text-additional">Fail</h3></text>
             @*break;
-                }
-            }*@<p>
+                    }
+                }*@<p>
                 @Html.ActionLink("Back To List", "UploadSetQualityChecks", new { setID = Model.uploadSetID }) &nbsp;|&nbsp;
                 @Html.ActionLink("Previous", "EditQualityCheck", new { checkID = Model.qualityCheck.ID - 1, setID = Model.uploadSetID })
 
@@ -137,7 +137,9 @@
             @Html.DisplayFor(model => model.image.filename)
             @if (Model.previousQualityCheck != null)
             {
-                <br /><text>Previous:</text><br />
+                <br /><text>Previous: (</text>
+                @Html.DisplayFor(model => model.previousQualityCheck.status)
+                <text>)</text><br />
                 @Html.DisplayFor(model => model.previousQualityCheck.image.filename)
             }
         </div>
@@ -153,6 +155,22 @@
             @Html.DisplayFor(model => model.image.LAI)
         </div>
     </div>
+
+    @if (Model.previousQualityCheck != null)
+    {
+        <div class="row clearfix">
+            <div class="col-md-6">
+                (LAI previous)
+            </div>
+            <div class="display-field col-md-6">
+                (
+                @Html.DisplayFor(model => model.previousQualityCheck.image.LAI)
+                )
+            </div>
+        </div>
+    }
+
+
     <div class="row clearfix">
         <div class="col-md-6">
             <label class="display-label">

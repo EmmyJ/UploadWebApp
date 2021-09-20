@@ -245,7 +245,7 @@ namespace UploadWebapp.DB
             foreach (PlotSet plot in uploadSet.plotSets)
             {
                 //result = db.ExecuteReader("SELECT [ID],[plotSetID] ,[filename] ,[path], exif FROM [images] WHERE plotSetID = " + plot.ID);
-                result = db.ExecuteReader("SELECT i.[ID],[plotSetID] ,[filename] ,[path], exif, slope, slopeAspect FROM [images] i left join plotLocations p on i.plotLocationID = p.ID WHERE plotSetID = " + plot.ID);
+                result = db.ExecuteReader("SELECT i.[ID],[plotSetID] ,[filename] ,[path], exif, i.slope, i.slopeAspect FROM [images] i left join plotLocations p on i.plotLocationID = p.ID WHERE plotSetID = " + plot.ID);
 
                 plot.images = FromImageData(result);
 
@@ -291,7 +291,7 @@ namespace UploadWebapp.DB
                 list = FromUserSetData(result);
 
                 Dictionary<int, string> sitelist = new Dictionary<int, string>();
-                List<SiteData> datalist = GetUserSites(userID);
+                List<SiteData> datalist = GetUserSites(null);
                 foreach (SiteData data in datalist)
                 {
                     sitelist.Add(data.ID, data.siteCode);
@@ -324,18 +324,22 @@ namespace UploadWebapp.DB
             return list;
         }
 
-        public static List<SiteData> GetUserSites(int userID)
+        public static List<SiteData> GetUserSites(int? userID)
         {
             DB db = new DB();
             SqlDataReader rd;
             List<SiteData> sites = new List<SiteData>();
 
             SiteData s;
-            if (UserDA.CurrentUserETC)
-                rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID LEFT JOIN utenti u on us.iduser = u.ID  WHERE u.ETCuser = 1 ORDER BY s.name;");
+            if (userID == null)
+                rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM [sites] s ;");
             else
-                rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
-
+            {
+                if (UserDA.CurrentUserETC)
+                    rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID LEFT JOIN utenti u on us.iduser = u.ID  WHERE u.ETCuser = 1 ORDER BY s.name;");
+                else
+                    rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
+            }
             while (rd.Read())
             {
                 s = new SiteData();
@@ -1160,7 +1164,7 @@ namespace UploadWebapp.DB
             db = new DB();
             QualityCheck qc = new QualityCheck();
 
-            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments],  qc.settingsComments FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
+            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments],  qc.settingsComments, qc.status, i.LAI FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
 
             if (result.HasRows)
             {
@@ -1175,6 +1179,8 @@ namespace UploadWebapp.DB
                 qc.overexposureComments = result.IsDBNull(6) ? null : result.GetString(6);
                 qc.otherComments = result.IsDBNull(7) ? null : result.GetString(7);
                 qc.settingsComments = result.IsDBNull(8) ? null : result.GetString(8);
+                qc.status = (QCstatus)result.GetByte(9);
+                qc.image.LAI = result.IsDBNull(10) ? (double?)null : result.GetDouble(10);
 
                 result.Close();
             }
