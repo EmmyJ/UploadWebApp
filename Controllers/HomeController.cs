@@ -1189,29 +1189,35 @@ namespace UploadWebapp.Controllers
                     if (string.IsNullOrEmpty(model.image.exif) || model.image.exif == "todo")
                     {
                         //retrieve exif info
-                        FileStream fileStream = new FileStream(model.image.path, FileMode.Open);
-                        string exifstr = "key, value\n";
-
-                        using (var image = new MagickImage(fileStream))
+                        FileStream fileStream = null;
+                        try
                         {
-                            string fnumber = image.GetAttribute("exif:FNumber");
-                            fnumber =  string.IsNullOrEmpty(fnumber) ? image.GetAttribute("dng:f.number") : fnumber;
-                            exifstr += "EXIF FNumber, " + fnumber + "\n";
-                            string exposure = image.GetAttribute("exif:ExposureTime");
-                            exposure = string.IsNullOrEmpty(exposure) ? image.GetAttribute("dng:exposure.time") : exposure;
-                            exifstr += "EXIF ExposureTime, " + exposure + "\n";
-                            string ISO = image.GetAttribute("exif:ISOSpeedRatings");
-                            ISO = string.IsNullOrEmpty(ISO) ? image.GetAttribute("dng:iso.setting") : ISO;
-                            exifstr += "EXIF ISOSpeedRatings, " + ISO + "\n";
-                        }
+                            fileStream = new FileStream(model.image.path, FileMode.Open);
+                            string exifstr = "key, value\n";
 
-                        model.image.exif = exifstr;
-                        fileStream.Close();
-                        ImageDA.saveImageExif(model.image);
+                            using (var image = new MagickImage(fileStream))
+                            {
+                                string fnumber = image.GetAttribute("exif:FNumber");
+                                fnumber = string.IsNullOrEmpty(fnumber) ? image.GetAttribute("dng:f.number") : fnumber;
+                                exifstr += "EXIF FNumber, " + fnumber + "\n";
+                                string exposure = image.GetAttribute("exif:ExposureTime");
+                                exposure = string.IsNullOrEmpty(exposure) ? image.GetAttribute("dng:exposure.time") : exposure;
+                                exifstr += "EXIF ExposureTime, " + exposure + "\n";
+                                string ISO = image.GetAttribute("exif:ISOSpeedRatings");
+                                ISO = string.IsNullOrEmpty(ISO) ? image.GetAttribute("dng:iso.setting") : ISO;
+                                exifstr += "EXIF ISOSpeedRatings, " + ISO + "\n";
+                            }
+
+                            model.image.exif = exifstr;
+                            ImageDA.saveImageExif(model.image);
+                        }
+                        catch {}
+                        if (fileStream != null)
+                            fileStream.Close();
                     }
 
                     //read exif values
-                    if (model.image.exif != null)
+                    if (model.image.exif != null && model.image.exif != "todo")
                     {
 
                         string[] e = model.image.exif.Split('\n');
@@ -1259,9 +1265,9 @@ namespace UploadWebapp.Controllers
                         }
                         else
                             model.image.fNumber = null;
-
-                        //check if values are OK
-                        if (model.qualityCheck.status == QCstatus.created)
+                    }
+                    //check if values are OK
+                    if (model.qualityCheck.status == QCstatus.created)
                         {
                             if (model.image.ISO == null || model.image.fNumber == null || model.image.exposureTimeVal == null)
                             {
@@ -1287,10 +1293,15 @@ namespace UploadWebapp.Controllers
                                 }
                             }
                             if (!model.qualityCheck.settings)
-                                model.qualityCheck.status = QCstatus.fail;
+                            { model.qualityCheck.status = QCstatus.fail; }
+                            if (model.image.LAI == null)
+                            {
+                            model.qualityCheck.otherComments += "No LAI value";
+                            model.qualityCheck.status = QCstatus.fail;
+                            }
                         }
 
-                    }
+                    
 
                     return View(model);
                 }

@@ -582,6 +582,7 @@ namespace UploadWebapp.DB
                 if (data.FieldCount > 15)
                 {
                     s.siteCode = data.IsDBNull(15) ? "" : data.GetString(15);
+                    s.title += "(" + s.siteCode + ")";
                 }
                 if (data.FieldCount > 16)
                 {
@@ -965,11 +966,11 @@ namespace UploadWebapp.DB
                     new SqlParameter("userID", qc.userID)));
 
             db.ExecuteScalar("UPDATE [dbo].[images] SET [LAI] = @LAI,[LAIe] = @LAIe,[threshold] = @threshold,[clumping] = @clumping, [overexposure] = @overexposure WHERE ID = @ID",
-                new SqlParameter("LAI", (object)qc.image.LAI ?? DBNull.Value),
-                new SqlParameter("LAIe", (object)qc.image.LAIe ?? DBNull.Value),
-                new SqlParameter("threshold", (object)qc.image.threshold ?? DBNull.Value),
-                new SqlParameter("clumping", (object)qc.image.clumping ?? DBNull.Value),
-                new SqlParameter("overexposure", (object)qc.image.overexposure ?? DBNull.Value),
+                new SqlParameter("LAI", ((object)qc.image.LAI == null | double.IsNaN((qc.image.LAI.Value))) ? DBNull.Value : (object)qc.image.LAI),
+                new SqlParameter("LAIe", ((object)qc.image.LAIe == null | double.IsNaN((qc.image.LAIe.Value))) ? DBNull.Value : (object)qc.image.LAIe),
+                new SqlParameter("threshold", ((object)qc.image.threshold == null | double.IsNaN((qc.image.threshold.Value))) ? DBNull.Value : (object)qc.image.threshold),
+                new SqlParameter("clumping", ((object)qc.image.clumping == null | double.IsNaN((qc.image.clumping.Value))) ? DBNull.Value : (object)qc.image.clumping),
+                new SqlParameter("overexposure", ((object)qc.image.overexposure == null | double.IsNaN((qc.image.overexposure.Value))) ? DBNull.Value : (object)qc.image.overexposure),
                 new SqlParameter("ID", qc.image.ID));
 
             db.Dispose();
