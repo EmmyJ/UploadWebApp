@@ -308,6 +308,7 @@
     <Content Include="Content\centercalibrationtemplate.csv" />
     <Content Include="Content\lenscalibrationtemplate.csv" />
     <None Include="Properties\PublishProfiles\UploadWebApp.pubxml" />
+    <Content Include="Images\bg9.png" />
     <Content Include="Images\icon_home.svg" />
     <Content Include="Images\icon_home_active.png" />
     <Content Include="Images\icon_home_active.svg" />
