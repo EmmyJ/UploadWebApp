@@ -252,17 +252,18 @@ namespace UploadWebapp.Controllers
                     DateTime now = DateTime.Now;
                     string fileName = String.Format("{0}_DHP-LAI_{1}.csv", siteName, now.ToString("yyyyMMddHHmmss"));
                     string fileContent = String.Join("\n", data);
-                    var byteArray = Encoding.ASCII.GetBytes(fileContent);
-
-                    //send to ETC
-                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
-                    request.Method = WebRequestMethods.Ftp.UploadFile;
-
-                    request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+                    var byteArray = Encoding.ASCII.GetBytes(fileContent);                    
 
                     byte[] bytes = byteArray;
+                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
                     try
                     {
+                        //send to ETC
+                        
+                        request.Method = WebRequestMethods.Ftp.UploadFile;
+
+                        request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+
                         // Write the bytes into the request stream.
                         request.ContentLength = bytes.Length;
                         using (Stream request_stream = request.GetRequestStream())
@@ -272,39 +273,49 @@ namespace UploadWebapp.Controllers
                             request_stream.Close();
 
                         }
+                        Submission submission = new Submission();
+                        submission.uploadSetID = setID;
+                        submission.filename = fileName;
+                        submission.userID = UserDA.CurrentUserId;
+                        submission.submissionDate = now;
+
+                        ImageDA.InsertSubmission(submission);
                     }
                     catch (Exception)
                     //folder doesn't exist, so create folder and try again
                     {
-                        request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/");
-                        request.Method = WebRequestMethods.Ftp.MakeDirectory;
-                        request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
-                        using (var resp = (FtpWebResponse)request.GetResponse())
+                        try
                         {
-                            if (resp.StatusCode == FtpStatusCode.PathnameCreated)
+                            request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/");
+                            request.Method = WebRequestMethods.Ftp.MakeDirectory;
+                            request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+                            using (var resp = (FtpWebResponse)request.GetResponse())
                             {
-                                request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
-                                request.Method = WebRequestMethods.Ftp.UploadFile;
-
-                                request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
-
-                                request.ContentLength = bytes.Length;
-                                using (Stream request_stream = request.GetRequestStream())
+                                if (resp.StatusCode == FtpStatusCode.PathnameCreated)
                                 {
-                                    request_stream.Write(bytes, 0, bytes.Length);
-                                    request_stream.Close();
+                                    request = (FtpWebRequest)WebRequest.Create(ConfigurationManager.AppSettings["ITurl"].ToString() + siteName + "/" + fileName);
+                                    request.Method = WebRequestMethods.Ftp.UploadFile;
+
+                                    request.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ITuser"].ToString(), ConfigurationManager.AppSettings["ITpass"].ToString());
+
+                                    request.ContentLength = bytes.Length;
+                                    using (Stream request_stream = request.GetRequestStream())
+                                    {
+                                        request_stream.Write(bytes, 0, bytes.Length);
+                                        request_stream.Close();
+                                    }
                                 }
                             }
+                            Submission submission = new Submission();
+                            submission.uploadSetID = setID;
+                            submission.filename = fileName;
+                            submission.userID = UserDA.CurrentUserId;
+                            submission.submissionDate = now;
+
+                            ImageDA.InsertSubmission(submission);
                         }
+                        catch (Exception) { }
                     }
-                    Submission submission = new Submission();
-                    submission.uploadSetID = setID;
-                    submission.filename = fileName;
-                    submission.userID = UserDA.CurrentUserId;
-                    submission.submissionDate = now;
-
-                    ImageDA.InsertSubmission(submission);
-
                     return File(byteArray, "text/csv", fileName);
                 }
 
@@ -647,7 +658,6 @@ namespace UploadWebapp.Controllers
                                 image.plotLocationID = plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
                         }
                     }
-
                 }
                 if (UserDA.CurrentUserFree)
                     uploadSet.plotSets.Add(plotset);
@@ -1301,7 +1311,11 @@ namespace UploadWebapp.Controllers
                             }
                         }
 
-                    
+                    if (!string.IsNullOrEmpty(model.image.jpgPath))
+                        model.image.jpgPath = model.image.jpgPath.Replace("//filehost.uantwerpen.be/icos", "/Images");
+                    if (!string.IsNullOrEmpty(model.image.binPath))
+                        model.image.binPath = model.image.binPath.Replace("//filehost.uantwerpen.be/icos", "/Images");
+
 
                     return View(model);
                 }
@@ -1315,7 +1329,14 @@ namespace UploadWebapp.Controllers
 
         public ActionResult Imagify(string url)
         {
-            return File(@url, "image/jpeg");
+            Response.ClearHeaders();
+            var f = File(@url, "image/jpeg");
+
+            ////Response.ClearContent();
+            Response.Flush();
+
+            return f;
+            //return File(@url, "image/jpeg");
         }
 
         [HttpPost]
@@ -1381,7 +1402,8 @@ namespace UploadWebapp.Controllers
                 foreach (FileInfo file in Files)
                 {
                     //res.Add(string.Concat("{0}: {1}", image.filename, erMes));
-                    if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1")
+                    if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1"
+                        && file.Extension.ToUpper() != ".JPG" && file.Extension.ToUpper() != ".JPEG")
                     {
                         ProcessImage procIm = new ProcessImage();
                         procIm.filename = file.Name;
@@ -1491,6 +1513,7 @@ namespace UploadWebapp.Controllers
                             us.person = procIm.siteCode + "_" + procIm.date.ToString("yyyyMMdd");
                             if(procIm.filename.Substring(14, 2) == "CP")
                             us.campaign = ImageDA.getNewCampaignCode(us.siteID.Value, int.Parse(procIm.filename.Substring(23, 4)));
+                            us.dateStr = procIm.filename.Substring(23, 8);
 
                             uploadSets.Add(us);
                         }
@@ -1526,7 +1549,7 @@ namespace UploadWebapp.Controllers
                         {
                             Image image = new Image();
                             image.filename = procIm.filename;
-                            string pathString = ds.ToString() + procIm.siteCode + "/LAI";
+                            string pathString = ds.ToString() + procIm.siteCode + "/LAI/" + us.dateStr;
                             try
                             {
 

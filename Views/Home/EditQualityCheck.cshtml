@@ -32,10 +32,12 @@
         {
             <div class="display-field col-md-12">
                 <div class="display-field col-md-6">
-                    <a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>
+                    @*<a href="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.jpgPath }))" /></a>*@
+                    <a href="@Model.image.jpgPath"><img src="@Model.image.jpgPath" /></a>
                 </div>
                 <div class="display-field col-md-6">
-                    <a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>
+                    @*<a href="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" target="_blank"><img src="@(Url.Action("Imagify","Home", new {url = Model.image.binPath }))" /></a>*@
+                    <a href="@Model.image.binPath"><img src="@Model.image.binPath" /></a>
                 </div>
             </div>
         }

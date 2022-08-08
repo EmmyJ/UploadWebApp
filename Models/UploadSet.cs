@@ -55,5 +55,6 @@ namespace UploadWebapp.Models
         public Submission lastSubmission { get; set; }
 
         public string campaign { get; set; }
+        public string dateStr { get; set; }
     }
 }
