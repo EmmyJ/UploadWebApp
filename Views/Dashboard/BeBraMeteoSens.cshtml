@@ -1,0 +1,38 @@
+﻿@model System.Collections.Generic.IEnumerable<String>
+
+@{
+    ViewBag.Title = "BE-Bra MeteoSens";
+}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="~/CP/dygraph/dygraph.min.js"></script>
+<link href="~/CP/dygraph/dygraph.css" rel="stylesheet" />
+<h1>Sensors BE-Bra</h1>
+
+@if (Model != null)
+{
+    foreach (var item in Model)
+    {
+    <text>
+        <div class="col-md-6">
+            <h2>@item</h2>
+            <div id="div-@item" style="width:100%"></div>
+
+            <script type="text/javascript">
+                    g = new Dygraph(
+
+                        // containing div
+                        document.getElementById("div-@item"),
+
+                        // CSV or path to a CSV file.
+                        "/CP/data/MeteoSens/BE-Bra-MeteoSens-@(item).csv"
+
+                    );
+            </script>
+
+        </div>
+    </text>
+    }
+}
+else { 
+    @:Something went wrong :(
+}

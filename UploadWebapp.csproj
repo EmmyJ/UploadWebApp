@@ -62,6 +62,7 @@
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
@@ -186,6 +187,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ETCController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="DB\DB.cs" />
     <Compile Include="DB\ETCDA.cs" />
     <Compile Include="DB\ImageDA.cs" />
@@ -412,6 +414,7 @@
     <Content Include="Views\Home\ProcessImages.cshtml" />
     <Content Include="Views\Home\FillImageData.cshtml" />
     <Content Include="Views\ETC\AggregateLAI.cshtml" />
+    <Content Include="Views\Dashboard\BeBraMeteoSens.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
