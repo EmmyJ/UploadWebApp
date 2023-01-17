@@ -1,0 +1,8 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h1>Dashboard</h1>
+
+<a href="@Url.Action("SensorData",  new { station = "BE-Bra", type="meteosens", days = 5 })" >BE-Bra NRT Meteosens</a><br />
+<a href="@Url.Action("SensorData",  new { station = "BE-Maa", type="meteosens", days = 5 })">BE-Maa NRT Meteosens</a>

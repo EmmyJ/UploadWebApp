@@ -415,6 +415,8 @@
     <Content Include="Views\Home\FillImageData.cshtml" />
     <Content Include="Views\ETC\AggregateLAI.cshtml" />
     <Content Include="Views\Dashboard\BeBraMeteoSens.cshtml" />
+    <Content Include="Views\Dashboard\Index.cshtml" />
+    <Content Include="Views\Dashboard\SensorData.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
