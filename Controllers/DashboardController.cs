@@ -56,6 +56,22 @@ namespace UploadWebapp.Controllers
                             colnrs[a] = TSi.Value;
                         }    
                     }
+                    else if (header.Substring(0, 3) == "TA_" && headersFinal.Count > 0)
+                    {
+                        //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                        int? TAi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                        if (TAi < 0)
+                        {
+                            headersFinal.Add("," + header);
+                            colnrs[a] = hf;
+                            hf++;
+                        }
+                        else
+                        {
+                            headersFinal[TAi.Value] = headersFinal[TAi.Value] + "," + header;
+                            colnrs[a] = TAi.Value;
+                        }
+                    }
                     else if (header.Substring(0, 4) == "SWC_" && headersFinal.Count > 0) 
                     {
                         int? SWCi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 5), StringComparison.OrdinalIgnoreCase));
@@ -102,10 +118,10 @@ namespace UploadWebapp.Controllers
                         colNr = colnrs[v];
                         if(colNr == prevCol)
                         {
-                            sba[colNr - 2] += "," + values[colNr];
+                            sba[colNr - 2] += "," + values[v];
                         }
                         else { 
-                            sba[colNr - 2] += "\n" + values[0] + "," + values[colNr];
+                            sba[colNr - 2] += "\n" + values[0] + "," + values[v];
                         }
                         prevCol = colNr;
                     }
@@ -118,7 +134,11 @@ namespace UploadWebapp.Controllers
                     {
                         varname = varname.Substring(0, 4);
                     }
-                    if (varname.StartsWith("SWC_"))
+                    else if (varname.StartsWith("TA_"))
+                    {
+                        varname = varname.Substring(0, 4);
+                    }
+                    else if (varname.StartsWith("SWC_"))
                     {
                         varname = varname.Substring(0, 5);
                     }
@@ -130,6 +150,7 @@ namespace UploadWebapp.Controllers
                 }
 
                 ViewBag.title = station + " - " + type;
+                ViewBag.station = station;
 
                 return View(headersFinal.Where((v, i) => i > 1).ToArray());
             }
