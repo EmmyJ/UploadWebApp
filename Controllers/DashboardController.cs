@@ -1,7 +1,11 @@
-﻿using System;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web.Mvc;
@@ -35,64 +39,100 @@ namespace UploadWebapp.Controllers
                 List<string> sba = new List<string>();
                 string[] values;
                 int hf = 0;
+                Dictionary<string, int> groupedCols = new Dictionary<string, int>() {
+                    {"TS_", 3},
+                    {"TA_", 3},
+                    {"SWC_", 4}
+                    //,{"RH_1_;RH_3_", 5}
+                };
 
                 //group same sensors per plot
                 for (int a = 0; a < headers.Count(); a++)
                 {
                     string header = headers[a];
-                    if (header.Substring(0, 3) == "TS_" && headersFinal.Count > 0)
+                    bool match = false;
+                    foreach (var groupedCol in groupedCols)
                     {
-                        //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                        int? TSi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                        if (TSi < 0)
+                        if(match == false && header.Substring(0,groupedCol.Value) == groupedCol.Key && headersFinal.Count > 0 )
                         {
-                            headersFinal.Add("," + header);
-                            colnrs[a] = hf;
-                            hf++;
-                        } 
-                        else     
-                        {
-                            headersFinal[TSi.Value] = headersFinal[TSi.Value] + "," + header ;
-                            colnrs[a] = TSi.Value;
-                        }    
-                    }
-                    else if (header.Substring(0, 3) == "TA_" && headersFinal.Count > 0)
-                    {
-                        //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                        int? TAi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                        if (TAi < 0)
-                        {
-                            headersFinal.Add("," + header);
-                            colnrs[a] = hf;
-                            hf++;
-                        }
-                        else
-                        {
-                            headersFinal[TAi.Value] = headersFinal[TAi.Value] + "," + header;
-                            colnrs[a] = TAi.Value;
+                            int? colI = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, groupedCol.Value+1), StringComparison.OrdinalIgnoreCase));
+
+                            if (colI < 0)
+                            {
+                                headersFinal.Add("," + header);
+                                colnrs[a] = hf;
+                                hf++;
+                            }
+                            else
+                            {
+                                headersFinal[colI.Value] = headersFinal[colI.Value] + "," + header;
+                                colnrs[a] = colI.Value;
+                            }
+
+                            match = true;
                         }
                     }
-                    else if (header.Substring(0, 4) == "SWC_" && headersFinal.Count > 0) 
-                    {
-                        int? SWCi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 5), StringComparison.OrdinalIgnoreCase));
-                        if (SWCi < 0)
-                        {
-                            headersFinal.Add("," + header);
-                            colnrs[a] = hf;
-                            hf++;
-                        }
-                        else
-                        {
-                            headersFinal[SWCi.Value] = headersFinal[SWCi.Value] + "," + header;
-                            colnrs[a] = SWCi.Value;
-                        }
-                    }
-                    else
+                    if(!match)
                     {
                         headersFinal.Add("," + header);
-                        colnrs[a]= hf;
+                        colnrs[a] = hf;
                         hf++;
                     }
+
+
+                    //if (header.Substring(0, 3) == "TS_" && headersFinal.Count > 0)
+                    //{
+                    //    //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                    //    int? TSi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                    //    if (TSi < 0)
+                    //    {
+                    //        headersFinal.Add("," + header);
+                    //        colnrs[a] = hf;
+                    //        hf++;
+                    //    } 
+                    //    else     
+                    //    {
+                    //        headersFinal[TSi.Value] = headersFinal[TSi.Value] + "," + header ;
+                    //        colnrs[a] = TSi.Value;
+                    //    }    
+                    //}
+                    //else if (header.Substring(0, 3) == "TA_" && headersFinal.Count > 0)
+                    //{
+                    //    //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                    //    int? TAi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
+                    //    if (TAi < 0)
+                    //    {
+                    //        headersFinal.Add("," + header);
+                    //        colnrs[a] = hf;
+                    //        hf++;
+                    //    }
+                    //    else
+                    //    {
+                    //        headersFinal[TAi.Value] = headersFinal[TAi.Value] + "," + header;
+                    //        colnrs[a] = TAi.Value;
+                    //    }
+                    //}
+                    //else if (header.Substring(0, 4) == "SWC_" && headersFinal.Count > 0) 
+                    //{
+                    //    int? SWCi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 5), StringComparison.OrdinalIgnoreCase));
+                    //    if (SWCi < 0)
+                    //    {
+                    //        headersFinal.Add("," + header);
+                    //        colnrs[a] = hf;
+                    //        hf++;
+                    //    }
+                    //    else
+                    //    {
+                    //        headersFinal[SWCi.Value] = headersFinal[SWCi.Value] + "," + header;
+                    //        colnrs[a] = SWCi.Value;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    headersFinal.Add("," + header);
+                    //    colnrs[a]= hf;
+                    //    hf++;
+                    //}
                 }
 
                 //create stringbuilder for each sensor and add the headerline
@@ -130,18 +170,28 @@ namespace UploadWebapp.Controllers
                 for (int s = 0; s < sba.Count(); s++)
                 {
                     string varname = (headersFinal[s + 2].Substring(1));
-                    if (varname.StartsWith("TS_"))
-                    {
-                        varname = varname.Substring(0, 4);
+                    //if (varname.StartsWith("TS_"))
+                    //{
+                    //    varname = varname.Substring(0, 4);
+                    //}
+                    //else if (varname.StartsWith("TA_"))
+                    //{
+                    //    varname = varname.Substring(0, 4);
+                    //}
+                    //else if (varname.StartsWith("SWC_"))
+                    //{
+                    //    varname = varname.Substring(0, 5);
+                    //}
+                    bool match = false;
+                    foreach (var item in groupedCols)
+                    { 
+                        if (!match && varname.StartsWith(item.Key))
+                        {
+                            varname = varname.Substring(0,item.Value + 1);
+                            match = true;
+                        } 
                     }
-                    else if (varname.StartsWith("TA_"))
-                    {
-                        varname = varname.Substring(0, 4);
-                    }
-                    else if (varname.StartsWith("SWC_"))
-                    {
-                        varname = varname.Substring(0, 5);
-                    }
+
                     string outfilePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "MeteoSens/" + station + "-MeteoSens-" + varname + ".csv");
                     StreamWriter sw = new StreamWriter(outfilePath);
                     sw.Write(sba[s]);
@@ -161,54 +211,69 @@ namespace UploadWebapp.Controllers
             }
         }
 
-
-        public ActionResult BeBraMeteoSens()
+        class TAmodel
         {
-            try {
-                string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEOSENS_NRT.csv");
-                StreamReader sr = new StreamReader(filePath);
-                string fulltext = sr.ReadToEnd().ToString(); //read full file text
-                sr.Close();
+            public DateTime TimeStamp { get; set; }
+            public double? TA { get; set; }
+            public double? TAavg { get; set; }
+        }
 
-                string[] rows = fulltext.Split('\n'); //split full file text into rows
-                string[] headers = rows[0].Split(',');
-                List<string> sba = new List<string>();
-                string[] values;
-
-                //create stringbuilder for each sensor and add the headerline
-                for (int h = 2; h < headers.Count(); h++)
-                {
-                    sba.Add("TIMESTAMP," + headers[h] + "\n");
-                }
-
-                for (int i = rows.Count() - 241; i < rows.Count() - 1; i++)
-                {
-                    rows[i].Replace(",,", ", ,"); //to not lose empty columns
-                    values = rows[i].Split(',');
-
-                    for (int v = 2; v < values.Count(); v++)
-                    {
-                        sba[v - 2] += values[0] + "," + values[v] + "\n";
-                    }
-
-                }
-
-                for (int s = 0; s < sba.Count(); s++)
-                {
-                    string outfilePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "MeteoSens/BE-Bra-MeteoSens-" + headers[s + 2] + ".csv");
-                    StreamWriter sw = new StreamWriter(outfilePath);
-                    sw.Write(sba[s]);
-                    sw.Close();
-                }
-
-                return View(headers.Where((v, i) => i > 1).ToArray());
-            }
-            catch (Exception e)
+        sealed class TAMap : ClassMap<TAmodel>
+        {
+            public TAMap()
             {
-                ModelState.AddModelError("", e);
-                return View();
+                Map(m => m.TimeStamp).Name("TIMESTAMP");
+                Map(m => m.TA).Name("TA");
+                Map(m => m.TAavg).Name("TA_avg");
             }
-        }           
+        }
 
+        public ActionResult generateCPdataBra()
+        {
+            string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean.csv");
+            var fileReader = new StreamReader(filePath);
+            var csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
+
+            csvReader.Context.RegisterClassMap<TAMap>();
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<int?>().NullValues.Add("null");
+
+            var list = csvReader.GetRecords<TAmodel>().ToList();
+            DateTime max = list.Max(x => x.TimeStamp);
+            var last7days = list.Where(m => m.TimeStamp > max.AddDays(-7));
+
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean_7d.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                var options = new TypeConverterOptions { Formats = new[] { "dd-MM-yyyyT00:00:00Z" } };
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.WriteRecords(last7days);
+            }
+           
+            var avgs = list.GroupBy(m => new { m.TimeStamp.Date })
+                .Select(g => new TAmodel
+                {
+                    TimeStamp = g.Key.Date,
+                    TA = g.Average(m => m.TA),
+                    TAavg = g.Average(m => m.TAavg)
+                }).ToList();
+
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean_daily.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                var options = new TypeConverterOptions { Formats = new[] { "dd-MM-yyyyT00:00:00Z" } };
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.WriteRecords(avgs);
+            }
+
+            fileReader.Close();
+            return null;
+        }
+
+        public ActionResult CPdataBra()
+        {
+                return View();
+        }
     }
 }
