@@ -1,6 +1,8 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -8,6 +10,11 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace UploadWebapp.Controllers
@@ -20,6 +27,117 @@ namespace UploadWebapp.Controllers
         public ActionResult Index()
         {
             return View();
+        }
+
+        public CookieContainer LoginCarbonPortal(string user, string password)
+        {
+            string baseurl = "https://cpauth.icos-cp.eu/password/login";
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseurl);
+
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            string login = string.Format("go=&mail={0}&password={1}", user, password);
+            byte[] postbuf = Encoding.ASCII.GetBytes(login);
+            req.ContentLength = postbuf.Length;
+            Stream rs = req.GetRequestStream();
+            rs.Write(postbuf, 0, postbuf.Length);
+            rs.Close();
+
+            CookieContainer cookie = req.CookieContainer = new CookieContainer();
+
+            WebResponse resp = req.GetResponse();
+            resp.Close();
+            return cookie;
+        }
+
+        public string getPidId(CookieContainer cookie)
+        {
+            string baseurl = "https://meta.icos-cp.eu/sparql";
+            String q = "prefix%20cpmeta%3A%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fontologies%2Fcpmeta%2F%3E%0Aprefix%20prov%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23%3E%0Aselect%20%3Fdobj%0Awhere%20%7B%0A%20%20%20%20%3Fdobj%20cpmeta%3AhasObjectSpec%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fcpmeta%2FetcNrtMeteo%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AwasAcquiredBy%2Fprov%3AwasAssociatedWith%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fstations%2FES_BE-Bra%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AhasSizeInBytes%20%5B%5D%20.%0A%20%20%20%20FILTER%20NOT%20EXISTS%20%7B%5B%5D%20cpmeta%3AisNextVersionOf%20%3Fdobj%7D%0A%7D";
+            String url = String.Format("{0}?query={1}", baseurl, q);
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            //req.CookieContainer = cookie;
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+            
+            string query = string.Format("go=&query={0}", q);
+            byte[] postbuf = Encoding.ASCII.GetBytes(query);
+            req.ContentLength = postbuf.Length;
+            Stream rs = req.GetRequestStream();
+            rs.Write(postbuf, 0, postbuf.Length);
+            rs.Close();
+                        
+            WebResponse resp = req.GetResponse();
+            System.IO.Stream s = resp.GetResponseStream();
+            System.IO.StreamReader reader = new System.IO.StreamReader(s, Encoding.UTF8);
+            string _s = reader.ReadToEnd();
+
+            reader.Close();
+            s.Close();
+            resp.Close();
+
+            var details = JObject.Parse(_s);
+
+            string dobj = details["results"]["bindings"][0]["dobj"]["value"].ToString();
+
+            return dobj;
+        }
+
+        public string usePidId(string pidUrl, CookieContainer cookie) {
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(pidUrl);
+            req.CookieContainer = cookie;
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
+
+
+            WebResponse resp = req.GetResponse();
+            System.IO.Stream s = resp.GetResponseStream();
+
+            return null;
+        }
+
+        public async Task<ActionResult> DownloadDataFromCarbonPortal()
+        {
+            CookieContainer cookie;
+            cookie = LoginCarbonPortal("downloader@uantwerpen.be", "tUHPDUhZ4FetsGr");
+            string pidUrl = getPidId(cookie);
+            pidUrl = pidUrl.Replace("https://meta.icos-cp.eu/objects/", "https://data.icos-cp.eu/csv/");
+            usePidId(pidUrl, cookie);
+
+
+            //var url = "https://cpauth.icos-cp.eu/password/login";
+            //string postData = HttpUtility.UrlEncode("mail") + "=" + HttpUtility.UrlEncode("downloader@uantwerpen.be") + "&"
+            //    + HttpUtility.UrlEncode("password") + "=" + HttpUtility.UrlEncode("tUHPDUhZ4FetsGr");
+
+            //HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
+            //myHttpWebRequest.Method = "POST";
+
+            //byte[] data = Encoding.ASCII.GetBytes(postData);
+
+            //myHttpWebRequest.ContentType = "application/x-www-form-urlencoded";
+            //myHttpWebRequest.ContentLength = data.Length;
+
+            //Stream requestStream = myHttpWebRequest.GetRequestStream();
+            //requestStream.Write(data, 0, data.Length);
+            //requestStream.Close();
+
+            //HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
+
+
+            string URL = "https://cpauth.icos-cp.eu/password/login";
+            System.Net.WebRequest webRequest = System.Net.WebRequest.Create(URL);
+            webRequest.Method = "POST";
+            webRequest.ContentType = "application/x-www-form-urlencoded";
+            Stream reqStream = webRequest.GetRequestStream();
+            string postData = "mail=downloader@uantwerpen.be&password=tUHPDUhZ4FetsGr";
+            byte[] postArray = Encoding.ASCII.GetBytes(postData);
+            reqStream.Write(postArray, 0, postArray.Length);
+            reqStream.Close();
+            StreamReader sr = new StreamReader(webRequest.GetResponse().GetResponseStream());
+            string Result = sr.ReadToEnd();
+
+
+            return null;
         }
 
         public ActionResult SensorData(string station, string type, int days)
@@ -53,9 +171,9 @@ namespace UploadWebapp.Controllers
                     bool match = false;
                     foreach (var groupedCol in groupedCols)
                     {
-                        if(match == false && header.Substring(0,groupedCol.Value) == groupedCol.Key && headersFinal.Count > 0 )
+                        if (match == false && header.Substring(0, groupedCol.Value) == groupedCol.Key && headersFinal.Count > 0)
                         {
-                            int? colI = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, groupedCol.Value+1), StringComparison.OrdinalIgnoreCase));
+                            int? colI = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, groupedCol.Value + 1), StringComparison.OrdinalIgnoreCase));
 
                             if (colI < 0)
                             {
@@ -72,67 +190,12 @@ namespace UploadWebapp.Controllers
                             match = true;
                         }
                     }
-                    if(!match)
+                    if (!match)
                     {
                         headersFinal.Add("," + header);
                         colnrs[a] = hf;
                         hf++;
                     }
-
-
-                    //if (header.Substring(0, 3) == "TS_" && headersFinal.Count > 0)
-                    //{
-                    //    //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                    //    int? TSi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                    //    if (TSi < 0)
-                    //    {
-                    //        headersFinal.Add("," + header);
-                    //        colnrs[a] = hf;
-                    //        hf++;
-                    //    } 
-                    //    else     
-                    //    {
-                    //        headersFinal[TSi.Value] = headersFinal[TSi.Value] + "," + header ;
-                    //        colnrs[a] = TSi.Value;
-                    //    }    
-                    //}
-                    //else if (header.Substring(0, 3) == "TA_" && headersFinal.Count > 0)
-                    //{
-                    //    //int? TSi = List<string>.FindIndex(headersFinal, s => s.StartsWith(header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                    //    int? TAi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 4), StringComparison.OrdinalIgnoreCase));
-                    //    if (TAi < 0)
-                    //    {
-                    //        headersFinal.Add("," + header);
-                    //        colnrs[a] = hf;
-                    //        hf++;
-                    //    }
-                    //    else
-                    //    {
-                    //        headersFinal[TAi.Value] = headersFinal[TAi.Value] + "," + header;
-                    //        colnrs[a] = TAi.Value;
-                    //    }
-                    //}
-                    //else if (header.Substring(0, 4) == "SWC_" && headersFinal.Count > 0) 
-                    //{
-                    //    int? SWCi = headersFinal.FindIndex(x => x.StartsWith("," + header.Substring(0, 5), StringComparison.OrdinalIgnoreCase));
-                    //    if (SWCi < 0)
-                    //    {
-                    //        headersFinal.Add("," + header);
-                    //        colnrs[a] = hf;
-                    //        hf++;
-                    //    }
-                    //    else
-                    //    {
-                    //        headersFinal[SWCi.Value] = headersFinal[SWCi.Value] + "," + header;
-                    //        colnrs[a] = SWCi.Value;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    headersFinal.Add("," + header);
-                    //    colnrs[a]= hf;
-                    //    hf++;
-                    //}
                 }
 
                 //create stringbuilder for each sensor and add the headerline
@@ -156,11 +219,12 @@ namespace UploadWebapp.Controllers
                     {
                         //add each value to the corresponding stringbuilders
                         colNr = colnrs[v];
-                        if(colNr == prevCol)
+                        if (colNr == prevCol)
                         {
                             sba[colNr - 2] += "," + values[v];
                         }
-                        else { 
+                        else
+                        {
                             sba[colNr - 2] += "\n" + values[0] + "," + values[v];
                         }
                         prevCol = colNr;
@@ -170,26 +234,14 @@ namespace UploadWebapp.Controllers
                 for (int s = 0; s < sba.Count(); s++)
                 {
                     string varname = (headersFinal[s + 2].Substring(1));
-                    //if (varname.StartsWith("TS_"))
-                    //{
-                    //    varname = varname.Substring(0, 4);
-                    //}
-                    //else if (varname.StartsWith("TA_"))
-                    //{
-                    //    varname = varname.Substring(0, 4);
-                    //}
-                    //else if (varname.StartsWith("SWC_"))
-                    //{
-                    //    varname = varname.Substring(0, 5);
-                    //}
                     bool match = false;
                     foreach (var item in groupedCols)
-                    { 
+                    {
                         if (!match && varname.StartsWith(item.Key))
                         {
-                            varname = varname.Substring(0,item.Value + 1);
+                            varname = varname.Substring(0, item.Value + 1);
                             match = true;
-                        } 
+                        }
                     }
 
                     string outfilePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "MeteoSens/" + station + "-MeteoSens-" + varname + ".csv");
@@ -245,11 +297,11 @@ namespace UploadWebapp.Controllers
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var options = new TypeConverterOptions { Formats = new[] { "dd-MM-yyyyT00:00:00Z" } };
+                var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddT00:00:00Z" } };
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.WriteRecords(last7days);
             }
-           
+
             var avgs = list.GroupBy(m => new { m.TimeStamp.Date })
                 .Select(g => new TAmodel
                 {
@@ -262,7 +314,7 @@ namespace UploadWebapp.Controllers
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var options = new TypeConverterOptions { Formats = new[] { "dd-MM-yyyyT00:00:00Z" } };
+                var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddT00:00:00Z" } };
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.WriteRecords(avgs);
             }
@@ -273,7 +325,7 @@ namespace UploadWebapp.Controllers
 
         public ActionResult CPdataBra()
         {
-                return View();
+            return View();
         }
     }
 }
