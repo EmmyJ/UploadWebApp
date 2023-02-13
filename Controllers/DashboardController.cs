@@ -29,7 +29,7 @@ namespace UploadWebapp.Controllers
             return View();
         }
 
-        public CookieContainer LoginCarbonPortal(string user, string password)
+        public Cookie LoginCarbonPortal(string user, string password)
         {
             string baseurl = "https://cpauth.icos-cp.eu/password/login";
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseurl);
@@ -43,14 +43,26 @@ namespace UploadWebapp.Controllers
             rs.Write(postbuf, 0, postbuf.Length);
             rs.Close();
 
-            CookieContainer cookie = req.CookieContainer = new CookieContainer();
+            CookieContainer cookieJar = new CookieContainer();
+            req.CookieContainer = cookieJar;
+
+            //CookieContainer cookie = req.CookieContainer = new CookieContainer();
+
+
 
             WebResponse resp = req.GetResponse();
+
+            foreach (Cookie c in cookieJar.GetCookies(req.RequestUri))
+            {
+                Console.WriteLine("Cookie['" + c.Name + "']: " + c.Value);
+            }
+            Cookie cookie = cookieJar.GetCookies(req.RequestUri)[0];
+
             resp.Close();
             return cookie;
         }
 
-        public string getPidId(CookieContainer cookie)
+        public string getPidId()//CookieContainer cookie)
         {
             string baseurl = "https://meta.icos-cp.eu/sparql";
             String q = "prefix%20cpmeta%3A%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fontologies%2Fcpmeta%2F%3E%0Aprefix%20prov%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23%3E%0Aselect%20%3Fdobj%0Awhere%20%7B%0A%20%20%20%20%3Fdobj%20cpmeta%3AhasObjectSpec%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fcpmeta%2FetcNrtMeteo%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AwasAcquiredBy%2Fprov%3AwasAssociatedWith%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fstations%2FES_BE-Bra%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AhasSizeInBytes%20%5B%5D%20.%0A%20%20%20%20FILTER%20NOT%20EXISTS%20%7B%5B%5D%20cpmeta%3AisNextVersionOf%20%3Fdobj%7D%0A%7D";
@@ -83,11 +95,17 @@ namespace UploadWebapp.Controllers
             return dobj;
         }
 
-        public string usePidId(string pidUrl, CookieContainer cookie) {
+        public string usePidId(string pidUrl, Cookie cookie) {
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(pidUrl);
-            req.CookieContainer = cookie;
+            //req.CookieContainer = cookie;
             req.Method = "POST";
             req.ContentType = "application/x-www-form-urlencoded";
+            string cStr = string.Format("go=&{0}={1}", cookie.Name, cookie.Value);
+            byte[] postbuf = Encoding.ASCII.GetBytes(cStr);
+            req.ContentLength = postbuf.Length;
+            Stream rs = req.GetRequestStream();
+            rs.Write(postbuf, 0, postbuf.Length);
+            rs.Close();
 
 
             WebResponse resp = req.GetResponse();
@@ -96,11 +114,11 @@ namespace UploadWebapp.Controllers
             return null;
         }
 
-        public async Task<ActionResult> DownloadDataFromCarbonPortal()
+        public  Task<ActionResult> DownloadDataFromCarbonPortal()
         {
-            CookieContainer cookie;
+            Cookie cookie;
             cookie = LoginCarbonPortal("downloader@uantwerpen.be", "tUHPDUhZ4FetsGr");
-            string pidUrl = getPidId(cookie);
+            string pidUrl = getPidId();
             pidUrl = pidUrl.Replace("https://meta.icos-cp.eu/objects/", "https://data.icos-cp.eu/csv/");
             usePidId(pidUrl, cookie);
 
@@ -124,17 +142,17 @@ namespace UploadWebapp.Controllers
             //HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
 
 
-            string URL = "https://cpauth.icos-cp.eu/password/login";
-            System.Net.WebRequest webRequest = System.Net.WebRequest.Create(URL);
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/x-www-form-urlencoded";
-            Stream reqStream = webRequest.GetRequestStream();
-            string postData = "mail=downloader@uantwerpen.be&password=tUHPDUhZ4FetsGr";
-            byte[] postArray = Encoding.ASCII.GetBytes(postData);
-            reqStream.Write(postArray, 0, postArray.Length);
-            reqStream.Close();
-            StreamReader sr = new StreamReader(webRequest.GetResponse().GetResponseStream());
-            string Result = sr.ReadToEnd();
+            //string URL = "https://cpauth.icos-cp.eu/password/login";
+            //System.Net.WebRequest webRequest = System.Net.WebRequest.Create(URL);
+            //webRequest.Method = "POST";
+            //webRequest.ContentType = "application/x-www-form-urlencoded";
+            //Stream reqStream = webRequest.GetRequestStream();
+            //string postData = "mail=downloader@uantwerpen.be&password=tUHPDUhZ4FetsGr";
+            //byte[] postArray = Encoding.ASCII.GetBytes(postData);
+            //reqStream.Write(postArray, 0, postArray.Length);
+            //reqStream.Close();
+            //StreamReader sr = new StreamReader(webRequest.GetResponse().GetResponseStream());
+            //string Result = sr.ReadToEnd();
 
 
             return null;
