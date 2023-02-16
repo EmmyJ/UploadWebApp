@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
 using CsvHelper.TypeConversion;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,135 +28,6 @@ namespace UploadWebapp.Controllers
         public ActionResult Index()
         {
             return View();
-        }
-
-        public Cookie LoginCarbonPortal(string user, string password)
-        {
-            string baseurl = "https://cpauth.icos-cp.eu/password/login";
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(baseurl);
-
-            req.Method = "POST";
-            req.ContentType = "application/x-www-form-urlencoded";
-            string login = string.Format("go=&mail={0}&password={1}", user, password);
-            byte[] postbuf = Encoding.ASCII.GetBytes(login);
-            req.ContentLength = postbuf.Length;
-            Stream rs = req.GetRequestStream();
-            rs.Write(postbuf, 0, postbuf.Length);
-            rs.Close();
-
-            CookieContainer cookieJar = new CookieContainer();
-            req.CookieContainer = cookieJar;
-
-            //CookieContainer cookie = req.CookieContainer = new CookieContainer();
-
-
-
-            WebResponse resp = req.GetResponse();
-
-            foreach (Cookie c in cookieJar.GetCookies(req.RequestUri))
-            {
-                Console.WriteLine("Cookie['" + c.Name + "']: " + c.Value);
-            }
-            Cookie cookie = cookieJar.GetCookies(req.RequestUri)[0];
-
-            resp.Close();
-            return cookie;
-        }
-
-        public string getPidId()//CookieContainer cookie)
-        {
-            string baseurl = "https://meta.icos-cp.eu/sparql";
-            String q = "prefix%20cpmeta%3A%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fontologies%2Fcpmeta%2F%3E%0Aprefix%20prov%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2Fns%2Fprov%23%3E%0Aselect%20%3Fdobj%0Awhere%20%7B%0A%20%20%20%20%3Fdobj%20cpmeta%3AhasObjectSpec%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fcpmeta%2FetcNrtMeteo%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AwasAcquiredBy%2Fprov%3AwasAssociatedWith%20%3Chttp%3A%2F%2Fmeta.icos-cp.eu%2Fresources%2Fstations%2FES_BE-Bra%3E%20%3B%0A%20%20%20%20%20%20%20%20cpmeta%3AhasSizeInBytes%20%5B%5D%20.%0A%20%20%20%20FILTER%20NOT%20EXISTS%20%7B%5B%5D%20cpmeta%3AisNextVersionOf%20%3Fdobj%7D%0A%7D";
-            String url = String.Format("{0}?query={1}", baseurl, q);
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-            //req.CookieContainer = cookie;
-            req.Method = "POST";
-            req.ContentType = "application/x-www-form-urlencoded";
-            
-            string query = string.Format("go=&query={0}", q);
-            byte[] postbuf = Encoding.ASCII.GetBytes(query);
-            req.ContentLength = postbuf.Length;
-            Stream rs = req.GetRequestStream();
-            rs.Write(postbuf, 0, postbuf.Length);
-            rs.Close();
-                        
-            WebResponse resp = req.GetResponse();
-            System.IO.Stream s = resp.GetResponseStream();
-            System.IO.StreamReader reader = new System.IO.StreamReader(s, Encoding.UTF8);
-            string _s = reader.ReadToEnd();
-
-            reader.Close();
-            s.Close();
-            resp.Close();
-
-            var details = JObject.Parse(_s);
-
-            string dobj = details["results"]["bindings"][0]["dobj"]["value"].ToString();
-
-            return dobj;
-        }
-
-        public string usePidId(string pidUrl, Cookie cookie) {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(pidUrl);
-            //req.CookieContainer = cookie;
-            req.Method = "POST";
-            req.ContentType = "application/x-www-form-urlencoded";
-            string cStr = string.Format("go=&{0}={1}", cookie.Name, cookie.Value);
-            byte[] postbuf = Encoding.ASCII.GetBytes(cStr);
-            req.ContentLength = postbuf.Length;
-            Stream rs = req.GetRequestStream();
-            rs.Write(postbuf, 0, postbuf.Length);
-            rs.Close();
-
-
-            WebResponse resp = req.GetResponse();
-            System.IO.Stream s = resp.GetResponseStream();
-
-            return null;
-        }
-
-        public  Task<ActionResult> DownloadDataFromCarbonPortal()
-        {
-            Cookie cookie;
-            cookie = LoginCarbonPortal("downloader@uantwerpen.be", "tUHPDUhZ4FetsGr");
-            string pidUrl = getPidId();
-            pidUrl = pidUrl.Replace("https://meta.icos-cp.eu/objects/", "https://data.icos-cp.eu/csv/");
-            usePidId(pidUrl, cookie);
-
-
-            //var url = "https://cpauth.icos-cp.eu/password/login";
-            //string postData = HttpUtility.UrlEncode("mail") + "=" + HttpUtility.UrlEncode("downloader@uantwerpen.be") + "&"
-            //    + HttpUtility.UrlEncode("password") + "=" + HttpUtility.UrlEncode("tUHPDUhZ4FetsGr");
-
-            //HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
-            //myHttpWebRequest.Method = "POST";
-
-            //byte[] data = Encoding.ASCII.GetBytes(postData);
-
-            //myHttpWebRequest.ContentType = "application/x-www-form-urlencoded";
-            //myHttpWebRequest.ContentLength = data.Length;
-
-            //Stream requestStream = myHttpWebRequest.GetRequestStream();
-            //requestStream.Write(data, 0, data.Length);
-            //requestStream.Close();
-
-            //HttpWebResponse myHttpWebResponse = (HttpWebResponse)myHttpWebRequest.GetResponse();
-
-
-            //string URL = "https://cpauth.icos-cp.eu/password/login";
-            //System.Net.WebRequest webRequest = System.Net.WebRequest.Create(URL);
-            //webRequest.Method = "POST";
-            //webRequest.ContentType = "application/x-www-form-urlencoded";
-            //Stream reqStream = webRequest.GetRequestStream();
-            //string postData = "mail=downloader@uantwerpen.be&password=tUHPDUhZ4FetsGr";
-            //byte[] postArray = Encoding.ASCII.GetBytes(postData);
-            //reqStream.Write(postArray, 0, postArray.Length);
-            //reqStream.Close();
-            //StreamReader sr = new StreamReader(webRequest.GetResponse().GetResponseStream());
-            //string Result = sr.ReadToEnd();
-
-
-            return null;
         }
 
         public ActionResult SensorData(string station, string type, int days)
@@ -287,7 +159,6 @@ namespace UploadWebapp.Controllers
             public double? TA { get; set; }
             public double? TAavg { get; set; }
         }
-
         sealed class TAMap : ClassMap<TAmodel>
         {
             public TAMap()
@@ -298,52 +169,168 @@ namespace UploadWebapp.Controllers
             }
         }
 
-        public ActionResult generateCPdataBra()
+        class MeteoNRTmodel
         {
-            string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean.csv");
-            var fileReader = new StreamReader(filePath);
-            var csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
-
-            csvReader.Context.RegisterClassMap<TAMap>();
-            csvReader.Context.TypeConverterOptionsCache.GetOptions<int?>().NullValues.Add("null");
-
-            var list = csvReader.GetRecords<TAmodel>().ToList();
-            DateTime max = list.Max(x => x.TimeStamp);
-            var last7days = list.Where(m => m.TimeStamp > max.AddDays(-7));
-
-            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean_7d.csv");
-            using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddT00:00:00Z" } };
-                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
-                csv.WriteRecords(last7days);
-            }
-
-            var avgs = list.GroupBy(m => new { m.TimeStamp.Date })
-                .Select(g => new TAmodel
-                {
-                    TimeStamp = g.Key.Date,
-                    TA = g.Average(m => m.TA),
-                    TAavg = g.Average(m => m.TAavg)
-                }).ToList();
-
-            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "BE-Bra_TAwMean_daily.csv");
-            using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddT00:00:00Z" } };
-                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
-                csv.WriteRecords(avgs);
-            }
-
-            fileReader.Close();
-            return null;
+            [Format("yyyy-MM-ddTHH:mm:ssZ")]
+            public DateTime TIMESTAMP { get; set; }
+            //public DateTime TIMESTAMP_END { get; set; }
+            public double? TA { get; set; }
+            public double? P { get; set; }
+            public double? WTD { get; set; }
         }
 
-        public ActionResult CPdataBra()
+        sealed class MeteoNRTMap: ClassMap<MeteoNRTmodel>
         {
-            return View();
+            public MeteoNRTMap()
+            {
+                Map(m => m.TIMESTAMP).Name("TIMESTAMP").TypeConverterOption.Format("yyyy-MM-ddTHH:mm:ssZ");
+                //Map(m => m.TIMESTAMP_END).Name("TIMESTAMP_END").TypeConverterOption.Format("yyyyMMddHHmm");
+                Map(m => m.TA).Name("TA");
+                Map(m => m.P).Name("P");
+                Map(m => m.WTD).Name("WTD");
+            }
+        }
+
+        class FluxesNRTmodel
+        {
+            [Format("yyyy-MM-ddTHH:mm:ssZ")]
+            public DateTime TIMESTAMP { get; set; }
+            //public DateTime TIMESTAMP_END { get; set; }
+            public double? NEE { get; set; }
+        }
+
+        sealed class FluxesNRTMap : ClassMap<FluxesNRTmodel>
+        {
+            public FluxesNRTMap()
+            {
+                Map(m => m.TIMESTAMP).Name("TIMESTAMP").TypeConverterOption.Format("yyyy-MM-ddTHH:mm:ssZ");
+                Map(m => m.NEE).Name("NEE");
+            }
+        }
+
+        public ActionResult generateBraInfoData()
+        {
+            string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT.csv");
+
+            var fileReader = new StreamReader(filePath);
+            var csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture); 
+            csvReader.Context.RegisterClassMap<MeteoNRTMap>();
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
+            var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddTHH:mm:ssZ" } };
+
+            var NRT = csvReader.GetRecords<MeteoNRTmodel>().ToList();
+            DateTime max = NRT.Max(x => x.TIMESTAMP);
+            var NRT7 = NRT.Where(n => n.TIMESTAMP > max.AddDays(-7)).ToList();
+            var NRTdaily = NRT.GroupBy(m => new { m.TIMESTAMP.Date })
+                .Select(g => new MeteoNRTmodel
+                {
+                    TIMESTAMP = g.Key.Date,
+                    TA = g.Average(m => m.TA),
+                    P = g.Average(m => m.P),
+                    WTD = g.Average(m => m.WTD)
+                }).ToList();
+
+            var TAdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.TA }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_TA_daily.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(TAdaily);
+            }
+
+            var TA7 = (from n in NRT7 select new { n.TIMESTAMP, n.TA }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_TA_7days.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(TA7);
+            }
+
+            var Pdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.P }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_daily.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(Pdaily);
+            }
+
+            var P7 = (from n in NRT7 select new { n.TIMESTAMP, n.P }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_7days.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(P7);
+            }
+
+            var WTDdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.WTD }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_WTD_daily.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(WTDdaily);
+            }
+
+            var WTD7 = (from n in NRT7 select new { n.TIMESTAMP, n.WTD }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_WTD_7days.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(WTD7);
+            }
+
+            //Fluxes
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT.csv");
+
+            fileReader = new StreamReader(filePath);
+            csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
+            csvReader.Context.RegisterClassMap<FluxesNRTMap>();
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
+
+            var FLUXES = csvReader.GetRecords<FluxesNRTmodel>().ToList();
+            max = FLUXES.Max(x => x.TIMESTAMP);
+            var FLUXES7 = FLUXES.Where(n => n.TIMESTAMP > max.AddDays(-7)).ToList();
+            var FLUXESdaily = FLUXES.GroupBy(m => new { m.TIMESTAMP.Date })
+                .Select(g => new FluxesNRTmodel
+                {
+                    TIMESTAMP = g.Key.Date,
+                    NEE = g.Average(m => m.NEE)
+                }).ToList();
+
+            var NEEdaily = (from n in FLUXES select new { n.TIMESTAMP, n.NEE }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_daily.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(NEEdaily);
+            }
+
+            var NEE7 = (from n in FLUXES7 select new { n.TIMESTAMP, n.NEE }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_7days.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(NEE7);
+            }
+
+            return null;
         }
     }
 }
