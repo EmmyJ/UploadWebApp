@@ -177,6 +177,9 @@ namespace UploadWebapp.Controllers
             public double? TA { get; set; }
             public double? P { get; set; }
             public double? WTD { get; set; }
+            public double? TA_1 { get; set; }
+            public double? TA_8 { get; set; }
+            public double? TS_2 { get; set; }
         }
 
         sealed class MeteoNRTMap: ClassMap<MeteoNRTmodel>
@@ -186,6 +189,9 @@ namespace UploadWebapp.Controllers
                 Map(m => m.TIMESTAMP).Name("TIMESTAMP").TypeConverterOption.Format("yyyy-MM-ddTHH:mm:ssZ");
                 //Map(m => m.TIMESTAMP_END).Name("TIMESTAMP_END").TypeConverterOption.Format("yyyyMMddHHmm");
                 Map(m => m.TA).Name("TA");
+                Map(m => m.TA_1).Name("TA_1");
+                Map(m => m.TA_8).Name("TA_8");
+                Map(m => m.TS_2).Name("TS_2");
                 Map(m => m.P).Name("P");
                 Map(m => m.WTD).Name("WTD");
             }
@@ -197,6 +203,8 @@ namespace UploadWebapp.Controllers
             public DateTime TIMESTAMP { get; set; }
             //public DateTime TIMESTAMP_END { get; set; }
             public double? NEE { get; set; }
+            public double? NEEpos { get; set; }
+            public double? NEEneg { get; set; }
         }
 
         sealed class FluxesNRTMap : ClassMap<FluxesNRTmodel>
@@ -251,6 +259,16 @@ namespace UploadWebapp.Controllers
                 csv.WriteRecords(TA7);
             }
 
+            var T7mix = (from n in NRT7 select new { n.TIMESTAMP, n.TA_1, n.TA_8, n.TS_2 }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_Tmix_7days.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(T7mix);
+            }
+
             var Pdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.P }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_daily.csv");
             using (var writer = new StreamWriter(filePath))
@@ -303,14 +321,25 @@ namespace UploadWebapp.Controllers
             var FLUXES = csvReader.GetRecords<FluxesNRTmodel>().ToList();
             max = FLUXES.Max(x => x.TIMESTAMP);
             var FLUXES7 = FLUXES.Where(n => n.TIMESTAMP > max.AddDays(-7)).ToList();
+            FLUXES7 = FLUXES7.Where(n => n.TIMESTAMP > max.AddDays(-7))
+                .Select(g => new FluxesNRTmodel
+                {
+                    TIMESTAMP = g.TIMESTAMP,
+                    NEE = g.NEE,
+                    NEEpos = g.NEE >= 0 ? g.NEE : null,
+                    NEEneg = g.NEE < 0 ? g.NEE : null
+                })
+                .ToList();
             var FLUXESdaily = FLUXES.GroupBy(m => new { m.TIMESTAMP.Date })
                 .Select(g => new FluxesNRTmodel
                 {
                     TIMESTAMP = g.Key.Date,
-                    NEE = g.Average(m => m.NEE)
+                    NEE = g.Average(m => m.NEE),
+                    NEEpos = g.Average(m => m.NEE) >= 0 ? g.Average(m => m.NEE) : null,
+                    NEEneg = g.Average(m => m.NEE) < 0 ? g.Average(m => m.NEE) : null
                 }).ToList();
 
-            var NEEdaily = (from n in FLUXES select new { n.TIMESTAMP, n.NEE }).ToList();
+            var NEEdaily = (from n in FLUXESdaily select new { n.TIMESTAMP, n.NEEpos, n.NEEneg }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_daily.csv");
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -320,7 +349,7 @@ namespace UploadWebapp.Controllers
                 csv.WriteRecords(NEEdaily);
             }
 
-            var NEE7 = (from n in FLUXES7 select new { n.TIMESTAMP, n.NEE }).ToList();
+            var NEE7 = (from n in FLUXES7 select new { n.TIMESTAMP, n.NEEpos, n.NEEneg }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_7days.csv");
             using (var writer = new StreamWriter(filePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
