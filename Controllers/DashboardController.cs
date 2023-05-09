@@ -2,8 +2,6 @@
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using CsvHelper.TypeConversion;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,11 +9,6 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace UploadWebapp.Controllers
@@ -174,6 +167,7 @@ namespace UploadWebapp.Controllers
             [Format("yyyy-MM-ddTHH:mm:ssZ")]
             public DateTime TIMESTAMP { get; set; }
             //public DateTime TIMESTAMP_END { get; set; }
+            public string monthYear { get; set; }
             public double? TA { get; set; }
             public double? P { get; set; }
             public double? WTD { get; set; }
@@ -218,16 +212,28 @@ namespace UploadWebapp.Controllers
 
         public ActionResult generateBraInfoData()
         {
+            //meteo
             string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT.csv");
-
             var fileReader = new StreamReader(filePath);
             var csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture); 
             csvReader.Context.RegisterClassMap<MeteoNRTMap>();
             csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
             csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
             var options = new TypeConverterOptions { Formats = new[] { "yyyy-MM-ddTHH:mm:ssZ" } };
-
             var NRT = csvReader.GetRecords<MeteoNRTmodel>().ToList();
+
+            //meteo L2
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_L2.csv");
+            fileReader = new StreamReader(filePath);
+            csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
+            csvReader.Context.RegisterClassMap<MeteoNRTMap>();
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
+            var MeteoL2 = csvReader.GetRecords<MeteoNRTmodel>().ToList();
+            DateTime lastYear = DateTime.Today.AddYears(-1);
+            var NRTy = MeteoL2.Where(y => y.TIMESTAMP > lastYear).ToList();
+            NRT = NRTy.Concat(NRT).ToList();
+
             DateTime max = NRT.Max(x => x.TIMESTAMP);
             var NRT7 = NRT.Where(n => n.TIMESTAMP > max.AddDays(-7)).ToList();
             var NRTdaily = NRT.GroupBy(m => new { m.TIMESTAMP.Date })
@@ -235,14 +241,22 @@ namespace UploadWebapp.Controllers
                 {
                     TIMESTAMP = g.Key.Date,
                     TA = g.Average(m => m.TA),
-                    P = g.Average(m => m.P),
+                    P = g.Sum(m => m.P),
                     WTD = g.Average(m => m.WTD)
                 }).ToList();
-
+            var NRTmonthly = NRT.GroupBy(m => new { m.TIMESTAMP.Date.Month, m.TIMESTAMP.Date.Year })
+                .Select(g => new MeteoNRTmodel
+                {
+                    monthYear = string.Format("{1}/{0}",g.Key.Month,g.Key.Year),
+                    TA = g.Average(m => m.TA),
+                    P = g.Sum(m => m.P),
+                    WTD = g.Average(m => m.WTD)
+                }).ToList();
             var TAdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.TA }).ToList();
+
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_TA_daily.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -252,7 +266,7 @@ namespace UploadWebapp.Controllers
             var TA7 = (from n in NRT7 select new { n.TIMESTAMP, n.TA }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_TA_7days.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -262,7 +276,7 @@ namespace UploadWebapp.Controllers
             var T7mix = (from n in NRT7 select new { n.TIMESTAMP, n.TA_1, n.TA_8, n.TS_2 }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_Tmix_7days.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -272,17 +286,26 @@ namespace UploadWebapp.Controllers
             var Pdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.P }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_daily.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
                 csv.WriteRecords(Pdaily);
             }
+            var Pmonthly = (from n in NRTmonthly select new { n.monthYear, n.P }).ToList();
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_monthly.csv");
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false }))
+            {
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
+                csv.WriteRecords(Pmonthly);
+            }
 
             var P7 = (from n in NRT7 select new { n.TIMESTAMP, n.P }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_P_7days.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -292,7 +315,7 @@ namespace UploadWebapp.Controllers
             var WTDdaily = (from n in NRTdaily select new { n.TIMESTAMP, n.WTD }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_WTD_daily.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -302,7 +325,7 @@ namespace UploadWebapp.Controllers
             var WTD7 = (from n in NRT7 select new { n.TIMESTAMP, n.WTD }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_METEO_NRT_WTD_7days.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
@@ -311,48 +334,60 @@ namespace UploadWebapp.Controllers
 
             //Fluxes
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT.csv");
-
             fileReader = new StreamReader(filePath);
             csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
             csvReader.Context.RegisterClassMap<FluxesNRTMap>();
             csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
             csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
-
             var FLUXES = csvReader.GetRecords<FluxesNRTmodel>().ToList();
+
+
+            //FluxesL2
+            filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_L2.csv");
+            fileReader = new StreamReader(filePath);
+            csvReader = new CsvReader(fileReader, CultureInfo.InvariantCulture);
+            csvReader.Context.RegisterClassMap<FluxesNRTMap>();
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("null");
+            csvReader.Context.TypeConverterOptionsCache.GetOptions<double?>().NullValues.Add("-9999");
+            var FLUXESL2 = csvReader.GetRecords<FluxesNRTmodel>().ToList();
+            lastYear = DateTime.Today.AddYears(-1);
+            var FLUXESy = FLUXESL2.Where(y => y.TIMESTAMP > lastYear).ToList();
+            FLUXES = FLUXESy.Concat(FLUXES).ToList();
+
             max = FLUXES.Max(x => x.TIMESTAMP);
             var FLUXES7 = FLUXES.Where(n => n.TIMESTAMP > max.AddDays(-7)).ToList();
             FLUXES7 = FLUXES7.Where(n => n.TIMESTAMP > max.AddDays(-7))
                 .Select(g => new FluxesNRTmodel
                 {
                     TIMESTAMP = g.TIMESTAMP,
-                    NEE = g.NEE,
-                    NEEpos = g.NEE >= 0 ? g.NEE : null,
-                    NEEneg = g.NEE < 0 ? g.NEE : null
+                    NEE = g.NEE ?? null,
+                    NEEneg = g.NEE <= 0 ? g.NEE : null,
+                    NEEpos = g.NEE > 0 ? g.NEE : null
                 })
                 .ToList();
             var FLUXESdaily = FLUXES.GroupBy(m => new { m.TIMESTAMP.Date })
                 .Select(g => new FluxesNRTmodel
                 {
                     TIMESTAMP = g.Key.Date,
-                    NEE = g.Average(m => m.NEE),
-                    NEEpos = g.Average(m => m.NEE) >= 0 ? g.Average(m => m.NEE) : null,
-                    NEEneg = g.Average(m => m.NEE) < 0 ? g.Average(m => m.NEE) : null
+                    NEE = g.Sum(m => m.NEE),
+                    NEEneg = g.Sum(m => m.NEE) <= 0 ? g.Sum(m => m.NEE) : null,
+                    NEEpos = g.Sum(m => m.NEE) > 0 ? g.Sum(m => m.NEE) : null
                 }).ToList();
 
-            var NEEdaily = (from n in FLUXESdaily select new { n.TIMESTAMP, n.NEEpos, n.NEEneg }).ToList();
+            var NEEdaily = (from n in FLUXESdaily select new { n.TIMESTAMP, n.NEEneg, n.NEEpos }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_daily.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
                 csv.WriteRecords(NEEdaily);
             }
 
-            var NEE7 = (from n in FLUXES7 select new { n.TIMESTAMP, n.NEEpos, n.NEEneg }).ToList();
+            var NEE7 = (from n in FLUXES7 select new { n.TIMESTAMP, n.NEEneg, n.NEEpos }).ToList();
             filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), "ICOSETC_BE-Bra_FLUXES_NRT_NEE_7days.csv");
             using (var writer = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = false}))
             {
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
