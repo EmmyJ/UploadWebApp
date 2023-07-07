@@ -42,7 +42,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            int count = Convert.ToInt32(db.ExecuteScalar("select  COUNT(i.id) from images i left join results r on i.plotSetID = r.plotSetID left join plotSets ps on i.plotSetID = ps.ID where processed = 0 and ps.uploadSetID <= " + uploadSetID));
+            int count = Convert.ToInt32(db.ExecuteScalar("select  COUNT(i.id) from images i left join results r on i.plotSetID = r.plotSetID left join plotSets ps on i.plotSetID = ps.ID where processed = 0 and ps.uploadSetID <= @uploadSetID", new SqlParameter("uploadSetID", uploadSetID)));
 
             db.Dispose();
 
@@ -52,7 +52,7 @@ namespace UploadWebapp.DB
         public static List<string> GetUploadSetData(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("select r.data from results r left join plotSets ps on r.plotSetID = ps.id where ps.uploadSetID = " + uploadSetID);
+            var result = db.ExecuteReader("select r.data from results r left join plotSets ps on r.plotSetID = ps.id where ps.uploadSetID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             List<string> results = new List<string>();
             while (result.Read())
             {
@@ -69,7 +69,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT i.filename, cs.name,qc.[setupObjects],qc.[setupObjectsComments],qc.[noForeignObjects],qc.[foreignObjectsComments],qc.[noRaindrops],qc.[raindropsComments],qc.[noLensRing],qc.[lighting],qc.[lightingComments],qc.[noOverexposure],qc.[overexposureComments],qc.[settings],qc.[settingsComments],qc.[otherComments],i.LAI, i.LAIe, i.threshold, i.clumping, i.overexposure,qc.[status],us.campaign FROM [dbo].[qualityCheck] qc join images i on i.id = qc.imageID join plotSets ps on i.plotSetID = ps.ID join uploadSet us on ps.uploadSetID = us.ID join cameraSetup cs on us.camSetupID = cs.ID where us.ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT i.filename, cs.name,qc.[setupObjects],qc.[setupObjectsComments],qc.[noForeignObjects],qc.[foreignObjectsComments],qc.[noRaindrops],qc.[raindropsComments],qc.[noLensRing],qc.[lighting],qc.[lightingComments],qc.[noOverexposure],qc.[overexposureComments],qc.[settings],qc.[settingsComments],qc.[otherComments],i.LAI, i.LAIe, i.threshold, i.clumping, i.overexposure,qc.[status],us.campaign FROM [dbo].[qualityCheck] qc join images i on i.id = qc.imageID join plotSets ps on i.plotSetID = ps.ID join uploadSet us on ps.uploadSetID = us.ID join cameraSetup cs on us.camSetupID = cs.ID where us.ID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
 
             List<ExportETCmodel> list = new List<ExportETCmodel>();
 
@@ -122,7 +122,7 @@ namespace UploadWebapp.DB
         public static List<string> GetUploadSetQualityChecksData(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure], qc.settings, qc.settingsComments  FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure], qc.settings, qc.settingsComments  FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             List<string> data = new List<string>();
             data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Image Settings, Image Settings Comments, Other Reason Image Unfit, Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
             string filename = null;
@@ -217,7 +217,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             UploadSet uploadSet = new UploadSet();
-            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName], [qualityCheck] FROM [uploadSet] WHERE ID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT [ID],[camSetupID] ,[siteID] ,[userID] ,[person],[uploadTime], [siteName], [qualityCheck] FROM [uploadSet] WHERE ID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             uploadSet = FromSetData(result).FirstOrDefault();
             if (!UserDA.CurrentUserFree && uploadSet.siteID != 0)
             {
@@ -239,7 +239,7 @@ namespace UploadWebapp.DB
 
             uploadSet.cameraSetup = FromSetupData(result).FirstOrDefault();
             //SELECT [ID], [uploadSetID], [plotID] FROM [plotSets] WHERE uploadSetID = 
-            result = db.ExecuteReader("SELECT ps.[ID], ps.[uploadSetID], ps.[plotID], p.name, p.slope, p.slopeAspect FROM [plotSets] ps LEFT JOIN [plots]  p on ps.plotID = p.ID WHERE uploadSetID = " + uploadSetID + " ORDER BY p.name");
+            result = db.ExecuteReader("SELECT ps.[ID], ps.[uploadSetID], ps.[plotID], p.name, p.slope, p.slopeAspect FROM [plotSets] ps LEFT JOIN [plots]  p on ps.plotID = p.ID WHERE uploadSetID = @uploadSetID ORDER BY p.name", new SqlParameter("uploadSetID", uploadSetID));
             uploadSet.plotSets = FromPlotSetData(result);
 
             foreach (PlotSet plot in uploadSet.plotSets)
@@ -264,7 +264,7 @@ namespace UploadWebapp.DB
             db = new DB();
             List<PlotSet> plotSets = new List<PlotSet>();
             //SELECT p.[ID] ,p.[uploadSetID],p.[plotname],r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data] FROM [plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id where p.[uploadSetID] = 
-            var result = db.ExecuteReader("SELECT p.[ID] ,p.[uploadSetID],pl.name, r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data], pl.ID FROM [plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id left join plots pl on p.plotID = pl.ID where p.[uploadSetID] = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT p.[ID] ,p.[uploadSetID],pl.name, r.[ID],r.[plotSetID],r.[processed],r.[LAI],r.[LAI_SD],r.[resultLog], r.[data], pl.ID FROM [plotSets] p LEFT JOIN results r on r.[plotSetID] = p.id left join plots pl on p.plotID = pl.ID where p.[uploadSetID] = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             plotSets = FromPlotResultsData(result);
             db.Dispose();
             return plotSets;
@@ -338,7 +338,7 @@ namespace UploadWebapp.DB
                 if (UserDA.CurrentUserETC)
                     rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID LEFT JOIN utenti u on us.iduser = u.ID  WHERE u.ETCuser = 1 ORDER BY s.name;");
                 else
-                    rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = " + userID + " ORDER BY s.name;");
+                    rd = db.ExecuteReader("SELECT DISTINCT s.[ID], s.[site], s.[NAME] FROM[sites] s LEFT JOIN[usersites] us on us.idsito = s.ID WHERE us.iduser = @userID ORDER BY s.name;", new SqlParameter("userID", userID));
             }
             while (rd.Read())
             {
@@ -367,7 +367,7 @@ namespace UploadWebapp.DB
             if (UserDA.CurrentUserETC && userID != 1)
                 result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], c.[siteID], s.site, u.Name FROM [cameraSetup] c left join utenti u on c.userID = u.ID left join sites s on c.siteID = s.ID where deleted = 0 and u.ETCuser = 1");
             else
-                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], [siteID], s.site FROM [cameraSetup] c left join sites s on c.siteID = s.ID where deleted = 0 and c.userID = " + userID);
+                result = db.ExecuteReader("SELECT DISTINCT c.[ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], c.[name], [siteID], s.site FROM [cameraSetup] c left join sites s on c.siteID = s.ID where deleted = 0 and c.userID = @userID", new SqlParameter("userID", userID));
 
             //LEFT JOIN uploadSet u on u.camSetupID = c.ID  where u.userID = " + userID);
             List<CameraSetup> cameraSetups = FromSetupData(result);
@@ -378,7 +378,7 @@ namespace UploadWebapp.DB
         public static CameraSetup GetCameraSetupByID(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name], [siteID] FROM [cameraSetup] WHERE ID = " + cameraSetupID);
+            var result = db.ExecuteReader("SELECT [ID],[camType],[camSerial],[lensType] ,[lensSerial] ,[x],[y],[a] ,[b], [maxRadius], [width], [height], [processed], [name], [siteID] FROM [cameraSetup] WHERE ID = @cameraSetupID", new SqlParameter("cameraSetupID", cameraSetupID));
             CameraSetup cameraSetup = FromSetupData(result).FirstOrDefault();
             db.Dispose();
             return cameraSetup;
@@ -387,7 +387,7 @@ namespace UploadWebapp.DB
         public static bool DisableCameraSetup(int cameraSetupID, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("UPDATE [cameraSetup] set [deleted] = 1 WHERE ID = " + cameraSetupID);
+            db.ExecuteScalar("UPDATE [cameraSetup] set [deleted] = 1 WHERE ID = @cameraSetupID", new SqlParameter("cameraSetupID", cameraSetupID));
             db.Dispose();
             return true;
         }
@@ -395,7 +395,8 @@ namespace UploadWebapp.DB
         public static Plot GetPlotByName(string plotName, int SiteID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND name = '" + plotName + "' AND siteID = " + SiteID);
+            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND name = '@plotName' AND siteID = @SiteID",
+                new SqlParameter("plotName", plotName), new SqlParameter("SiteID", SiteID));
             Plot plot = FromPlotData(result).FirstOrDefault();
             db.Dispose();
             return plot;
@@ -404,7 +405,7 @@ namespace UploadWebapp.DB
         public static List<Plot> GetPlotListForSite(int SiteID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND  siteID = " + SiteID);
+            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND  siteID = @SiteID", new SqlParameter("SiteID", SiteID));
             List<Plot> plots = FromPlotData(result);
             db.Dispose();
             return plots;
@@ -413,7 +414,7 @@ namespace UploadWebapp.DB
         public static List<PlotLocation> GetLocationListForPlot(int plotID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],plotID,[location],[slope],[slopeAspect]  FROM [LAI_App].[dbo].[plotLocations]  where active = 1 and plotID = " + plotID);
+            var result = db.ExecuteReader("SELECT [ID],plotID,[location],[slope],[slopeAspect]  FROM [LAI_App].[dbo].[plotLocations]  where active = 1 and plotID = @plotID", new SqlParameter("plotID", plotID ));
             List<PlotLocation> locs = FromLocationData(result);
             db.Dispose();
             return locs;
@@ -422,7 +423,7 @@ namespace UploadWebapp.DB
         public static List<string> GetPlotNamesForUploadSet(int uploadSetID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT  p.name from plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = " + uploadSetID);
+            var result = db.ExecuteReader("SELECT  p.name from plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             List<string> plotnames = new List<string>();
             while (result.Read())
             {
@@ -470,7 +471,7 @@ namespace UploadWebapp.DB
             //}
             //else
             //{
-            var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '" + siteCode + "'");
+            var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '@siteCode '", new SqlParameter("@site", siteCode));
             site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
             result.Close();
             db.Dispose();
@@ -1028,7 +1029,7 @@ namespace UploadWebapp.DB
             db = new DB();
             List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
 
-            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified, i.dateTaken from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = " + setId + "ORDER BY qc.ID");
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified, i.dateTaken from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = @setId ORDER BY qc.ID", new SqlParameter("setId", setId));
 
             while (data.Read())
             {
@@ -1089,7 +1090,11 @@ namespace UploadWebapp.DB
             db = new DB();
             string campaign = null;
 
-            var result = db.ExecuteReader("select top 1 u.[campaign], dateTaken from uploadSet u join plotSets p on p.uploadSetID = u.ID join images i on i.plotSetID = p.ID where not u.campaign is null and u.campaign != '" + currentCampaign + "' and dateTaken <= '" + dateTaken + "' and siteID = " + siteID + " and campaign like '" + currentCampaign.Substring(0, 4) + "%' order by dateTaken desc, campaign DESC");
+            var result = db.ExecuteReader("select top 1 u.[campaign], dateTaken from uploadSet u join plotSets p on p.uploadSetID = u.ID join images i on i.plotSetID = p.ID where not u.campaign is null and u.campaign != '@currentCampaign' and dateTaken <= '@dateTaken' and siteID = @siteID and campaign like '@like%' order by dateTaken desc, campaign DESC",
+                new SqlParameter("currentCampaign", currentCampaign),
+                new SqlParameter("dateTaken", dateTaken),
+                new SqlParameter("siteID", siteID),
+                new SqlParameter("like", currentCampaign.Substring(0, 4)));
             if (result.HasRows)
             {
                 result.Read();
@@ -1107,15 +1112,24 @@ namespace UploadWebapp.DB
 
         public static void removeCampaign(int setID, DB db = null) {
             db = new DB();
-            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = NULL WHERE ID = " + setID);
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = NULL WHERE ID = @setID", new SqlParameter("setID", setID));
             db.Dispose();
+        }
+
+        public static bool findImagesDuplicate(string filename, DB db = null)
+        {
+            db = new DB();
+            int count = Convert.ToInt32(db.ExecuteScalar("select COUNT(ID) FROM [LAI_App].[dbo].[images] where UPPER(filename) like UPPER('@filename')", 
+                new SqlParameter("filename", filename)));
+            db.Dispose();
+            return count > 0;
         }
 
         public static string getNewCampaignCode(int siteID, int year, DB db = null)
         {
             db = new DB();
             string highest = null;
-            var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like '" + year + "C%' and siteID = " + siteID);
+            var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like '@yearC%' and siteID = @siteID", new SqlParameter("siteID", siteID));
             try
             {
                 if (result.HasRows)
@@ -1141,7 +1155,9 @@ namespace UploadWebapp.DB
         public static void saveCampaign(int setID, string campaign, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = '" + campaign + "' WHERE ID = " + setID);
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = '@campaign' WHERE ID = @setID",
+                new SqlParameter("campaign", campaign), 
+                new SqlParameter("setID", setID));
             db.Dispose();
         }
 
@@ -1150,7 +1166,9 @@ namespace UploadWebapp.DB
             db = new DB();
             EditQualityCheckModel qc = new EditQualityCheckModel();
 
-            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats, qc.settings, qc.settingsComments FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = " + checkID + " and us.ID = " + setID);
+            var result = db.ExecuteReader("SELECT qc.[ID], qc.[imageID], qc.[setupObjects], qc.[setupObjectsComments], qc.[noForeignObjects], qc.[foreignObjectsComments], qc.[noRaindrops], qc.[raindropsComments], qc.[noLensRing], qc.[lighting], qc.[lightingComments], qc.[noOverexposure], qc.[overexposureComments], qc.[otherComments], qc.[status], i.[LAI], i.[LAIe], i.[threshold], i.[clumping], i.ID, i.filename, i.path, cs.[ID], cs.[userID], cs.[camType], cs.[camSerial], cs.[lensType], cs.[lensSerial], cs.[x], cs.[y], cs.[a], cs.[b], cs.[maxRadius], cs.[pathCenter], cs.[pathProj], cs.[processed], cs.[width], cs.[height], cs.[deleted], cs.[name], qc.dateModified, qc.userID, u.USERNAME, i.overexposure, i.binPath, i.jpgPath, i.gapfraction, i.histogram, i.exif, i.stats, qc.settings, qc.settingsComments FROM [dbo].[qualityCheck] qc left join images i on qc.imageID = i.ID  left join plotSets ps on i.plotSetID = ps.ID  left join uploadSet us on ps.uploadSetID = us.ID  left join cameraSetup cs on us.camSetupID = cs.ID left join utenti u on u.id = qc.userID where qc.id = @checkID and us.ID = @setID",
+                new SqlParameter("checkID", checkID),
+                new SqlParameter("setID", setID));
 
             qc = result.HasRows ? ImageDA.FromQualityCheckData(result).FirstOrDefault() : null;
 

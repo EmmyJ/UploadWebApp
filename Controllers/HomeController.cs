@@ -1377,7 +1377,7 @@ namespace UploadWebapp.Controllers
             public List<Plot> plotsList { get; set; }
         }
 
-        public ActionResult ProcessImages()
+        public ActionResult ProcessImages(bool addDuplicates = false)
         {
             try
             {
@@ -1405,51 +1405,58 @@ namespace UploadWebapp.Controllers
                     if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1"
                         && file.Extension.ToUpper() != ".JPG" && file.Extension.ToUpper() != ".JPEG")
                     {
-                        ProcessImage procIm = new ProcessImage();
-                        procIm.filename = file.Name;
-                        procIm.path = file.Directory.ToString();
-                        procIm.siteCode = file.Name.Substring(0, 6);
-                        procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
-                        procIm.plotName = file.Name.Substring(14, 4);
-                        procIm.location = file.Name.Substring(20, 2);
-                        procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
-                        procIm.cameraSetupName = file.Name.Substring(11, 2);
-
-                        string extension = Path.GetExtension(file.Name);
-                        if (extension.ToUpper() == ".CR3")
+                        if (addDuplicates || (!ImageDA.findImagesDuplicate(file.Name) && !ImageDA.findImagesDuplicate( file.Name.ToUpper().Replace(".CR3",".DNG"))))
                         {
-                            var proc1 = new ProcessStartInfo();
-                            proc1.UseShellExecute = true;
+                            ProcessImage procIm = new ProcessImage();
+                            procIm.filename = file.Name;
+                            procIm.path = file.Directory.ToString();
+                            procIm.siteCode = file.Name.Substring(0, 6);
+                            procIm.siteID = sites.FirstOrDefault(s => s.siteCode == procIm.siteCode).ID;
+                            procIm.plotName = file.Name.Substring(14, 4);
+                            procIm.location = file.Name.Substring(20, 2);
+                            procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                            procIm.cameraSetupName = file.Name.Substring(11, 2);
 
-                            proc1.WorkingDirectory = @"C:\Windows\System32";
-
-                            proc1.FileName = @"C:\Windows\System32\cmd.exe";
-                            proc1.Verb = "runas";
-                            proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + file.FullName;
-                            proc1.WindowStyle = ProcessWindowStyle.Hidden;
-                            using (Process cmd = Process.Start(proc1))
+                            string extension = Path.GetExtension(file.Name);
+                            if (extension.ToUpper() == ".CR3")
                             {
-                                cmd.WaitForExit();
-                            }
+                                var proc1 = new ProcessStartInfo();
+                                proc1.UseShellExecute = true;
 
-                            //keep .CR3 files and move them
-                            string pathString = ds.ToString() + procIm.siteCode + "/LAI";
-                            try
-                            {
+                                proc1.WorkingDirectory = @"C:\Windows\System32";
 
-                                if (!System.IO.Directory.Exists(pathString))
-                                    System.IO.Directory.CreateDirectory(pathString);
+                                proc1.FileName = @"C:\Windows\System32\cmd.exe";
+                                proc1.Verb = "runas";
+                                proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + file.FullName;
+                                proc1.WindowStyle = ProcessWindowStyle.Hidden;
+                                using (Process cmd = Process.Start(proc1))
+                                {
+                                    cmd.WaitForExit();
+                                }
 
-                                System.IO.File.Delete(System.IO.Path.Combine(pathString, procIm.filename));
-                                System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(pathString, procIm.filename));
+                                //keep .CR3 files and move them
+                                string pathString = ds.ToString() + procIm.siteCode + "/LAI";
+                                try
+                                {
+
+                                    if (!System.IO.Directory.Exists(pathString))
+                                        System.IO.Directory.CreateDirectory(pathString);
+
+                                    System.IO.File.Delete(System.IO.Path.Combine(pathString, procIm.filename));
+                                    System.IO.File.Move(System.IO.Path.Combine(procIm.path, procIm.filename), System.IO.Path.Combine(pathString, procIm.filename));
+                                }
+                                catch
+                                {
+                                    System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
+                                }
+                                procIm.filename = procIm.filename.Replace(Path.GetExtension(file.Name), ".dng");
                             }
-                            catch
-                            {
-                                System.IO.File.Delete(System.IO.Path.Combine(procIm.path, procIm.filename));
-                            }
-                            procIm.filename = procIm.filename.Replace(Path.GetExtension(file.Name), ".dng");
+                            procImages.Add(procIm);
                         }
-                        procImages.Add(procIm);
+                        else {
+                            //remove duplicates
+                            System.IO.File.Delete(System.IO.Path.Combine(file.FullName));
+                        }
                     }
                     //else
                     //{

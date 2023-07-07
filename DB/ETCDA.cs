@@ -17,7 +17,7 @@ namespace UploadWebapp.DB
         public static List<AggImage> getAggregationImages(string year, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("select i.ID, i.filename, i.LAI, i.clumping, q.status from images i join qualityCheck q on q.imageID = i.ID where q.status <> 0 and filename like '%_" + year + "%' and not i.LAI is null");
+            var result = db.ExecuteReader("select i.ID, i.filename, i.LAI, i.clumping, q.status from images i join qualityCheck q on q.imageID = i.ID where q.status <> 0 and filename like '%_@year%' and not i.LAI is null", new SqlParameter("year", year));
 
             List<AggImage> images = FromAggImageData(result);
             db.Dispose();
@@ -76,7 +76,7 @@ namespace UploadWebapp.DB
         public static void rerunUploadSet(int setId, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("update results set processed = 'false' where plotSetID in (select ID from plotSets where uploadSetID = " + setId + ")");
+            db.ExecuteScalar("update results set processed = 'false' where plotSetID in (select ID from plotSets where uploadSetID = @setId)", new SqlParameter("setId", setId));
             db.Dispose();
         }
 

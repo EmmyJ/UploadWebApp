@@ -116,7 +116,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE USERNAME='" + username + "'");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE USERNAME='@username + '", new SqlParameter("username", username));
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -126,7 +126,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('" + username + "') OR LOWER(EMAIL) = LOWER('" + email + "')");
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('@username') OR LOWER(EMAIL) = LOWER('@email')", new SqlParameter("username", username), new SqlParameter("email", email));
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -174,7 +174,7 @@ namespace UploadWebapp.DB
             //else
             //{
                 db = new DB();
-                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME], s.[labelled], s.[labelDate] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser =" + userID);
+                var result = db.ExecuteReader("SELECT DISTINCT s.[ID] ,s.[site] ,s.[NAME], s.[labelled], s.[labelDate] FROM [sites] s LEFT JOIN [usersites] us on us.idsito = s.ID WHERE us.iduser = @userID", new SqlParameter("userID", userID));
                 sites = result.HasRows ? FromSiteData(result) : null;
                 db.Dispose();
             //}
@@ -204,7 +204,7 @@ namespace UploadWebapp.DB
             //else
             //{
                 db = new DB();
-                var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE ID = " + siteID);
+                var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE ID = @siteID", new SqlParameter("siteID", siteID));
                 site = result.HasRows ? FromSiteData(result).FirstOrDefault() : null;
                 db.Dispose();
             //}
