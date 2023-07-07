@@ -116,7 +116,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE USERNAME='@username + '", new SqlParameter("username", username));
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE USERNAME=@username", new SqlParameter("username", username));
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;
@@ -126,7 +126,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
 
-            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER('@username') OR LOWER(EMAIL) = LOWER('@email')", new SqlParameter("username", username), new SqlParameter("email", email));
+            var result = db.ExecuteReader("SELECT [ID] ,[NAME] ,[EMAIL] ,[USERNAME], [PWD], [freeUser], [ETCuser] FROM [utenti] WHERE LOWER(USERNAME)= LOWER(@username) OR LOWER(EMAIL) = LOWER(@email)", new SqlParameter("username", username), new SqlParameter("email", email));
             User user = result.HasRows ? FromUserData(result).FirstOrDefault() : null;
             db.Dispose();
             return user;

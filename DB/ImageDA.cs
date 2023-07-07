@@ -395,7 +395,7 @@ namespace UploadWebapp.DB
         public static Plot GetPlotByName(string plotName, int SiteID, DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND name = '@plotName' AND siteID = @SiteID",
+            var result = db.ExecuteReader("SELECT [ID],[siteID],[name],[slope],[slopeAspect] FROM [plots] WHERE active = 1 AND name = @plotName AND siteID = @SiteID",
                 new SqlParameter("plotName", plotName), new SqlParameter("SiteID", SiteID));
             Plot plot = FromPlotData(result).FirstOrDefault();
             db.Dispose();
@@ -471,7 +471,7 @@ namespace UploadWebapp.DB
             //}
             //else
             //{
-            var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = '@siteCode '", new SqlParameter("@site", siteCode));
+            var result = db.ExecuteReader("SELECT [ID], [site], [NAME], [labelled], [labelDate] FROM [sites] WHERE site = @siteCode", new SqlParameter("@site", siteCode));
             site = result.HasRows ? UserDA.FromSiteData(result).FirstOrDefault() : null;
             result.Close();
             db.Dispose();
@@ -1090,11 +1090,11 @@ namespace UploadWebapp.DB
             db = new DB();
             string campaign = null;
 
-            var result = db.ExecuteReader("select top 1 u.[campaign], dateTaken from uploadSet u join plotSets p on p.uploadSetID = u.ID join images i on i.plotSetID = p.ID where not u.campaign is null and u.campaign != '@currentCampaign' and dateTaken <= '@dateTaken' and siteID = @siteID and campaign like '@like%' order by dateTaken desc, campaign DESC",
+            var result = db.ExecuteReader("select top 1 u.[campaign], dateTaken from uploadSet u join plotSets p on p.uploadSetID = u.ID join images i on i.plotSetID = p.ID where not u.campaign is null and u.campaign != @currentCampaign and dateTaken <= @dateTaken and siteID = @siteID and campaign like @like order by dateTaken desc, campaign DESC",
                 new SqlParameter("currentCampaign", currentCampaign),
                 new SqlParameter("dateTaken", dateTaken),
                 new SqlParameter("siteID", siteID),
-                new SqlParameter("like", currentCampaign.Substring(0, 4)));
+                new SqlParameter("like", currentCampaign.Substring(0, 4) + "%"));
             if (result.HasRows)
             {
                 result.Read();
@@ -1119,7 +1119,7 @@ namespace UploadWebapp.DB
         public static bool findImagesDuplicate(string filename, DB db = null)
         {
             db = new DB();
-            int count = Convert.ToInt32(db.ExecuteScalar("select COUNT(ID) FROM [LAI_App].[dbo].[images] where UPPER(filename) like UPPER('@filename')", 
+            int count = Convert.ToInt32(db.ExecuteScalar("select COUNT(ID) FROM [LAI_App].[dbo].[images] where UPPER(filename) like UPPER(@filename)", 
                 new SqlParameter("filename", filename)));
             db.Dispose();
             return count > 0;
@@ -1129,7 +1129,7 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             string highest = null;
-            var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like '@yearC%' and siteID = @siteID", new SqlParameter("siteID", siteID));
+            var result = db.ExecuteReader("select max(u.campaign) from images i join plotSets p on p.id = i.plotSetID join uploadSet u on p.uploadSetID = u.id where campaign like @year and siteID = @siteID", new SqlParameter("year", year + "C%"), new SqlParameter("siteID", siteID));
             try
             {
                 if (result.HasRows)
@@ -1155,7 +1155,7 @@ namespace UploadWebapp.DB
         public static void saveCampaign(int setID, string campaign, DB db = null)
         {
             db = new DB();
-            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = '@campaign' WHERE ID = @setID",
+            db.ExecuteScalar("UPDATE [LAI_App].[dbo].[uploadSet] SET [campaign] = @campaign WHERE ID = @setID",
                 new SqlParameter("campaign", campaign), 
                 new SqlParameter("setID", setID));
             db.Dispose();
