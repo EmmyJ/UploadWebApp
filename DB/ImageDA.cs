@@ -1183,7 +1183,7 @@ namespace UploadWebapp.DB
             db = new DB();
             QualityCheck qc = new QualityCheck();
 
-            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments],  qc.settingsComments, qc.status, i.LAI FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
+            var result = db.ExecuteReader("SELECT top 1 i.filename, qc.[ID],[setupObjectsComments],[foreignObjectsComments],[raindropsComments],[lightingComments],[overexposureComments],[otherComments],  qc.settingsComments, qc.status, i.LAI, i.binPath, i.jpgPath FROM [LAI_App].[dbo].[images] i join [LAI_App].[dbo].qualityCheck qc on qc.imageID = i.ID where filename like '" + imageprefix + "%'  and filename < '" + image.filename + "' order by filename desc");
 
             if (result.HasRows)
             {
@@ -1200,6 +1200,8 @@ namespace UploadWebapp.DB
                 qc.settingsComments = result.IsDBNull(8) ? null : result.GetString(8);
                 qc.status = (QCstatus)result.GetByte(9);
                 qc.image.LAI = result.IsDBNull(10) ? (double?)null : result.GetDouble(10);
+                qc.image.binPath = result.IsDBNull(11) ? null : result.GetString(11);
+                qc.image.jpgPath = result.IsDBNull(12) ? null : result.GetString(12);
 
                 result.Close();
             }

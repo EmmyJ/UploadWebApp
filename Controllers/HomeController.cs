@@ -1194,6 +1194,14 @@ namespace UploadWebapp.Controllers
                 if (model != null)
                 {
                     model.previousQualityCheck = ImageDA.getPreviousQualityCheck(model.image);
+                    if (model.previousQualityCheck != null && model.previousQualityCheck.image != null)
+                    {
+                        if (!string.IsNullOrEmpty(model.previousQualityCheck.image.jpgPath))
+                            model.previousQualityCheck.image.jpgPath = model.previousQualityCheck.image.jpgPath.Replace("//filehost.uantwerpen.be/icos", "/Images");
+                        if (!string.IsNullOrEmpty(model.previousQualityCheck.image.binPath))
+                            model.previousQualityCheck.image.binPath = model.previousQualityCheck.image.binPath.Replace("//filehost.uantwerpen.be/icos", "/Images");
+                    }
+
                     model.uploadSetID = setID;
 
                     if (string.IsNullOrEmpty(model.image.exif) || model.image.exif == "todo")
@@ -1203,9 +1211,13 @@ namespace UploadWebapp.Controllers
                         try
                         {
                             fileStream = new FileStream(model.image.path, FileMode.Open);
+                            string ext = Path.GetExtension(fileStream.Name);
                             string exifstr = "key, value\n";
+                            //var settings = new MagickReadSettings();
+                            //settings.Format = MagickFormat.Pef;
+                            
 
-                            using (var image = new MagickImage(fileStream))
+                            using (var image = ext.ToLower() == "pef" ? new MagickImage(fileStream,MagickFormat.Pef) : new MagickImage(fileStream))
                             {
                                 string fnumber = image.GetAttribute("exif:FNumber");
                                 fnumber = string.IsNullOrEmpty(fnumber) ? image.GetAttribute("dng:f.number") : fnumber;
