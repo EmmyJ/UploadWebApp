@@ -615,7 +615,7 @@ namespace UploadWebapp.Controllers
                         //if .cr3 extension, convert to .dng
 
                         string extension = Path.GetExtension(file.FileName);
-                        if (extension.ToUpper() == ".CR3")
+                        if (extension.ToUpper() == ".CR3" || (extension.ToUpper() == ".CR2" && uploadSet.siteID == 225))
                         {
                             var proc1 = new ProcessStartInfo();
                             proc1.UseShellExecute = true;
@@ -624,7 +624,7 @@ namespace UploadWebapp.Controllers
 
                             proc1.FileName = @"C:\Windows\System32\cmd.exe";
                             proc1.Verb = "runas";
-                            proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + path;
+                            proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\"  -p2 -cr14.0 " + path;
                             proc1.WindowStyle = ProcessWindowStyle.Hidden;
                             using (Process cmd = Process.Start(proc1))
                             {
@@ -1430,7 +1430,7 @@ namespace UploadWebapp.Controllers
                             procIm.cameraSetupName = file.Name.Substring(11, 2);
 
                             string extension = Path.GetExtension(file.Name);
-                            if (extension.ToUpper() == ".CR3")
+                            if (extension.ToUpper() == ".CR3" || (extension.ToUpper() == ".CR2" && procIm.siteID == 225))
                             {
                                 var proc1 = new ProcessStartInfo();
                                 proc1.UseShellExecute = true;
@@ -1439,7 +1439,7 @@ namespace UploadWebapp.Controllers
 
                                 proc1.FileName = @"C:\Windows\System32\cmd.exe";
                                 proc1.Verb = "runas";
-                                proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -u " + file.FullName;
+                                proc1.Arguments = "/c " + "\"C:\\Program Files\\Adobe\\Adobe DNG Converter\\Adobe DNG Converter.exe\" -p2 -cr14.0 " + file.FullName;
                                 proc1.WindowStyle = ProcessWindowStyle.Hidden;
                                 using (Process cmd = Process.Start(proc1))
                                 {
@@ -1518,7 +1518,7 @@ namespace UploadWebapp.Controllers
                     else
                     {
                         //check if new uploadset is needed and create if so
-                        if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().cameraSetup.name != procIm.cameraSetupName) // || uploadSets.Last().dateTaken != procIm.date)
+                        if (uploadSets.Count == 0 || uploadSets.Last().siteCode != procIm.siteCode || uploadSets.Last().cameraSetup.name != procIm.cameraSetupName  || uploadSets.Last().dateTaken.AddDays(10) <= procIm.date)
                         {
                             us = new UploadSet();
                             us.siteCode = procIm.siteCode;
