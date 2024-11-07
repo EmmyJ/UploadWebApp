@@ -41,7 +41,7 @@ namespace UploadWebapp.Models
 
         public bool qualityCheck { get; set; }
 
-        public string userName { get; set;  }
+        public string userName { get; set; }
 
         public int QCcreated { get; set; }
         public int QCpass { get; set; }
@@ -56,5 +56,15 @@ namespace UploadWebapp.Models
 
         public string campaign { get; set; }
         public string dateStr { get; set; }
+    }
+
+    public class UploadSetBasic
+    {
+        public int ID { get; set; }
+        public int? siteID { get; set; }
+
+        public int userID { get; set; }
+        public string siteCode { get; set; }
+        public int? yearTaken { get; set; }
     }
 }

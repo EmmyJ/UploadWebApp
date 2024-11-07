@@ -625,6 +625,72 @@ namespace UploadWebapp.Controllers
             return null;
         }
 
+        public ActionResult generateChartHtmls()
+        {
+            generateChartHtml("Dorinne", "Fig_Dorinne.csv", "ESDorinneData.html");
+            generateChartHtml("Vielsalm", "Fig_Vielsalm.csv", "ESVielsalmData.html");
+            generateChartHtml("Lonz&eacute;e", "Fig_Lonzee.csv", "ESLonzeeData.html");
+
+            return null;
+        }
+
+        public ActionResult generateChartHtml(string name, string fileIn, string fileOut) {
+            string filePath = System.IO.Path.Combine(ConfigurationManager.AppSettings["CPdataFolder"].ToString(), fileIn);
+            string outPath = System.IO.Path.Combine("C:/xampp8/htdocs/ICOS2023clean/", fileOut);
+
+            StreamReader sr = new StreamReader(filePath);
+            StreamWriter sw = new StreamWriter(outPath);
+
+            String line = sr.ReadLine();
+            String prevLine = "";
+            String html = "";
+            int i = 0;
+            while(line != null)
+            {
+                try
+                {
+                    if (line.StartsWith("Fig_"))
+                    {
+                        if (i >= 3)
+                        {
+                            i = 0;
+                            html += "</div>\n</div>\n<div class='row clearfix'><div class='col-md-12'>\n";
+                        }
+                        var a = line.Split(',');
+                        string url = "https://www.gembloux.ulg.ac.be/icos/img/" + a[0];
+                        string alt = a[1];
+                        html += "<div class='col-md-4'>\n<a href='" + url + "' target='_blank'><img alt='" + alt + "' title='" + alt + "' src='" + url + "'></a>\n</div>\n";
+                        i++;
+                    }
+                    else if (line.ToLower() == "last week,")
+                    {
+                        html += "<div class='bg-grad-white-bottomleft section'>            <div class='container'>                <div class='row clearfix'>                    <div class='col-md-12'>                        <h1 class='minimal-h1'>" + name + " Data</h1>			<h2 class='text-additional'>" + line.Split(',')[0] + "</h2>";
+                    }
+                    else if (line.ToLower() == "last year," || line.ToLower() == "pluriannual,")
+                    {
+                        html += "</div>\n</div>\n</div>\n</div>\n<div class='bg-grad-white-bottomleft section'>            <div class='container'>                <div class='row clearfix'>                    <div class='col-md-12'>                        <h2 class='text-additional'>" + line.Split(',')[0] + "</h2>";
+
+                    }
+                    else 
+                    {
+                        i = 0;
+                        if(prevLine.StartsWith("Fig_"))
+                            html += "</div>\n</div>\n<div class='row clearfix'><div class='col-md-12'>\n";
+                        html += "<h3 class='text-main'>" + line.Split(',')[0] + "</h3>";
+                    }
+                }
+                catch (Exception ex) { }
+                prevLine = line;
+                line = sr.ReadLine();                
+            }
+            sr.Close();
+            html += "</div>\n</div>\n</div>\n</div>\n";
+            sw.Write(html);
+            sw.Close();
+
+            return null;
+        }
+
         public ActionResult generateHistoricalAverages()
         {
             //meteo

@@ -233,6 +233,7 @@
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\Image.cs" />
     <Compile Include="Models\OverviewModel.cs" />
+    <Compile Include="Models\Pager.cs" />
     <Compile Include="Models\Plot.cs" />
     <Compile Include="Models\PlotSet.cs" />
     <Compile Include="Models\Point.cs" />
@@ -427,6 +428,8 @@
     <Content Include="Views\Dashboard\generateBraInfoData.cshtml" />
     <Content Include="Scripts\jquery-3.6.3.slim.min.map" />
     <Content Include="Scripts\jquery-3.6.3.min.map" />
+    <Content Include="Views\Home\OverviewPaged.cshtml" />
+    <Content Include="Views\Home\OverviewPaged - Copy.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

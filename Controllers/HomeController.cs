@@ -842,6 +842,56 @@ namespace UploadWebapp.Controllers
                 return RedirectToAction("Login", "Account");
         }
 
+        public ActionResult OverviewPaged(int? pageNr) {
+            if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+            {
+                OverviewModel model = new OverviewModel();
+                model.isETCuser = UserDA.CurrentUserETC;
+                model.selectedSite = string.IsNullOrEmpty(Request.Params["selectedSite"]) ? 0 : int.Parse(Request.Params["selectedSite"]);
+                model.selectedYear = string.IsNullOrEmpty(Request.Params["selectedYear"]) ? 0 : int.Parse(Request.Params["selectedYear"]);
+
+                List<UploadSetBasic> basicList = ImageDA.GetUploadSetIDsByUserID(UserDA.CurrentUserId);
+                model.siteList = new Dictionary<int, string>();
+                model.siteList = basicList.Select(u => new { u.siteID.Value, u.siteCode }).Distinct().OrderBy(x => x.siteCode).ToDictionary(y => y.Value, y => y.siteCode);
+
+                model.yearList = new List<int>();
+                model.yearList = basicList.Select(u => u.yearTaken.Value).Distinct().OrderByDescending(x => x).ToList();
+                model.yearList.Add(0);
+
+                if (model.selectedSite != 0)
+                {
+                    basicList = basicList.Select(x => x).Where(y => y.siteID == model.selectedSite).ToList();
+                }
+                if (model.selectedYear != 0)
+                {
+                    basicList = basicList.Select(x => x).Where(y => y.yearTaken == model.selectedYear).ToList();
+                }
+
+                if (basicList.Count > 0)
+                {
+                    model.pager = new Pager(basicList.Count, pageNr ?? 1, 25, 500);
+
+                    List<int> uploadsetIDsSel = new List<int>();
+                    for (int i = model.pager.StartIndex; i <= model.pager.EndIndex; i++)
+                    {
+                        uploadsetIDsSel.Add(basicList[i].ID);
+                    }
+
+                    model.uploadSets = ImageDA.GetUploadSetsByUploadsetIDs(UserDA.CurrentUserId, uploadsetIDsSel);
+                }
+                else
+                    model.uploadSets = new List<UploadSet>();
+
+                
+                
+                return View(model);
+            }
+            else
+                return RedirectToAction("Login", "Account");
+        }
+
+        
+
         public ActionResult FileUpload()
         {
             if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
@@ -1429,8 +1479,9 @@ namespace UploadWebapp.Controllers
                             procIm.date = DateTime.ParseExact(file.Name.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
                             procIm.cameraSetupName = file.Name.Substring(11, 2);
 
-                            string extension = Path.GetExtension(file.Name);
-                            if (extension.ToUpper() == ".CR3" || (extension.ToUpper() == ".CR2" && procIm.siteID == 225))
+                            string extension = Path.GetExtension(file.Name); 
+                            if (extension.ToUpper() == ".CR3" || (extension.ToUpper() == ".CR2" && procIm.siteID == 225) 
+                                || (extension.ToUpper() == ".CR2" && procIm.siteID == 576))
                             {
                                 var proc1 = new ProcessStartInfo();
                                 proc1.UseShellExecute = true;

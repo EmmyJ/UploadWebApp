@@ -14,5 +14,6 @@ namespace UploadWebapp.Models
         public Dictionary<int,string> siteList { get; set; }
         public int selectedYear { get; set; }
         public List<int> yearList { get; set; }
+        public Pager pager { get; set; }
     }
 }

@@ -123,8 +123,10 @@ namespace UploadWebapp.DB
         {
             db = new DB();
             var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure], qc.settings, qc.settingsComments  FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
+            //var result = db.ExecuteReader("SELECT i.filename , cs.name ,qc.[setupObjects] ,qc.[setupObjectsComments] ,qc.[noForeignObjects] ,qc.[foreignObjectsComments] ,qc.[noRaindrops] ,qc.[raindropsComments] ,qc.[noLensRing] ,qc.[lighting] ,qc.[lightingComments] ,qc.[noOverexposure] ,qc.[overexposureComments] ,qc.[otherComments] ,qc.[status] ,i.[LAI] ,i.[LAIe] ,i.[threshold] ,i.[clumping], i.[overexposure], qc.settings, qc.settingsComments, i.[ALIA]  FROM [qualityCheck] qc   LEFT JOIN images i on qc.imageID = i.ID   LEFT JOIN plotSets ps on i.plotSetID = ps.ID   LEFT JOIN uploadSet us on ps.uploadSetID = us.ID   LEFT JOIN cameraSetup cs on us.camSetupID = cs.ID WHERE us.ID = @uploadSetID", new SqlParameter("uploadSetID", uploadSetID));
             List<string> data = new List<string>();
             data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Image Settings, Image Settings Comments, Other Reason Image Unfit, Image Suitable,LAI,LAIe,Threshold_RC,Clumping_LX,Overexposure Value");
+            //data.Add("Filename,Camera Setup,Setup Objects, Setup Objects Comments,Foreign Objects, Foreign Objects Comments,Raindrops/Dirt,Raindrops/Dirt Comments,Lens Ring, Lighting Conditions, Lighting Conditions Comments, Overexposure, Overexposure Comments, Image Settings, Image Settings Comments, Other Reason Image Unfit, Image Suitable,LAI,LAIe,ALIA,Threshold_RC,Clumping_LX,Overexposure Value");
             string filename = null;
             while (result.Read())
             {
@@ -155,6 +157,7 @@ namespace UploadWebapp.DB
                     s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
                     s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
+                    //s += "," + (result.IsDBNull(22) ? (double?)null : result.GetDouble(22)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(19)).ToString().Replace(",", ".");
@@ -180,6 +183,7 @@ namespace UploadWebapp.DB
                     s += "," + ((QCstatus)result.GetByte(14) == QCstatus.created ? "Not Checked" : (QCstatus)result.GetByte(14) == QCstatus.pass ? "YES" : "NO");
                     s += "," + (result.IsDBNull(15) ? (double?)null : result.GetDouble(15)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(16) ? (double?)null : result.GetDouble(16)).ToString().Replace(",", ".");
+                    //s += "," + (result.IsDBNull(22) ? (double?)null : result.GetDouble(22)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(17) ? (double?)null : result.GetDouble(17)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(18) ? (double?)null : result.GetDouble(18)).ToString().Replace(",", ".");
                     s += "," + (result.IsDBNull(19) ? (double?)null : result.GetDouble(19)).ToString().Replace(",", ".");
@@ -268,6 +272,76 @@ namespace UploadWebapp.DB
             plotSets = FromPlotResultsData(result);
             db.Dispose();
             return plotSets;
+        }
+
+        public static List<UploadSetBasic> GetUploadSetIDsByUserID(int userID, DB db = null)
+        {
+            db = new DB();
+            List<UploadSetBasic> list = new List<UploadSetBasic>();
+            if (!UserDA.CurrentUserFree)
+            {
+                string whereStr;
+                if (UserDA.CurrentUserETC)
+                    whereStr = "WHERE u.ETCuser = 1";
+                else
+                    whereStr = "WHERE us.userID = " + userID;
+                var result = db.ExecuteReader("SELECT us.ID, us.siteID,s.site,	(SELECT top 1 i.filename from images i join plotSets p on i.plotSetID = p.ID where uploadSetID = us.id) FROM [uploadSet] us JOIN utenti u on us.userID = u.ID join sites s on us.siteID = s.ID " + whereStr + " ORDER BY us.uploadTime DESC");
+
+                list = FromUserSetBasicData(result);
+
+            }
+            db.Dispose();
+
+            return list;
+        }
+
+        public static List<UploadSet> GetUploadSetsByUploadsetIDs(int userID, List<int> uploadsetIds, DB db = null)
+        {
+            db = new DB();
+            List<UploadSet> list = new List<UploadSet>();
+            if (!UserDA.CurrentUserFree)
+            {
+                string whereStr;
+                if (UserDA.CurrentUserETC)
+                    whereStr = "WHERE u.ETCuser = 1";
+                else
+                    whereStr = "WHERE us.userID = " + userID;
+                whereStr += " AND us.ID in (" + String.Join(",", uploadsetIds) + ")";
+
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], '-' as site, (SELECT count(r.[ID]) 	 FROM [results] r  left join plotSets ps on ps.ID = r.plotSetID  where data is not null and ps.uploadSetID = us.ID) as count,  (SELECT p.name as [data()]  FROM plotSets ps  left join plots p on p.ID = ps.plotID  where ps.uploadSetID = us.id ORDER BY p.name FOR xml path(''))  as plots,  us.siteName, us.[qualityCheck], u.USERNAME, (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 0), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 1), (SELECT count(qc.ID) FROM qualityCheck qc LEFT JOIN images i on i.ID = qc.imageID LEFT JOIN plotSets ps on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID AND qc.status = 2) ,(SELECT top 1 i.filename from plotsets ps LEFT JOIN images i on ps.ID = i.plotSetID WHERE ps.uploadSetID = us.ID order by i.filename), us.campaign FROM [uploadSet] us  LEFT JOIN utenti u on us.userID = u.ID " + whereStr + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime], us.siteName , us.[qualityCheck], u.USERNAME, us.campaign ORDER BY us.uploadTime DESC");
+                list = FromUserSetData(result);
+
+                Dictionary<int, string> sitelist = new Dictionary<int, string>();
+                List<SiteData> datalist = GetUserSites(null);
+                foreach (SiteData data in datalist)
+                {
+                    sitelist.Add(data.ID, data.siteCode);
+                }
+                foreach (UploadSet us in list)
+                {
+                    us.siteCode = us.siteID.HasValue ? sitelist[us.siteID.Value] : "";
+                    if (us.qualityCheck)
+                    {
+                        var subResult = db.ExecuteReader("SELECT TOP 1 u.NAME,[submissionDate] FROM [LAI_App].[dbo].[submissions] s join utenti u on s.userID = u.ID where uploadSetID = " + us.ID + " order by s.ID desc");
+                        while (subResult.Read())
+                        {
+                            Submission sub = new Submission();
+                            sub.userName = subResult.GetString(0);
+                            sub.submissionDate = subResult.GetDateTime(1);
+                            us.lastSubmission = sub;
+                        }
+                        subResult.Close();
+                    }
+                }
+
+            }
+            else
+            {
+                var result = db.ExecuteReader("SELECT us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site ,(SELECT count(r.[ID]) 	FROM [results] r left join plotSets ps on ps.ID = r.plotSetID where data is not null and ps.uploadSetID = us.ID) as count, (SELECT p.name as [data()] FROM plotSets ps left join plots p on p.ID = ps.plotID where ps.uploadSetID = us.id ORDER BY p.name FOR xml path('')) as plots, us.siteName, us.[qualityCheck], '' FROM [uploadSet] us  LEFT JOIN [sites] s on s.ID = us.[siteID]  WHERE us.userID = " + userID + " GROUP BY us.[ID],[camSetupID],[siteID] ,[userID] ,[person],[uploadTime],s.site, us.siteName, us.[qualityCheck] ORDER BY us.uploadTime DESC");
+                list = FromUserSetData(result);
+                db.Dispose();
+            }
+            return list;
         }
 
         public static List<UploadSet> GetUploadSetsByUserID(int userID, DB db = null)
@@ -479,7 +553,36 @@ namespace UploadWebapp.DB
             return site;
         }
 
-        
+        public static List<UploadSetBasic> FromUserSetBasicData(SqlDataReader data)
+        {
+            var result = new List<UploadSetBasic>();
+            while (data.Read())
+            {
+                UploadSetBasic s = new UploadSetBasic();
+                s.ID = data.GetInt32(0);
+                s.siteID = data.GetInt32(1);
+                s.siteCode = data.IsDBNull(2) ? null : data.GetString(2);
+                //s.yearTaken = data.IsDBNull(3) ? (int?)null : data.GetInt32(3);
+                
+
+                try
+                {
+                    string filename = data.GetString(3);
+                    DateTime dateTaken;
+                    if (!string.IsNullOrEmpty(filename))
+                    {
+                        dateTaken = DateTime.ParseExact(filename.Substring(23, 8), "yyyyMMdd", CultureInfo.InvariantCulture);
+                        s.yearTaken = dateTaken.Year;
+                    }
+                }
+                catch { }
+                if (s.yearTaken != null)
+                    result.Add(s);
+            }
+
+            data.Close();
+            return result;
+        }
 
         public static List<UploadSet> FromUserSetData(SqlDataReader data)
         {
