@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -14,5 +15,7 @@ namespace UploadWebapp.Models
         public string userName { get; set; }
         public DateTime dateModified { get; set; }
         public DateTime imageDateTaken { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N}", ApplyFormatInEditMode = true)]
+        public double? LAI { get; set; }
     }
 }

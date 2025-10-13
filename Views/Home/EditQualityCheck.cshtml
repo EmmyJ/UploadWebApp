@@ -53,10 +53,23 @@
                 </div>
             </div>
         }
-        <h3>
+    <h3>
+
+        @if (Model.image.filename.Length > 29)
+        {
             @Model.image.filename.Substring(0, 6) @Model.image.filename.Substring(14, 4) @Model.image.filename.Substring(19, 3)
-            @Model.image.filename.Substring(29, 2)/@Model.image.filename.Substring(27, 2)/@Model.image.filename.Substring(23, 4)
-        </h3>
+
+            @Model.image.filename.Substring(29, 2)<text>/</text> @Model.image.filename.Substring(27, 2) <text>
+                /</text> @Model.image.filename.Substring(23, 4)
+
+            }
+            else
+            {
+                @Model.image.filename;
+            }
+
+        
+    </h3>
         <div class="display-field col-md-12">
             @Html.EditorFor(model => model.qualityCheck.setupObjects)
             <label>Setup Objects As Expected</label>

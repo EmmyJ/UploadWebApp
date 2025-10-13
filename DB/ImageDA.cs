@@ -132,7 +132,10 @@ namespace UploadWebapp.DB
             {
                 if (filename == null)
                 {
-                    filename = result.GetString(0).Substring(0, 7) + result.GetString(0).Substring(23, 8);
+                    if (result.GetString(0).Length > 24)
+                        filename = result.GetString(0).Substring(0, 7) + result.GetString(0).Substring(23, 8);
+                    else
+                        filename = result.GetString(0);
                     data.Insert(0, filename);
                 }
                 string s;
@@ -1132,7 +1135,7 @@ namespace UploadWebapp.DB
             db = new DB();
             List<QualityCheckListItem> qcList = new List<QualityCheckListItem>();
 
-            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified, i.dateTaken from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = @setId ORDER BY qc.ID", new SqlParameter("setId", setId));
+            var data = db.ExecuteReader("select qc.ID, i.filename, qc.status, u.USERNAME, qc.dateModified, i.dateTaken, i.LAI from qualityCheck qc left join images i on qc.imageID = i.ID left join plotSets ps on i. plotSetID = ps.ID left join uploadSet us on ps.uploadSetID = us.ID left join utenti u on u.ID = qc.userID where us.ID = @setId ORDER BY qc.ID", new SqlParameter("setId", setId));
 
             while (data.Read())
             {
@@ -1144,6 +1147,7 @@ namespace UploadWebapp.DB
                 item.dateModified = data.GetDateTime(4);
                 item.uploadSetID = setId;
                 item.imageDateTaken = data.GetDateTime(5);
+                item.LAI = data.IsDBNull(6) ? (double?)null : data.GetDouble(6);
 
                 qcList.Add(item);
             }

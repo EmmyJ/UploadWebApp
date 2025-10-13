@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700|Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width" />
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/dropzonescripts")
+</head>
+<body>
+    <header>
+
+        <div class="header">
+            <div class="tint-container" style="background-image: url(/Images/bg9.png)">
+                <div class="tint -header"></div>
+                <div class="container">
+                    <div class="flag">&nbsp;&nbsp;&nbsp;Synthesis and results of the forest ancillary data &nbsp;&nbsp;&nbsp;</div>
+
+                    
+                    <a href="">
+                        <h1 class="logo">ICOS</h1>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="fill-sub">
+            <div class="container">
+                <nav class="hidden-xs">
+                    <ul class="inline-list">
+                        
+                        <li class="inline-list-item"><span class="text-white nav-link contact">&nbsp;</span></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </header>
+    <div id="main">
+        <div class="bg-grad-white-bottomleft section">
+            <div class="container">
+                <div class="row clearfix">
+
+                    @RenderSection("featured", required: false)
+                    <section class="content-wrapper main-content clear-fix">
+                        @RenderBody()
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="fill-sub section">
+            <div class="container">
+                <div class="row clearfix">
+                    
+                    <div class="col-sm-6">
+                        <h5 class="text-uppercase text-white">ICOS ETC Antwerp</h5>
+                        <p>
+                            University of Antwerp, Department of Biology<br />
+                            Campus Drie Eiken, D.C.210<br />
+                            Universiteitsplein 1<br />
+                            B-2610 Wilrijk<br />
+                        </p>
+                    </div>
+                    <div class="col-sm-3">
+                        <h5 class="text-uppercase text-white">ICOS Central Facilities</h5>
+                        <p>
+                            <a href="http://www.icos-ri.eu/" target="_blank"><span class="icon-arrow-right"></span>ICOS Head Office</a><br />
+                            <span><a href="https://icos-atc-demo.lsce.ipsl.fr" target="_blank"><span class="icon-arrow-right"></span>The atmospheric Thematic Centre</a></span>
+                            <br />
+                            <span><a href="https://www.icos-ri.eu/node/6" target="_blank"><span class="icon-arrow-right"></span>The Central Analytical Laboratory</a></span> 
+
+<span class=""><a href="http://www.europe-fluxdata.eu/icos/home" target="_blank"><span class="icon-arrow-right"></span>The Ecosystem Thematic Centre</a></span>
+                            <span><a href="http://www.icos-otc.eu/" target="_blank"><span class="icon-arrow-right"></span>The Ocean Thematic Centre</a></span>
+                        </p>
+                    </div>
+                    <div class="col-sm-3" style="padding-right: 0px;">
+                        <h5 class="text-uppercase text-white">Carbon Portal</h5>
+                        <p><a href="http://www.icos-cp.eu/" class="button rounded fill-main">Visit Carbon Portal</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="background-color: #ffffff;">
+            <div class="container">
+                <div class="clearfix">
+                    <p class="col-sm-12 text-small box">Copyright &copy; ICOS Research Infrastructure &amp; European Research Infrastructure Consortium.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

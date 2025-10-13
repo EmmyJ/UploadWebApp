@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Synthesis and results of the forest ancillary data";
+    Layout = "~/Views/Shared/_LayoutAncil.cshtml";
+}
+@model System.Collections.Generic.Dictionary<String,String>
+
+                                                 <h2>Synthesis and results of the forest ancillary data</h2>
+
+    <table class="ovv" style="border-collapse: collapse; width: 1170px;">
+        <tr>
+            <th>
+                Site ID
+            </th>
+            <th>
+                Link to the report
+            </th>
+
+        </tr>
+
+        @foreach (var item in Model)
+        {
+
+            <tr>
+                <td>
+                    @item.Key
+                </td>
+                <td>
+                    <a href="@item.Value" target="_blank">@item.Key Full Ancillary Report</a>
+                </td>
+            </tr>
+        }
+    </table>

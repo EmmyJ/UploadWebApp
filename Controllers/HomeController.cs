@@ -644,18 +644,21 @@ namespace UploadWebapp.Controllers
                         if (newplotset)
                             uploadSet.plotSets.Add(plotset);
                         int location = 0;
-                        int.TryParse(file.FileName.Substring(20, 2), out location);
-                        if (plot != null && plot.plotLocations != null && plot.plotLocations.Count != 0 && location != 0)
+                        if (!UserDA.CurrentUserFree)
                         {
-                            if (plot.plotLocations.Where(l => l.location == location).Count() > 1)
+                            int.TryParse(file.FileName.Substring(20, 2), out location);
+                            if (plot != null && plot.plotLocations != null && plot.plotLocations.Count != 0 && location != 0)
                             {
-                                if(plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).Count() > 0)
-                                    image.plotLocationID = plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).OrderByDescending(m => m.insertDate).First().ID;
+                                if (plot.plotLocations.Where(l => l.location == location).Count() > 1)
+                                {
+                                    if (plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).Count() > 0)
+                                        image.plotLocationID = plot.plotLocations.Where(l => l.location == location && l.insertDate <= image.dateTaken).OrderByDescending(m => m.insertDate).First().ID;
+                                    else
+                                        image.plotLocationID = plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;
+                                }
                                 else
-                                image.plotLocationID = plot.plotLocations.Where(l => l.location == location).OrderByDescending(m => m.insertDate).First().ID;
+                                    image.plotLocationID = plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
                             }
-                            else
-                                image.plotLocationID = plot.plotLocations.Where(l => l.location == location).Select(m => m.ID).SingleOrDefault();
                         }
                     }
                 }
@@ -1203,8 +1206,14 @@ namespace UploadWebapp.Controllers
                 model.uploadSetID = setID;
                 model = ImageDA.getCampaignAndSite(model);
                 model.qualityChecks = ImageDA.getUploadSetQualityChecks(setID);
-                model.year = int.Parse(model.qualityChecks[0].filename.Substring(23, 4));
-
+                try
+                {
+                    int res = 0; 
+                    model.year = int.TryParse(model.qualityChecks[0].filename.Substring(23, 4), out res) ? res : 0;
+                }
+                catch { 
+                    model.year = 0;
+                }
                 return View(model);
             }
             else
@@ -1439,6 +1448,99 @@ namespace UploadWebapp.Controllers
             public List<Plot> plotsList { get; set; }
         }
 
+        //public ActionResult ProcessPPFDimages()
+        //{
+        //    UploadSet us = new UploadSet();
+        //    DirectoryInfo d = new DirectoryInfo("//filehost.ad.ua.ac.be/icos/LAIuploads/FR-Fon-PPFD");
+        //    FileInfo[] Files = d.GetFiles();
+        //    List<String> res = new List<String>();
+
+        //    List<ProcessImage> procImages = new List<ProcessImage>();
+
+        //    foreach (FileInfo file in Files)
+        //    {
+        //        if (file.Extension.ToUpper() == ".NEF")
+        //        {
+        //            ProcessImage procIm = new ProcessImage();
+        //            procIm.filename = file.Name;
+        //            procIm.path = file.Directory.ToString();
+        //            procIm.siteCode = "FR-Fon-PPFD";
+        //            procIm.siteID = 10616;
+        //            procIm.plotName = "";
+        //            procIm.location = "";
+        //            procIm.date = DateTime.ParseExact(file.Name.Substring(0, 19), "yyyy_MM_dd_HH_mm_ss", CultureInfo.InvariantCulture);
+        //            procImages.Add(procIm);
+        //        }
+        //    }
+
+        //    procImages = procImages.OrderBy(p => p.siteCode).ThenBy(p => p.date).ToList();
+
+        //    us.siteCode = "FR-Fon-PPFD";
+        //    us.siteID = 10616;
+        //    us.siteName = "FR-Fon-PPFD";
+        //    us.userID = 1;
+        //    us.dateTaken = DateTime.Now;
+        //    us.cameraSetup = ImageDA.GetCameraSetupByID(6183);
+        //    us.plotSets = new List<PlotSet>();
+        //    us.uploadTime = DateTime.Now;
+        //    us.person = "PPFD Fontainebleau";
+        //    us.dateStr = "";
+
+        //    //PlotSet ps = new PlotSet();
+        //    //ps.uploadSetID = us.ID;
+        //    //ps.plotname = "PPFD";
+        //    //ps.images = new List<Image>();
+
+        //    List<Plot> plotslist = ImageDA.GetPlotListForSite(us.siteID.Value);
+
+            
+
+        //    foreach (ProcessImage processImage in procImages)
+        //    {
+        //        Image image = new Image();
+        //        image.filename = processImage.filename;
+        //        image.path = "//filehost.uantwerpen.be/icos/LAIuploads/FR-Fon-PPFD/" + processImage.filename;
+        //        image.dateTaken = processImage.date;
+        //        string plotname= image.dateTaken.ToString("MMdd");
+
+        //        PlotSet ps = us.plotSets.Find(s => s.plotname == plotname); // TODO verschillende dates
+        //        if (ps == null)
+        //        {
+        //            ps = new PlotSet();
+        //            ps.uploadSetID = us.ID;
+        //            ps.plotname = plotname;
+        //            ps.images = new List<Image>();
+
+        //            Plot plot = plotslist.Find(p => p.name == plotname);
+        //            if (plot == null)
+        //            {
+        //                plot = new Plot();
+        //                plot.insertDate = DateTime.Now;
+        //                plot.insertUser = 1;
+        //                plot.name = plotname;
+        //                plot.siteID = 10616;
+        //                plot.slope = 0;
+        //                plot.slopeAspect = 0;
+        //                plot.ID = ImageDA.SavePlot(plot, null);
+        //            }
+
+        //            ps.plot = plot;
+        //            ps.plotID = plot.ID;
+
+        //            us.plotSets.Add(ps);
+        //        }
+
+        //        ps.images.Add(image);
+
+        //        res.Add(string.Format("{0}: {1}", image.filename, "succes"));
+        //    }
+
+        //    //us.plotSets.Add(ps);
+        //    ImageDA.SaveUploadSet(us);
+
+        //    return View(res);
+        //}
+
         public ActionResult ProcessImages(bool addDuplicates = false)
         {
             try
@@ -1467,7 +1569,7 @@ namespace UploadWebapp.Controllers
                     if (rg.IsMatch(file.Name) && file.Name != "cpd.exe" && file.Name != "cpdcaller.ps1" && file.Name != "processcaller.ps1"
                         && file.Extension.ToUpper() != ".JPG" && file.Extension.ToUpper() != ".JPEG")
                     {
-                        if (addDuplicates || (!ImageDA.findImagesDuplicate(file.Name) && !ImageDA.findImagesDuplicate( file.Name.ToUpper().Replace(".CR3",".DNG"))))
+                        if (addDuplicates || (!ImageDA.findImagesDuplicate(file.Name) && !ImageDA.findImagesDuplicate( file.Name.ToUpper().Replace(".CR3",".DNG")) && !ImageDA.findImagesDuplicate(file.Name.ToUpper().Replace(".CR2", ".DNG"))))
                         {
                             ProcessImage procIm = new ProcessImage();
                             procIm.filename = file.Name;

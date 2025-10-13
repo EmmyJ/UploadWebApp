@@ -207,6 +207,7 @@
     <Compile Include="Controllers\ETCController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
+    <Compile Include="Controllers\PhenoController.cs" />
     <Compile Include="DB\DB.cs" />
     <Compile Include="DB\ETCDA.cs" />
     <Compile Include="DB\ImageDA.cs" />
@@ -259,6 +260,29 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\AncillaryReports\BE-Bra_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\BE-Vie_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\CH-Dav_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\CZ-BK1_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\CZ-Lnz_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\DE-HoH_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\DE-Tha_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\DK-Sor_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FI-Hyy_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FI-Sod_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FR-Bil_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FR-FBn_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FR-Fon_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FR-Hes_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\FR-Pue_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\IT-Cp2_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\IT-Ren_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\IT-SR2_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\NL-Loo_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\NO-Hur_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\SE-Htm_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\SE-Nor_Full_Ancillary_Report.html" />
+    <Content Include="Content\AncillaryReports\SE-Svb_Full_Ancillary_Report.html" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\dropzone.css" />
@@ -430,10 +454,14 @@
     <Content Include="Scripts\jquery-3.6.3.min.map" />
     <Content Include="Views\Home\OverviewPaged.cshtml" />
     <Content Include="Views\Home\OverviewPaged - Copy.cshtml" />
+    <Content Include="Views\Home\ProcessPPFDimages.cshtml" />
+    <Content Include="Views\Shared\_LayoutAncil.cshtml" />
+    <Content Include="Views\ETC\AncillaryReports.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Uploads\" />
+    <Folder Include="Views\Pheno\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

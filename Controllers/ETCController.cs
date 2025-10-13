@@ -259,5 +259,17 @@ namespace UploadWebapp.Controllers
             return View(list);
         }
 
+        public ActionResult AncillaryReports() {
+            string[] sites = new string[] { "BE-Bra", "BE-Vie", "CH-Dav", "CZ-BK1", "CZ-Lnz", "DE-HoH", "DE-Tha", "DK-Sor", "FI-Hyy", "FI-Sod", "FR-Bil", "FR-FBn", "FR-Fon", "FR-Hes", "FR-Pue", "IT-Cp2", "IT-Ren", "IT-SR2", "NL-Loo", "NO-Hur", "SE-Htm", "SE-Nor", "SE-Svb" };
+
+            Dictionary<string, string> reports = new Dictionary<string, string>();
+            foreach (string site in sites)
+            {
+                //reports.Add(site, "/Content/AncillaryReports/" + site + "_Full_Ancillary_Report.html");
+                reports.Add(site, "/Content/AncillaryReports/" + site + "_Ancillary_Report.html");
+            }            
+            return View(reports); 
+        }
+
     }
 }

@@ -10,15 +10,19 @@
 <form class="col-md-4">
     @Html.DropDownListFor(m => m.selectedSite, new SelectList(Model.siteList, "Key", "Value"), "-- all sites --")
     @Html.DropDownListFor(m => m.selectedYear, new SelectList(Model.yearList, "all dates"))
-    <input type="submit" value="Filter" class="button rounded fill-highlight"/>
+    <input type="submit" value="Filter" class="button rounded fill-highlight" />
 </form>
 
 <div class="col-md-8">
-    @Html.ActionLink("<< First", "OverviewPaged", new { pageNr = 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
-    @Html.ActionLink("< Prev", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage - 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
-    <div class="col-md-4" style="text-align:center"> @Model.pager.CurrentPage <text> / </text> @Model.pager.EndPage</div>
-    @Html.ActionLink("Next >", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage + 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
-    @Html.ActionLink("Last >>", "OverviewPaged", new { pageNr = @Model.pager.EndPage, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
+    @if (Model.pager != null)
+    {
+
+        @Html.ActionLink("<< First", "OverviewPaged", new { pageNr = 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
+        @Html.ActionLink("< Prev", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage - 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
+        <div class="col-md-4" style="text-align:center"> @Model.pager.CurrentPage <text> / </text> @Model.pager.EndPage</div>
+        @Html.ActionLink("Next >", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage + 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
+        @Html.ActionLink("Last >>", "OverviewPaged", new { pageNr = @Model.pager.EndPage, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-2" })
+    }
 </div>
 
 <p>&nbsp;</p>
@@ -130,14 +134,16 @@
     }
 </table>
 <p></p>
-@Html.ActionLink("<< First", "OverviewPaged", new { pageNr = 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1" })
-@Html.ActionLink("< Prev", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage - 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-1" })
-<div class="col-md-1 col-md-offset-3"> @Model.pager.CurrentPage <text> / </text> @Model.pager.EndPage</div>
-@Html.ActionLink("Next >", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage + 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-2" })
-@Html.ActionLink("Last >>", "OverviewPaged", new { pageNr = @Model.pager.EndPage, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-1" })
-
-<script>
-    $(function () {
-        $(".overview").addClass("-active");
-    });
-</script>
+@if (Model.pager != null)
+{
+    @Html.ActionLink("<< First", "OverviewPaged", new { pageNr = 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1" })
+    @Html.ActionLink("< Prev", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage - 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-1" })
+    <div class="col-md-1 col-md-offset-3"> @Model.pager.CurrentPage <text> / </text> @Model.pager.EndPage</div>
+    @Html.ActionLink("Next >", "OverviewPaged", new { pageNr = @Model.pager.CurrentPage + 1, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-2" })
+    @Html.ActionLink("Last >>", "OverviewPaged", new { pageNr = @Model.pager.EndPage, selectedSite = @Model.selectedSite, selectedYear = @Model.selectedYear }, new { @class = "button rounded fill-highlight col-md-1 col-md-offset-1" })
+}
+    <script>
+        $(function () {
+            $(".overview").addClass("-active");
+        });
+    </script>
