@@ -18,5 +18,6 @@ namespace UploadWebapp.Models.Pheno
         public string name { get; set; }
         public phenoCamStatus status { get; set; }
         public DateTime? lastDate { get; set; }
+        public DateTime? newDate { get; set; }
     }
 }

@@ -244,6 +244,7 @@
     <Compile Include="Models\OverviewModel.cs" />
     <Compile Include="Models\Pager.cs" />
     <Compile Include="Models\Pheno\PhenoCamera.cs" />
+    <Compile Include="Models\Pheno\PhenoUpload.cs" />
     <Compile Include="Models\Plot.cs" />
     <Compile Include="Models\PlotSet.cs" />
     <Compile Include="Models\Point.cs" />

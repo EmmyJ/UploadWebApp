@@ -14,5 +14,6 @@ namespace UploadWebapp.Models.Pheno
         public string fileName { get; set; }
         public string hash { get; set; }
         public string suffix { get; set; }
+        public PhenoUpload upload { get; set; }
     }
 }

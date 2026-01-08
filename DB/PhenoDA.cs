@@ -21,9 +21,23 @@ namespace UploadWebapp.DB
             return phenocams;
         }
 
-        
+        public static void saveLastDates(List<PhenoCamera> phenoCameras, DB db = null)
+        {
+            db = new DB();
 
-            public static List<PhenoCamera> FromPhenoCamerasData(SqlDataReader data)
+            foreach (PhenoCamera cam in phenoCameras)
+            {
+                if (cam.lastDate != null)
+                {
+                    db.ExecuteScalar("UPDATE [LAI_App].[dbo].[phenoCameras] SET [lastDate] = @lastDate WHERE ID = @ID",
+                    new SqlParameter("lastDate", cam.newDate),
+                    new SqlParameter("ID", cam.ID));
+                }
+            }
+            db.Dispose();
+        }
+
+        public static List<PhenoCamera> FromPhenoCamerasData(SqlDataReader data)
         {
             var result = new List<PhenoCamera>();
             while (data.Read())
@@ -40,5 +54,38 @@ namespace UploadWebapp.DB
             return result;
         }
 
+        public static int insertPhenoUpload(PhenoUpload upload, DB db = null)
+        {
+            db = new DB();
+            int id;
+
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[phenoUploads] ([phenoCameraID], [name] ,[dateTime],[status]) VALUES (@phenoCameraID, @name ,@dateTime,@status);SELECT IDENT_CURRENT('[dbo].[phenoUploads]');",
+                        new SqlParameter("phenoCameraID", upload.phenoCameraID),
+                        new SqlParameter("name", upload.name),
+                        new SqlParameter("dateTime", DateTime.Now),
+                        new SqlParameter("status", upload.status)));
+            db.Dispose();
+            return id;
+        }
+
+        public static void savePhenoUploadHash(PhenoUpload upload, DB db = null)
+        {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [dbo].[phenoUploads] set [hash] = @hash, [dateTime] = @dateTime, [status] = @status WHERE ID = @ID",
+                        new SqlParameter("hash", upload.hash),
+                        new SqlParameter("dateTime", DateTime.Now),
+                        new SqlParameter("status", upload.status),
+                        new SqlParameter("ID", upload.ID));
+            db.Dispose();
+        }
+
+        public static void savePhenoUploadStatus(int ID, int status, DB db = null) {
+            db = new DB();
+            db.ExecuteScalar("UPDATE [dbo].[phenoUploads] set [dateTime] = @dateTime, [status] = @status WHERE ID = @ID",
+                        new SqlParameter("dateTime", DateTime.Now),
+                        new SqlParameter("status", status),
+                        new SqlParameter("ID", ID));
+            db.Dispose();
+        }
     }
 }
