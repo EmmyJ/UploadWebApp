@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using UploadWebapp.DB;
 using UploadWebapp.Models.Pheno;
+using HtmlAgilityPack;
 
 namespace UploadWebapp.Controllers
 {
@@ -147,6 +148,7 @@ namespace UploadWebapp.Controllers
                                             zipfile.suffix = suffix;
                                             zipfile.upload = new PhenoUpload();
                                             zipfile.upload.phenoCameraID = phenoCameras.SingleOrDefault(p => p.name == cam).ID;
+                                            zipfile.upload.dateProblem = zipfile.date < phenoCameras.SingleOrDefault(p => p.name == cam).lastDate ? true : false;
                                             zipfile.dayfiles = new List<string>();
                                             zipfile.dayfiles.Add(fi.Directory.FullName + "\\" + newName);
                                             ziplist.Add(zipfile);
@@ -228,8 +230,8 @@ namespace UploadWebapp.Controllers
                             }
 
                             log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- " + item.fileName + " - " + item.hash);
-
-                            FileInfo fid = new FileInfo(phenofolder + "\\ZIP\\" + "metaPackage_" + item.siteCode + "_PHEN_" + item.date.ToString("yyyyMMdd") + "_" + item.suffix + ".json");
+                            string metaFileName = phenofolder + "\\ZIP\\" + "metaPackage_" + item.siteCode + "_PHEN_" + item.date.ToString("yyyyMMdd") + "_" + item.suffix + ".json";
+                            FileInfo fid = new FileInfo(metaFileName);
                             fid.Delete();
                             //write metadata file
                             string text = System.IO.File.ReadAllText(phenofolder + "\\metaPackageXX.json");
@@ -238,61 +240,65 @@ namespace UploadWebapp.Controllers
                             text = text.Replace("XXX3", item.date.AddDays(-1).ToString("yyyy-MM-ddT23:00:00Z"));
                             text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT23:00:00Z"));
                             text = text.Replace("XXX5", item.siteCode);
-
-                            System.IO.File.WriteAllText(phenofolder + "\\ZIP\\" + "metaPackage_" + item.siteCode + "_PHEN_" + item.date.ToString("yyyyMMdd") + "_" + item.suffix + ".json", text);
+                            
+                            System.IO.File.WriteAllText(metaFileName, text);
 
                             item.upload.status = phenoUploadStatus.metaCreated;
                             PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
 
                             //send metadata
-                            //            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send metapackage");
-                            //            ProcessStartInfo procStartInfo2 = new ProcessStartInfo(folder + "curl.exe", " /C -k --cookie cookies.txt -H \"Content-Type: application/json\" -X POST -d @\"" + folder + "metaPackage.json\" https://meta.icos-cp.eu/upload");
-                            //            reply = stuff(procStartInfo2,log, true);
-                            //            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- reply: " + reply);
-                            //            string mpName = folder + "uploaded\\" + item.fileName.Replace(".zip", "_metaPackage.json");
-                            //            if (File.Exists(mpName))
-                            //                File.Delete(mpName);
-                            //            File.Move(folder + "metaPackage.json",mpName);
-                            //            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send metapackage");
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send metapackage");
+                            ProcessStartInfo procStartInfo2 = new ProcessStartInfo(phenofolder + "\\curl.exe", " /C -k --cookie cookies.txt -H \"Content-Type: application/json\" -X POST -d @\"" + metaFileName + "\" https://meta.icos-cp.eu/upload");
+                            string reply = stuff(procStartInfo2, phenofolder, log, true);
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- reply: " + reply);
+
+                            //TODO alles hierna nakijken!!! filenames/folders/locaties
+                            // dubbele // werkt niet?
+
+                            string mpName = metaFileName.Replace("ZIP", "uploaded");
+                            if (System.IO.File.Exists(mpName))
+                                System.IO.File.Delete(mpName);
+                            System.IO.File.Move(metaFileName, mpName);
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send metapackage");
 
                             item.upload.status = phenoUploadStatus.metaSent;
                             PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
 
-                            //            //upload file
-                            //            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send " + item.fileName);
-                            //            ProcessStartInfo procStartInfo3 = new ProcessStartInfo(folder + "curl.exe", "-k -v --cookie cookies.txt -H \"Transfer-Encoding: chunked\" --upload-file " + item.fullName + " https://data.icos-cp.eu/objects/" + item.hash);
+                            //upload file
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send " + item.fileName);
+                            ProcessStartInfo procStartInfo3 = new ProcessStartInfo(phenofolder + "\\curl.exe", "-k -v --cookie cookies.txt -H \"Transfer-Encoding: chunked\" --upload-file " + item.fullName + " https://data.icos-cp.eu/objects/" + item.hash);
 
-                            //            //log.WriteLine(procStartInfo3.Arguments.ToString());
-                            //            stuff(procStartInfo3, log, false);
+                            //log.WriteLine(procStartInfo3.Arguments.ToString());
+                            stuff(procStartInfo3,phenofolder, log, false);
 
-                            //            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send " + item.fileName);
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send " + item.fileName);
 
-                            //            //move file
-                            //            if (File.Exists(item.fullName.Replace("toUpload", "uploaded")))
-                            //                File.Delete(item.fullName.Replace("toUpload", "uploaded"));
-                            //            try
-                            //            {
-                            //                WaitForFile(item.fullName.ToString(), maxWaitInSec: 60);
-                            //                var web = new HtmlWeb();
-                            //                var doc = web.Load(reply.Replace("data", "meta"));
-                            //                var parsedtext = doc.ParsedText;
-                            //                if (parsedtext != null && parsedtext.Contains("btn-warning") && parsedtext.Contains(reply))
-                            //                {
-                            //                    File.Move(item.fullName, item.fullName.Replace("toUpload", "uploaded"));
-                            //                    log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send success: " + reply.Replace("data", "meta"));
-                                                item.upload.status = phenoUploadStatus.sentSucces;
-                                                PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
-                            //                }
-                            //                else
-                            //                {
-                            //                    File.Move(item.fullName, item.fullName.Replace("toUpload", "failed"));
-                            //                    log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send failed: " + reply.Replace("data", "meta"));
-                            //                    item.upload.status = phenoUploadStatus.sentFailed;
-                            //                    PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
-                            //                }                            
-                            //            }
-                            //            catch (Exception e)
-                            //            { }
+                            //move file
+                            if (System.IO.File.Exists(item.fullName.Replace("ZIP", "uploaded")))
+                                System.IO.File.Delete(item.fullName.Replace("ZIP", "uploaded"));
+                            try
+                            {
+                                WaitForFile(item.fullName.ToString(), maxWaitInSec: 60);
+                                var web = new HtmlWeb();
+                                var doc = web.Load(reply.Replace("data", "meta"));
+                                var parsedtext = doc.ParsedText;
+                                if (parsedtext != null && parsedtext.Contains("btn-warning") && parsedtext.Contains(reply.Replace("data","meta")))
+                                {
+                                    System.IO.File.Move(item.fullName, item.fullName.Replace("ZIP", "uploaded"));
+                                    log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send success: " + reply.Replace("data", "meta"));
+                                    item.upload.status = phenoUploadStatus.sentSucces;
+                                    PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
+                                }
+                                else
+                                {
+                                    System.IO.File.Move(item.fullName, item.fullName.Replace("ZIP", "failed"));
+                                    log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send failed: " + reply.Replace("data", "meta"));
+                                    item.upload.status = phenoUploadStatus.sentFailed;
+                                    PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
+                                }
+                            }
+                            catch (Exception e)
+                            { }
                         }
                     }
                 }

@@ -22,5 +22,6 @@ namespace UploadWebapp.Models.Pheno
         public string name { get; set; }
         public string hash { get; set; }
         public phenoUploadStatus status { get; set; }
+        public bool dateProblem { get; set; }
     }
 }

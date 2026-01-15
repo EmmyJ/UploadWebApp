@@ -27,7 +27,7 @@ namespace UploadWebapp.DB
 
             foreach (PhenoCamera cam in phenoCameras)
             {
-                if (cam.lastDate != null)
+                if (cam.newDate != null && (cam.lastDate == null || cam.newDate > cam.lastDate))
                 {
                     db.ExecuteScalar("UPDATE [LAI_App].[dbo].[phenoCameras] SET [lastDate] = @lastDate WHERE ID = @ID",
                     new SqlParameter("lastDate", cam.newDate),
@@ -59,11 +59,12 @@ namespace UploadWebapp.DB
             db = new DB();
             int id;
 
-            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[phenoUploads] ([phenoCameraID], [name] ,[dateTime],[status]) VALUES (@phenoCameraID, @name ,@dateTime,@status);SELECT IDENT_CURRENT('[dbo].[phenoUploads]');",
+            id = Convert.ToInt32(db.ExecuteScalar("INSERT INTO [dbo].[phenoUploads] ([phenoCameraID], [name] ,[dateTime],[status],[dateProblem]) VALUES (@phenoCameraID, @name ,@dateTime,@status,@dateProblem);SELECT IDENT_CURRENT('[dbo].[phenoUploads]');",
                         new SqlParameter("phenoCameraID", upload.phenoCameraID),
                         new SqlParameter("name", upload.name),
                         new SqlParameter("dateTime", DateTime.Now),
-                        new SqlParameter("status", upload.status)));
+                        new SqlParameter("status", upload.status),
+                        new SqlParameter("dateProblem", upload.dateProblem) ));
             db.Dispose();
             return id;
         }
