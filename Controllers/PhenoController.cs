@@ -278,7 +278,9 @@ namespace UploadWebapp.Controllers
                                 System.IO.File.Delete(item.fullName.Replace("ZIP", "uploaded"));
                             try
                             {
-                                WaitForFile(item.fullName.ToString(), maxWaitInSec: 60);
+                                item.upload.status = phenoUploadStatus.startSent;
+                                PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
+                                WaitForFile(item.fullName.ToString(), maxWaitInSec: 180);
                                 var web = new HtmlWeb();
                                 var doc = web.Load(reply.Replace("data", "meta"));
                                 var parsedtext = doc.ParsedText;
@@ -298,7 +300,11 @@ namespace UploadWebapp.Controllers
                                 }
                             }
                             catch (Exception e)
-                            { }
+                            {
+                                log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send failed: " + reply.Replace("data", "meta") + e.Message);
+                                item.upload.status = phenoUploadStatus.sentFailed;
+                                PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
+                            }
                         }
                     }
                 }
@@ -356,6 +362,7 @@ namespace UploadWebapp.Controllers
 
                 // Start the process.
                 proc.Start();
+                proc.WaitForExit(180000);
 
                 // Attach to stdout and stderr.
                 using (StreamReader std_out = proc.StandardOutput)
