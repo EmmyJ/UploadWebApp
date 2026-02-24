@@ -472,6 +472,7 @@
     <Content Include="Views\Shared\_LayoutAncil.cshtml" />
     <Content Include="Views\ETC\AncillaryReports.cshtml" />
     <Content Include="Views\Pheno\Index.cshtml" />
+    <Content Include="Views\Pheno\CreateUploadPhenocamZips.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -14,7 +14,7 @@ namespace UploadWebapp.DB
         public static List<PhenoCamera> getPhenoCameras(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate] FROM [dbo].[phenoCameras]");
+            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate] FROM [dbo].[phenoCameras] WHERE [status] = 1");
 
             List<PhenoCamera> phenocams = FromPhenoCamerasData(result);
             db.Dispose();

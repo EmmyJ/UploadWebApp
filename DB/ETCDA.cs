@@ -24,6 +24,19 @@ namespace UploadWebapp.DB
             return images;
         }
 
+        public static List<string> getCPfilenames(DB db = null) { 
+        
+            db = new DB();
+            var result = db.ExecuteReader("SELECT [filename] FROM [LAI_App].[dbo].[DHPfilenames]");
+            List<string> filenames = new List<string>();
+            while (result.Read()) {
+                filenames.Add(result.GetString(0));
+            }
+            result.Close();
+            db.Dispose();
+            return filenames;
+        }
+
         //public static void fillCampaign(DB db = null)
         //{
         //    db = new DB();

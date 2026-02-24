@@ -13,6 +13,7 @@ using System.Web.Mvc;
 using UploadWebapp.DB;
 using UploadWebapp.Models.Pheno;
 using HtmlAgilityPack;
+using System.Net.Http.Headers;
 
 namespace UploadWebapp.Controllers
 {
@@ -24,11 +25,23 @@ namespace UploadWebapp.Controllers
             return View();
         }
 
-        public ActionResult CreateUploadPhenocamZips()
+        public ActionResult CreateUploadPhenocamZips(int folder = 0)
         {
             try
             {
-               string phenofolder = ConfigurationManager.AppSettings["phenofolder"];
+                string phenofolder = "";
+                switch (folder)
+                {
+                    case 0:
+                        phenofolder = ConfigurationManager.AppSettings["phenoSFTPfolder"];
+                        break;
+                    case 1:
+                        phenofolder = ConfigurationManager.AppSettings["phenoFTPfolder"];
+                        break;
+                    default:
+                        phenofolder = ConfigurationManager.AppSettings["phenoSFTPfolder"];
+                        break;
+                }
                 string calcfolder = ConfigurationManager.AppSettings["calcfolder"];
                 string mail = ConfigurationManager.AppSettings["CPmail"];
                 string password = ConfigurationManager.AppSettings["CPpassword"];
@@ -50,13 +63,13 @@ namespace UploadWebapp.Controllers
                 var ziplist = new List<Zipfile>();
 
                 //BE-Maa-F01-L01_2025_04_30_224602.jpg
-                Regex rg = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-F[0-9]{2}-L[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
+                Regex rg = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
                 //BE-Maa-F01-L01_2025_04_30_224602.meta
-                Regex rgm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-F[0-9]{2}-L[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+                Regex rgm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
                 //BE-Maa-F01-L01_IR_2025_04_30_224602.jpg
-                Regex rgir = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-F[0-9]{2}-L[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
+                Regex rgir = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
                 //BE-Maa-F01-L01_IR_2025_04_30_224602.meta
-                Regex rgirm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-F[0-9]{2}-L[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+                Regex rgirm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
 
                 //create lists of files for zips
                 foreach (var dir in directories)
@@ -82,8 +95,9 @@ namespace UploadWebapp.Controllers
 
                                 if (rg.IsMatch(filename) || rgm.IsMatch(filename) || rgir.IsMatch(filename) || rgirm.IsMatch(filename))
                                 {
+                                    fi.CopyTo(fi.Directory.FullName.Replace(fi.Directory.Name, "backup") +"\\" +fi.Name,true);
                                     site = filename.Substring(0, 6);
-                                    suffix = "L" + filename.Substring(12, 2) + "_F" + filename.Substring(8, 2);
+                                    suffix = "L" + filename.Substring(8, 2) + "_F" + filename.Substring(12, 2);
                                     ext = fi.Extension;
                                     if (rgm.IsMatch(filename))
                                     {
@@ -103,14 +117,15 @@ namespace UploadWebapp.Controllers
                                         timestamp = filename.Substring(26, 6);
                                         newName = site + "_PHEN_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
 
-                                        string calcName = site + "-" + suffix.Replace("_","-") + "_" + year + "_" + month.ToString("00") + "_" + day.ToString("00") + "_" + timestamp + ext;
+                                        if (new DateTime(year, month, day) <= yesterday) {
+                                            string calcName = site + "-" + suffix.Replace("_", "-") + "_" + year + "_" + month.ToString("00") + "_" + day.ToString("00") + "_" + timestamp + ext;
 
-                                        var cdir = Directory.CreateDirectory(Path.Combine(calcfolder,filename.Substring(0,14)));
-                                        cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName,year.ToString()));
-                                        cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName,month.ToString("00")));
-                                        FileInfo fid = new FileInfo(Path.Combine(cdir.FullName, calcName));
-                                        fid.Delete();
-                                        fi.CopyTo(Path.Combine(cdir.FullName, calcName));
+                                            var cdir = Directory.CreateDirectory(Path.Combine(calcfolder, filename.Substring(0, 14)));
+                                            cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, year.ToString()));
+                                            cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, month.ToString("00")));
+                                            FileInfo fid = new FileInfo(Path.Combine(cdir.FullName, calcName));
+                                            fid.Delete();
+                                            fi.CopyTo(Path.Combine(cdir.FullName, calcName)); }
 
                                     }
                                     else if (rgirm.IsMatch(filename))
@@ -155,7 +170,7 @@ namespace UploadWebapp.Controllers
                                         }
                                         else
                                         {
-                                            Zipfile zipfile = ziplist.Where(s => s.siteCode == site).Where(d => d.date == groupDate).ToList()[0];
+                                            Zipfile zipfile = ziplist.Where(s => s.siteCode == site && s.suffix == suffix).Where(d => d.date == groupDate).ToList()[0];
                                             zipfile.dayfiles.Add(fi.Directory.FullName + "\\" + newName);
                                         }
                                         
@@ -240,7 +255,7 @@ namespace UploadWebapp.Controllers
                             text = text.Replace("XXX3", item.date.AddDays(-1).ToString("yyyy-MM-ddT23:00:00Z"));
                             text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT23:00:00Z"));
                             text = text.Replace("XXX5", item.siteCode);
-                            
+
                             System.IO.File.WriteAllText(metaFileName, text);
 
                             item.upload.status = phenoUploadStatus.metaCreated;
@@ -269,7 +284,7 @@ namespace UploadWebapp.Controllers
                             ProcessStartInfo procStartInfo3 = new ProcessStartInfo(phenofolder + "\\curl.exe", "-k -v --cookie cookies.txt -H \"Transfer-Encoding: chunked\" --upload-file " + item.fullName + " https://data.icos-cp.eu/objects/" + item.hash);
 
                             //log.WriteLine(procStartInfo3.Arguments.ToString());
-                            stuff(procStartInfo3,phenofolder, log, false);
+                            stuff(procStartInfo3, phenofolder, log, false);
 
                             log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send " + item.fileName);
 
@@ -284,7 +299,7 @@ namespace UploadWebapp.Controllers
                                 var web = new HtmlWeb();
                                 var doc = web.Load(reply.Replace("data", "meta"));
                                 var parsedtext = doc.ParsedText;
-                                if (parsedtext != null && parsedtext.Contains("btn-warning") && parsedtext.Contains(reply.Replace("data","meta")))
+                                if (parsedtext != null && parsedtext.Contains("btn-warning") && parsedtext.Contains(reply.Replace("data", "meta")))
                                 {
                                     System.IO.File.Move(item.fullName, item.fullName.Replace("ZIP", "uploaded"));
                                     log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- send success: " + reply.Replace("data", "meta"));

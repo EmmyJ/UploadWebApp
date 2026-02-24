@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity.ModelConfiguration.Configuration;
+using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
@@ -37,7 +39,8 @@ namespace UploadWebapp.Controllers
         //    return View();
         //}
 
-        public ActionResult fillImageDateTaken() {
+        public ActionResult fillImageDateTaken()
+        {
             ETCDA.fillImageDateTaken();
             return View();
         }
@@ -190,11 +193,11 @@ namespace UploadWebapp.Controllers
                         s += ",PAI";
                         s += ",Overstory";
                         s += ",MEAN";
-                        s += ",SPATIAL";                        
+                        s += ",SPATIAL";
                         s += "," + si.plots.Where(p => p.enough).Count().ToString();
                         s += "," + si.clumpAverage.ToString().Replace(",", ".");
                         s += ",Hemispherical photo";
-                        if(si.plots[0].plotname.Substring(0, 2) == "CP")
+                        if (si.plots[0].plotname.Substring(0, 2) == "CP")
                             s += ",Up to 13 DHP pictures were taken in each continuous plots (CP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the CPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
                         else
                             s += ",Up to 7 DHP pictures were taken in each sparse plots (SP). LAI was calculated for each DHP passing the quality check and then averaged per plot if at least 70% of DHP was available. Values reported are the average and SD across the SPs used (number reported in the STATISTIC_NUMBER variable). For more info visit www.icos-etc.eu.";
@@ -248,18 +251,19 @@ namespace UploadWebapp.Controllers
                         data.Add(s);
                     }
                 }
-                string fileName = String.Format("BADM-DHP-LAI_{0}.csv",DateTime.Today.ToString("yyyyMMdd"));
+                string fileName = String.Format("BADM-DHP-LAI_{0}.csv", DateTime.Today.ToString("yyyyMMdd"));
                 string fileContent = String.Join("\n", data);
                 var byteArray = System.Text.ASCIIEncoding.Unicode.GetBytes(fileContent);
-                
-                if(download)
+
+                if (download)
                     return File(byteArray, "text/csv", fileName);
             }
 
             return View(list);
         }
 
-        public ActionResult AncillaryReports() {
+        public ActionResult AncillaryReports()
+        {
             string[] sites = new string[] { "BE-Bra", "BE-Vie", "CH-Dav", "CZ-BK1", "CZ-Lnz", "DE-HoH", "DE-Tha", "DK-Sor", "FI-Hyy", "FI-Sod", "FR-Bil", "FR-FBn", "FR-Fon", "FR-Hes", "FR-Pue", "IT-Cp2", "IT-Ren", "IT-SR2", "NL-Loo", "NO-Hur", "SE-Htm", "SE-Nor", "SE-Svb" };
 
             Dictionary<string, string> reports = new Dictionary<string, string>();
@@ -267,9 +271,31 @@ namespace UploadWebapp.Controllers
             {
                 //reports.Add(site, "/Content/AncillaryReports/" + site + "_Full_Ancillary_Report.html");
                 reports.Add(site, "/Content/AncillaryReports/" + site + "_Ancillary_Report.html");
-            }            
-            return View(reports); 
+            }
+            return View(reports);
         }
 
+        //public ActionResult CleanupDHPs()
+        //{
+        //    if (UserDA.CurrentUserId != null && UserDA.CurrentUserId != 0)
+        //    {
+        //        string DHPfolder = ConfigurationManager.AppSettings["DHPfolder"];
+        //        List<string> CPlist = ETCDA.getCPfilenames(); 
+
+        //        string[] allfiles = Directory.GetFiles(DHPfolder, "*.*", SearchOption.AllDirectories);
+        //        foreach (var file in allfiles)
+        //        {
+        //            FileInfo info = new FileInfo(file);
+        //            if (CPlist.Contains(info.Name)) {
+        //                info.Delete();
+        //            }
+        //        }
+
+        //        return null;
+        //    }
+        //    else
+        //        return RedirectToAction("Login", "Account");
+
+        //}
     }
 }
