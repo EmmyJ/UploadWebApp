@@ -209,18 +209,14 @@ namespace UploadWebapp.Controllers
                         {
                             archive.CreateEntryFromFile(fPath, Path.GetFileName(fPath));
                             System.IO.File.Delete(fPath);
-                            //TODO
-                            // Move to backupfolder for the time being
-                            //System.IO.File.Move(fPath, fPath.Replace("toUpload", "backup"));
-
                         }
                         log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- " + item.fileName);
                     }
                     item.upload.status = phenoUploadStatus.zipCreated;
-                    PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
+                    
+                    PhenoDA.savePhenoUploadStatusAndCount(item.upload.ID, (int)item.upload.status, item.dayfiles.Count);
                 }
 
-                //effekes niet om te testen
                 try
                 {
                     CPuploadGetToken(log, phenofolder, mail, password);
@@ -446,6 +442,13 @@ namespace UploadWebapp.Controllers
 
             }
             return true;
+        }
+
+        public ActionResult dailyPhenoReport()
+        {
+            List<PhenoReportItem> list = PhenoDA.getDailyPhenoReportItems();
+
+            return View(list);
         }
     }
 }

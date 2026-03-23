@@ -247,6 +247,7 @@
     <Compile Include="Models\OverviewModel.cs" />
     <Compile Include="Models\Pager.cs" />
     <Compile Include="Models\Pheno\PhenoCamera.cs" />
+    <Compile Include="Models\Pheno\PhenoReportItem.cs" />
     <Compile Include="Models\Pheno\PhenoUpload.cs" />
     <Compile Include="Models\Plot.cs" />
     <Compile Include="Models\PlotSet.cs" />
@@ -473,6 +474,7 @@
     <Content Include="Views\ETC\AncillaryReports.cshtml" />
     <Content Include="Views\Pheno\Index.cshtml" />
     <Content Include="Views\Pheno\CreateUploadPhenocamZips.cshtml" />
+    <Content Include="Views\Pheno\dailyPhenoReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<UploadWebapp.Models.Pheno.PhenoReportItem>
+
+@{
+    ViewBag.Title = "View";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Daily Phenocam Report</h2>
+
+<table class="ovv" style="border-collapse: collapse; width: 1170px;">
+    <tr>
+        <th>
+            Camera
+        </th>
+        <th>
+            Filename
+        </th>
+        <th>
+            Expected # Files
+        </th>
+        <th>
+            Actual # Files
+        </th>
+        <th>
+            Link
+        </th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr 
+        @if(item.expFileCount != item.actFileCount){ <text>style="color:red;"</text>}
+        
+        >
+        <td>
+            @Html.DisplayFor(modelItem => item.cameraName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.fileName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.expFileCount)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.actFileCount)
+        </td>
+        <td>
+            @if (!string.IsNullOrEmpty(item.hash))
+            {
+            <a href="https://meta.icos-cp.eu/objects/@Html.DisplayFor(modelItem => item.hash)" target="_blank">View on Carbon Portal</a>}
+           
+        </td>
+    </tr>
+}
+
+</table>
