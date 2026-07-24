@@ -15,6 +15,7 @@ namespace UploadWebapp.Models.Pheno
         sentSucces = 6,
         sentFailed = 7
     }
+   
     public class PhenoUpload
     {
         public int ID { get; set; }
@@ -23,5 +24,6 @@ namespace UploadWebapp.Models.Pheno
         public string hash { get; set; }
         public phenoUploadStatus status { get; set; }
         public bool dateProblem { get; set; }
+        public phenoCamType cameraType { get; set; }
     }
 }

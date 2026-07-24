@@ -164,6 +164,7 @@ namespace UploadWebapp.Controllers
                                             zipfile.upload = new PhenoUpload();
                                             zipfile.upload.phenoCameraID = phenoCameras.SingleOrDefault(p => p.name == cam).ID;
                                             zipfile.upload.dateProblem = zipfile.date < phenoCameras.SingleOrDefault(p => p.name == cam).lastDate ? true : false;
+                                            zipfile.upload.cameraType = phenoCameras.SingleOrDefault(p => p.name == cam).type;
                                             zipfile.dayfiles = new List<string>();
                                             zipfile.dayfiles.Add(fi.Directory.FullName + "\\" + newName);
                                             ziplist.Add(zipfile);
@@ -245,12 +246,21 @@ namespace UploadWebapp.Controllers
                             FileInfo fid = new FileInfo(metaFileName);
                             fid.Delete();
                             //write metadata file
+                            //TODO differen timezones
                             string text = System.IO.File.ReadAllText(phenofolder + "\\metaPackageXX.json");
                             text = text.Replace("XXX1", item.fileName);
                             text = text.Replace("XXX2", item.hash);
-                            text = text.Replace("XXX3", item.date.AddDays(-1).ToString("yyyy-MM-ddT23:00:00Z"));
-                            text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT23:00:00Z"));
+                            if (item.siteCode.Contains("GL-ZaF")) {
+                                text = text.Replace("XXX3", item.date.AddDays(-1).ToString("yyyy-MM-ddT22:00:00Z"));
+                                text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT22:00:00Z"));
+                            }
+                            else {
+                                text = text.Replace("XXX3", item.date.AddDays(-1).ToString("yyyy-MM-ddT23:00:00Z"));
+                                text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT23:00:00Z")); 
+                            }
                             text = text.Replace("XXX5", item.siteCode);
+                            //TODO add camera type to metadata
+                            //text = text.Replace("XXX6", item.upload.cameraType.ToString());
 
                             System.IO.File.WriteAllText(metaFileName, text);
 
@@ -444,9 +454,16 @@ namespace UploadWebapp.Controllers
             return true;
         }
 
-        public ActionResult dailyPhenoReport()
+        public ActionResult dailyPhenoReport(DateTime? datetime)
         {
-            List<PhenoReportItem> list = PhenoDA.getDailyPhenoReportItems();
+            string date = "";
+            //if (datetime.HasValue)
+              //  date = datetime.Value.ToString("yyyyMMdd");
+            //else
+                date = DateTime.Now.AddDays(-1).ToString("yyyyMMdd");
+            date = "%" + date + "%";
+
+            List<PhenoReportItem> list = PhenoDA.getDailyPhenoReportItems(date);
 
             return View(list);
         }

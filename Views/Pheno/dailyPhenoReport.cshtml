@@ -1,55 +1,75 @@
 ﻿@model IEnumerable<UploadWebapp.Models.Pheno.PhenoReportItem>
 
-@{
-    ViewBag.Title = "View";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    @{
+        ViewBag.Title = "Daily Phenocam Report";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+
+
 }
+    @{
+        string datestr;
+        DateTime date;
+        if (Model.Any())
+        {
+             datestr = Model.ToList()[0].fileName.Substring(18, 2) + '-' + Model.ToList()[0].fileName.Substring(16, 2) + '-' + Model.ToList()[0].fileName.Substring(12, 4);
 
-<h2>Daily Phenocam Report</h2>
+             date = DateTime.ParseExact(Model.ToList()[0].fileName.Substring(12, 8), "yyyyMMdd", System.Globalization.CultureInfo.CurrentCulture);
+        }
+        else
+        {
+             date = DateTime.Now.AddDays(-1);
+             datestr = date.ToString("dd-MM-yyyy");
+        }
 
-<table class="ovv" style="border-collapse: collapse; width: 1170px;">
-    <tr>
-        <th>
-            Camera
-        </th>
-        <th>
-            Filename
-        </th>
-        <th>
-            Expected # Files
-        </th>
-        <th>
-            Actual # Files
-        </th>
-        <th>
-            Link
-        </th>
-    </tr>
+    }
+    <h2>Daily Phenocam Report: @datestr</h2>
 
-@foreach (var item in Model) {
-    <tr 
-        @if(item.expFileCount != item.actFileCount){ <text>style="color:red;"</text>}
-        
-        >
-        <td>
-            @Html.DisplayFor(modelItem => item.cameraName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.fileName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.expFileCount)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.actFileCount)
-        </td>
-        <td>
-            @if (!string.IsNullOrEmpty(item.hash))
-            {
-            <a href="https://meta.icos-cp.eu/objects/@Html.DisplayFor(modelItem => item.hash)" target="_blank">View on Carbon Portal</a>}
-           
-        </td>
-    </tr>
-}
+    @Html.ActionLink("< Prev", "dailyPhenoReport", new { datetime = date.AddDays(-1).ToString("yyyy-MM-dd") }, new { @class = "button rounded fill-highlight col-md-2" })
 
-</table>
+    @if (date < DateTime.Today.AddDays(-1)) {
+    @Html.ActionLink("Next >", "dailyPhenoReport", new { datetime = date.AddDays(+1).ToString("yyyy-MM-dd") }, new { @class = "button rounded fill-highlight col-md-2 col-md-offset-8" })}
+    <p></p><br /><br /></p>
+    <table class="ovv" style="border-collapse: collapse; width: 1170px;">
+        <tr>
+            <th>
+                Camera
+            </th>
+            <th>
+                Filename
+            </th>
+            <th>
+                Expected # Files
+            </th>
+            <th>
+                Actual # Files
+            </th>
+            <th>
+                Link
+            </th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr @if (item.expFileCount != item.actFileCount) { <text> style="color:red;" </text> }>
+                <td>
+                    @Html.DisplayFor(modelItem => item.cameraName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.fileName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.expFileCount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.actFileCount)
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.hash))
+                    {
+                        <a href="https://meta.icos-cp.eu/objects/@Html.DisplayFor(modelItem => item.hash)" target="_blank">View on Carbon Portal</a>}
+
+                </td>
+            </tr>
+        }
+
+    </table>

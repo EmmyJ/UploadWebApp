@@ -265,6 +265,8 @@ namespace UploadWebapp.Controllers
         public ActionResult AncillaryReports()
         {
             string[] sites = new string[] { "BE-Bra", "BE-Vie", "CH-Dav", "CZ-BK1", "CZ-Lnz", "DE-HoH", "DE-Tha", "DK-Sor", "FI-Hyy", "FI-Sod", "FR-Bil", "FR-FBn", "FR-Fon", "FR-Hes", "FR-Pue", "IT-Cp2", "IT-Ren", "IT-SR2", "NL-Loo", "NO-Hur", "SE-Htm", "SE-Nor", "SE-Svb" };
+            string[] NFsites = new string[] { "BE-Dor", "BE-Lon", "BE-Maa", "DE-Geb", "DE-RuS", "DK-Vng", "FI-Lom", "FI-Sii", "FR-Gri", "FR-Lam", "FR-Lqu", "FR-Lus", "GL-ZaF", "IT-BCi", "IT-MBo", "SE-Deg", "SE-Myc", "SE-Sto", "UK-AMo" };
+
 
             Dictionary<string, string> reports = new Dictionary<string, string>();
             foreach (string site in sites)
@@ -272,7 +274,13 @@ namespace UploadWebapp.Controllers
                 //reports.Add(site, "/Content/AncillaryReports/" + site + "_Full_Ancillary_Report.html");
                 reports.Add(site, "/Content/AncillaryReports/" + site + "_Ancillary_Report.html");
             }
-            return View(reports);
+            foreach (string site in NFsites)
+            {
+                //reports.Add(site, "/Content/AncillaryReports/" + site + "_Full_Ancillary_Report.html");
+                reports.Add(site, "/Content/AncillaryReports/" + site + "_PRELIMINARY_Ancillary_Report.html");
+            }
+            var sortedReports = reports.OrderBy(r => r.Key);
+            return View(sortedReports);
         }
 
         //public ActionResult CleanupDHPs()

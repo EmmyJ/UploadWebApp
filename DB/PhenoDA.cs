@@ -14,7 +14,7 @@ namespace UploadWebapp.DB
         public static List<PhenoCamera> getPhenoCameras(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate] FROM [dbo].[phenoCameras] WHERE [status] = 1");
+            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate], [type] FROM [dbo].[phenoCameras] WHERE [status] = 1");
 
             List<PhenoCamera> phenocams = FromPhenoCamerasData(result);
             db.Dispose();
@@ -47,6 +47,7 @@ namespace UploadWebapp.DB
                 phenocam.name = data.GetString(1);
                 phenocam.status = (phenoCamStatus)data.GetByte(2);
                 phenocam.lastDate = data.IsDBNull(3) ? (DateTime?)null : data.GetDateTime(3);
+                phenocam.type = (phenoCamType)data.GetByte(4);
 
                 result.Add(phenocam);
             }
@@ -100,10 +101,12 @@ namespace UploadWebapp.DB
             db.Dispose();
         }
 
-        public static List<PhenoReportItem> getDailyPhenoReportItems(DB db = null)
+        public static List<PhenoReportItem> getDailyPhenoReportItems(string date, DB db = null)
         {
             db = new DB();
 
+            //var result = db.ExecuteReader("select c.name, u.name, c.expFileCount, isnull(u.fileCount,0) fileCount, u.status, u.hash from [LAI_App].[dbo].[phenoCameras] c LEFT OUTER JOIN [LAI_App].[dbo].[phenoUploads] u on u.phenoCameraID = c.ID where c.status = 1 and  u.name like @date order by c.name",
+                        //new SqlParameter("date", date));
             var result = db.ExecuteReader("select c.name, u.name, c.expFileCount, isnull(u.fileCount,0) fileCount, u.status, u.hash from [LAI_App].[dbo].[phenoCameras] c LEFT OUTER JOIN [LAI_App].[dbo].[phenoUploads] u on u.phenoCameraID = c.ID where c.status = 1 and ( cast(u.dateTime as date) = cast(getdate() as date) or u.dateTime is null) order by c.name");
 
             List<PhenoReportItem> list = FromPhenoReportData(result);
