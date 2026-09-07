@@ -107,7 +107,8 @@ namespace UploadWebapp.DB
 
             //var result = db.ExecuteReader("select c.name, u.name, c.expFileCount, isnull(u.fileCount,0) fileCount, u.status, u.hash from [LAI_App].[dbo].[phenoCameras] c LEFT OUTER JOIN [LAI_App].[dbo].[phenoUploads] u on u.phenoCameraID = c.ID where c.status = 1 and  u.name like @date order by c.name",
                         //new SqlParameter("date", date));
-            var result = db.ExecuteReader("select c.name, u.name, c.expFileCount, isnull(u.fileCount,0) fileCount, u.status, u.hash from [LAI_App].[dbo].[phenoCameras] c LEFT OUTER JOIN [LAI_App].[dbo].[phenoUploads] u on u.phenoCameraID = c.ID where c.status = 1 and ( cast(u.dateTime as date) = cast(getdate() as date) or u.dateTime is null) order by c.name");
+            //var result = db.ExecuteReader("select c.name, u.name, c.expFileCount, isnull(u.fileCount,0) fileCount, u.status, u.hash from [LAI_App].[dbo].[phenoCameras] c LEFT OUTER JOIN [LAI_App].[dbo].[phenoUploads] u on u.phenoCameraID = c.ID where c.status = 1 and ( cast(u.dateTime as date) = cast(getdate() as date) or u.dateTime is null) order by c.name");
+            var result = db.ExecuteReader("SELECT c.name, u.name AS name, c.expFileCount, ISNULL(u.fileCount, 0) AS filecount, u.status, u.hash FROM [LAI_App].[dbo].[phenoCameras] AS c OUTER APPLY ( SELECT TOP (1) p.name, p.fileCount,p.status, p.hash FROM [LAI_App].[dbo].[phenoUploads] AS p WHERE p.phenoCameraID = c.ID   AND p.name like @date and status = 6 ) AS u where c.status = 1 ORDER BY c.name;", new SqlParameter("date", date));
 
             List<PhenoReportItem> list = FromPhenoReportData(result);
             db.Dispose();

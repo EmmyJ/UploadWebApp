@@ -457,9 +457,9 @@ namespace UploadWebapp.Controllers
         public ActionResult dailyPhenoReport(DateTime? datetime)
         {
             string date = "";
-            //if (datetime.HasValue)
-              //  date = datetime.Value.ToString("yyyyMMdd");
-            //else
+            if (datetime.HasValue)
+                date = datetime.Value.ToString("yyyyMMdd");
+            else
                 date = DateTime.Now.AddDays(-1).ToString("yyyyMMdd");
             date = "%" + date + "%";
 

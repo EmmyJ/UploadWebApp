@@ -9,16 +9,17 @@
     @{
         string datestr;
         DateTime date;
-        if (Model.Any())
+        UploadWebapp.Models.Pheno.PhenoReportItem ri = Model.ToList().Where(x => !string.IsNullOrEmpty(x.fileName)).FirstOrDefault();
+        if (ri != null)
         {
-             datestr = Model.ToList()[0].fileName.Substring(18, 2) + '-' + Model.ToList()[0].fileName.Substring(16, 2) + '-' + Model.ToList()[0].fileName.Substring(12, 4);
+            datestr = ri.fileName.Substring(18, 2) + '-' + ri.fileName.Substring(16, 2) + '-' + ri.fileName.Substring(12, 4);
 
-             date = DateTime.ParseExact(Model.ToList()[0].fileName.Substring(12, 8), "yyyyMMdd", System.Globalization.CultureInfo.CurrentCulture);
+            date = DateTime.ParseExact(ri.fileName.Substring(12, 8), "yyyyMMdd", System.Globalization.CultureInfo.CurrentCulture);
         }
         else
         {
-             date = DateTime.Now.AddDays(-1);
-             datestr = date.ToString("dd-MM-yyyy");
+            date = DateTime.Now.AddDays(-1);
+            datestr = date.ToString("dd-MM-yyyy");
         }
 
     }
