@@ -1,4 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -6,14 +8,13 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using UploadWebapp.DB;
 using UploadWebapp.Models.Pheno;
-using HtmlAgilityPack;
-using System.Net.Http.Headers;
 
 namespace UploadWebapp.Controllers
 {
@@ -25,7 +26,80 @@ namespace UploadWebapp.Controllers
             return View();
         }
 
-        public ActionResult CreateUploadPhenocamZips(int folder = 0)
+        /*public ActionResult retryFails(int folder =1)
+        {
+            try
+            {
+                string phenofolder = "";
+                switch (folder)
+                {
+                    case 0:
+                        phenofolder = ConfigurationManager.AppSettings["phenoSFTPfolder"];
+                        break;
+                    case 1:
+                        phenofolder = ConfigurationManager.AppSettings["phenoFTPfolder"];
+                        break;
+                    default:
+                        phenofolder = ConfigurationManager.AppSettings["phenoSFTPfolder"];
+                        break;
+                }
+
+                string mail = ConfigurationManager.AppSettings["CPmail"];
+                string password = ConfigurationManager.AppSettings["CPpassword"];
+                string logs = phenofolder + "\\logs";
+                if (!System.IO.Directory.Exists(logs))
+                    System.IO.Directory.CreateDirectory(logs);
+                StreamWriter log = new StreamWriter(phenofolder + "\\logs\\retry_phenocam_" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm") + ".log", true);
+                log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- " + "Start Retry Phenocam upload");
+
+                var directory = new DirectoryInfo(phenofolder + "\\failed");
+                var upDir = new DirectoryInfo(phenofolder + "\\uploaded");
+                CPuploadGetToken(log, phenofolder, mail, password);
+
+                foreach (var file in Directory.GetFiles(directory.FullName,"*202609*"))
+                {
+                    try
+                    {
+                        FileInfo fi = new FileInfo(file);
+                        string name = fi.Name;
+                        string metaUrl = Directory.GetFiles(upDir.FullName, "*" + name.Substring(0, 28) + ".json").SingleOrDefault();
+
+                        PhenoUpload upload = PhenoDA.GetPhenoUpload(name);
+
+                        if (upload != null) {
+                            //send metadata
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send metapackage " + name);
+                            ProcessStartInfo procStartInfo2 = new ProcessStartInfo(phenofolder + "\\curl.exe", " /C -k --cookie cookies.txt -H \"Content-Type: application/json\" -X POST -d @\"" + metaUrl + "\" https://meta.icos-cp.eu/upload");
+                            string reply = stuff(procStartInfo2, phenofolder, log, true);
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- reply: " + reply);
+
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send metapackage");
+
+                            upload.status = phenoUploadStatus.metaSent;
+                            PhenoDA.savePhenoUploadStatus(upload.ID, (int)upload.status);
+
+                            //upload file
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- start send " + fi.Name);
+                            ProcessStartInfo procStartInfo3 = new ProcessStartInfo(phenofolder + "\\curl.exe", "-k -v --cookie cookies.txt -H \"Transfer-Encoding: chunked\" --upload-file " + fi.FullName + " https://data.icos-cp.eu/objects/" + upload.hash);
+
+                            //log.WriteLine(procStartInfo3.Arguments.ToString());
+                            stuff(procStartInfo3, phenofolder, log, false);
+
+                            log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- end send " + fi.Name);
+                        }
+                    }
+                    catch (Exception e) { log.Close(); }
+                }
+                log.Close();
+            }
+
+            catch (Exception e) { }
+
+            return View();
+
+        }*/
+
+        public ActionResult CreateUploadPhenocamZips(int folder = 1)
         {
             try
             {
@@ -63,20 +137,29 @@ namespace UploadWebapp.Controllers
                 var ziplist = new List<Zipfile>();
 
                 //BE-Maa-F01-L01_2025_04_30_224602.jpg
-                Regex rg = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
+                Regex oldrg = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}\\.(?i)jpe?g$");
                 //BE-Maa-F01-L01_2025_04_30_224602.meta
-                Regex rgm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+                Regex oldrgm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
                 //BE-Maa-F01-L01_IR_2025_04_30_224602.jpg
-                Regex rgir = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.[a-zA-Z0-9]{3}");
+                Regex oldrgir = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}\\.(?i)jpe?g$");
                 //BE-Maa-F01-L01_IR_2025_04_30_224602.meta
-                Regex rgirm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+                Regex oldrgirm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-L[0-9]{2}-F[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+
+                //BE-Maa-C01_2025_04_30_224602.jpg
+                Regex rg = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-C[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}\\.(?i)jpe?g$");
+                //BE-Maa-C01_2025_04_30_224602.meta
+                Regex rgm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-C[0-9]{2}_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
+                //BE-Maa-C01_IR_2025_04_30_224602.jpg
+                Regex rgir = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-C[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}\\.(?i)jpe?g$");
+                //BE-Maa-C01_IR_2025_04_30_224602.meta
+                Regex rgirm = new Regex("[a-zA-Z]{2}-[a-zA-Z0-9]{3}-C[0-9]{2}_IR_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}.meta");
 
                 //create lists of files for zips
                 foreach (var dir in directories)
                 {
                     DirectoryInfo directoryName = new DirectoryInfo(dir);
                     string cam = directoryName.Name;
-                    if (phenoCameras.SingleOrDefault(p => p.name == cam && p.status == phenoCamStatus.process) != null)
+                    if (phenoCameras.SingleOrDefault(p => (p.name == cam || p.oldName == cam) && p.status == phenoCamStatus.process) != null)
                     {
                         foreach (var file in Directory.GetFiles(dir))
                         {
@@ -92,58 +175,107 @@ namespace UploadWebapp.Controllers
                                 string timestamp = "";
                                 string ext = "";
                                 string newName = "";
+                                string calcFolderName = "";
 
-                                if (rg.IsMatch(filename) || rgm.IsMatch(filename) || rgir.IsMatch(filename) || rgirm.IsMatch(filename))
+                                if (oldrg.IsMatch(filename) || oldrgm.IsMatch(filename) || oldrgir.IsMatch(filename) || oldrgirm.IsMatch(filename) || rg.IsMatch(filename) || rgm.IsMatch(filename) || rgir.IsMatch(filename) || rgirm.IsMatch(filename))
                                 {
-                                    fi.CopyTo(fi.Directory.FullName.Replace(fi.Directory.Name, "backup") +"\\" +fi.Name,true);
-                                    site = filename.Substring(0, 6);
-                                    suffix = "L" + filename.Substring(8, 2) + "_F" + filename.Substring(12, 2);
-                                    ext = fi.Extension;
-                                    if (rgm.IsMatch(filename))
+                                    //backup before renaming
+                                    fi.CopyTo(fi.Directory.FullName.Replace(fi.Directory.Name, "backup") + "\\" + fi.Name, true);
+                                }
+
+                                //copy to calc folder before renaming, for phenocam calculations
+                                if (rg.IsMatch(filename) || oldrg.IsMatch(filename)) 
+                                {                                
+                                    if (rg.IsMatch(filename))
                                     {
-                                        //BE-Maa-F01-L01_2025_04_30_224602.meta
-                                        int.TryParse(filename.Substring(15, 4), out year);
-                                        int.TryParse(filename.Substring(20, 2), out month);
-                                        int.TryParse(filename.Substring(23, 2), out day);
-                                        timestamp = filename.Substring(26, 6);
-                                        newName = site + "_PHEN_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
+                                        //BE-Maa-C01_2025_04_30_224602.jpg
+                                        int.TryParse(filename.Substring(11, 4), out year);
+                                        int.TryParse(filename.Substring(16, 2), out month);
+                                        int.TryParse(filename.Substring(19, 2), out day);
+                                        calcFolderName = filename.Substring(0, 10);
                                     }
-                                    else if (rg.IsMatch(filename))
+                                    else 
                                     {
                                         //BE-Maa-F01-L01_2025_04_30_224602.jpg
                                         int.TryParse(filename.Substring(15, 4), out year);
                                         int.TryParse(filename.Substring(20, 2), out month);
                                         int.TryParse(filename.Substring(23, 2), out day);
-                                        timestamp = filename.Substring(26, 6);
+                                        calcFolderName = filename.Substring(0, 14);
+                                    }
+                                    if (new DateTime(year, month, day) <= yesterday)
+                                    {
+                                        var cdir = Directory.CreateDirectory(Path.Combine(calcfolder, calcFolderName));
+                                        cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, year.ToString()));
+                                        cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, month.ToString("00")));
+                                        FileInfo fid = new FileInfo(Path.Combine(cdir.FullName, filename));
+                                        fid.Delete();
+                                        fi.CopyTo(Path.Combine(cdir.FullName, filename));
+                                    }
+                                }
+
+                                //rename old filenames to new format
+                                if (oldrg.IsMatch(filename) || oldrgm.IsMatch(filename) || oldrgir.IsMatch(filename) || oldrgirm.IsMatch(filename)) {
+                                    PhenoCamera camToUpdate = phenoCameras.SingleOrDefault(p => p.name == cam || p.oldName == cam);
+                                    fi.MoveTo(Path.Combine(fi.Directory.FullName, fi.Name.Replace(camToUpdate.oldName, camToUpdate.name)));
+                                    filename = fi.Name;
+                                    cam = camToUpdate.name;
+                                }
+
+                                if (rg.IsMatch(filename) || rgm.IsMatch(filename) || rgir.IsMatch(filename) || rgirm.IsMatch(filename))
+                                {
+                                    site = filename.Substring(0, 6);
+                                    suffix = filename.Substring(7, 3);
+                                    ext = fi.Extension;
+                                    if (rgm.IsMatch(filename))
+                                    {
+                                        //BE-Maa-F01-L01_2025_04_30_224602.meta
+                                        //BE-Maa-C01_2025_04_30_224602.jpg
+                                        int.TryParse(filename.Substring(11, 4), out year);
+                                        int.TryParse(filename.Substring(16, 2), out month);
+                                        int.TryParse(filename.Substring(19, 2), out day);
+                                        timestamp = filename.Substring(22, 6);
+                                        newName = site + "_PHEN_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
+                                    }
+                                    else if (rg.IsMatch(filename))
+                                    {
+                                        //BE-Maa-F01-L01_2025_04_30_224602.jpg
+                                        //BE-Maa-C01_2025_04_30_224602.jpg
+                                        int.TryParse(filename.Substring(11, 4), out year);
+                                        int.TryParse(filename.Substring(16, 2), out month);
+                                        int.TryParse(filename.Substring(19, 2), out day);
+                                        timestamp = filename.Substring(22, 6);
                                         newName = site + "_PHEN_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
 
-                                        if (new DateTime(year, month, day) <= yesterday) {
-                                            string calcName = site + "-" + suffix.Replace("_", "-") + "_" + year + "_" + month.ToString("00") + "_" + day.ToString("00") + "_" + timestamp + ext;
 
-                                            var cdir = Directory.CreateDirectory(Path.Combine(calcfolder, filename.Substring(0, 14)));
-                                            cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, year.ToString()));
-                                            cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, month.ToString("00")));
-                                            FileInfo fid = new FileInfo(Path.Combine(cdir.FullName, calcName));
-                                            fid.Delete();
-                                            fi.CopyTo(Path.Combine(cdir.FullName, calcName)); }
+                                        ////TODO copy to calcfolder before renaming, for phenocam calculations
+                                        //if (new DateTime(year, month, day) <= yesterday) {
+                                        //    string calcName = site + "-" + suffix.Replace("_", "-") + "_" + year + "_" + month.ToString("00") + "_" + day.ToString("00") + "_" + timestamp + ext;
 
+                                        //    var cdir = Directory.CreateDirectory(Path.Combine(calcfolder, filename.Substring(0, 10)));
+                                        //    cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, year.ToString()));
+                                        //    cdir = Directory.CreateDirectory(Path.Combine(cdir.FullName, month.ToString("00")));
+                                        //    FileInfo fid = new FileInfo(Path.Combine(cdir.FullName, calcName));
+                                        //    fid.Delete();
+                                        //    fi.CopyTo(Path.Combine(cdir.FullName, calcName)); 
+                                        //}
                                     }
                                     else if (rgirm.IsMatch(filename))
                                     {
                                         //BE-Maa-F01-L01_IR_2025_04_30_224602.meta
-                                        int.TryParse(filename.Substring(18, 4), out year);
-                                        int.TryParse(filename.Substring(23, 2), out month);
-                                        int.TryParse(filename.Substring(26, 2), out day);
-                                        timestamp = filename.Substring(29, 6);
+                                        //BE-Maa-C01_IR_2025_04_30_224602.meta
+                                        int.TryParse(filename.Substring(14, 4), out year);
+                                        int.TryParse(filename.Substring(19, 2), out month);
+                                        int.TryParse(filename.Substring(22, 2), out day);
+                                        timestamp = filename.Substring(25, 6);
                                         newName = site + "_PHEN_IR_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
                                     }
                                     else
                                     {
                                         //BE-Maa-F01-L01_IR_2025_04_30_224602.jpg
-                                        int.TryParse(filename.Substring(18, 4), out year);
-                                        int.TryParse(filename.Substring(23, 2), out month);
-                                        int.TryParse(filename.Substring(26, 2), out day);
-                                        timestamp = filename.Substring(29, 6);
+                                        int.TryParse(filename.Substring(14, 4), out year);
+                                        int.TryParse(filename.Substring(19, 2), out month);
+                                        int.TryParse(filename.Substring(22, 2), out day);
+                                        timestamp = filename.Substring(25, 6);
                                         newName = site + "_PHEN_IR_" + year + month.ToString("00") + day.ToString("00") + timestamp + "_" + suffix + ext;
                                     }
 
@@ -162,7 +294,7 @@ namespace UploadWebapp.Controllers
                                             zipfile.date = groupDate;
                                             zipfile.suffix = suffix;
                                             zipfile.upload = new PhenoUpload();
-                                            zipfile.upload.phenoCameraID = phenoCameras.SingleOrDefault(p => p.name == cam).ID;
+                                            zipfile.upload.phenoCameraID = phenoCameras.SingleOrDefault(p => p.name == cam || p.oldName == cam).ID;
                                             zipfile.upload.dateProblem = zipfile.date < phenoCameras.SingleOrDefault(p => p.name == cam).lastDate ? true : false;
                                             zipfile.upload.cameraType = phenoCameras.SingleOrDefault(p => p.name == cam).type;
                                             zipfile.dayfiles = new List<string>();
@@ -175,8 +307,8 @@ namespace UploadWebapp.Controllers
                                             zipfile.dayfiles.Add(fi.Directory.FullName + "\\" + newName);
                                         }
                                         
-                                        if (phenoCameras.SingleOrDefault(p => p.name == cam).newDate == null || groupDate > phenoCameras.SingleOrDefault(p => p.name == cam).newDate)
-                                            phenoCameras.SingleOrDefault(p => p.name == cam).newDate = groupDate;
+                                        if (phenoCameras.SingleOrDefault(p => p.name == cam || p.oldName == cam).newDate == null || groupDate > phenoCameras.SingleOrDefault(p => p.name == cam || p.oldName == cam).newDate)
+                                            phenoCameras.SingleOrDefault(p => p.name == cam || p.oldName == cam).newDate = groupDate;
                                         
                                     }
                                 }
@@ -259,7 +391,7 @@ namespace UploadWebapp.Controllers
                                 text = text.Replace("XXX4", item.date.ToString("yyyy-MM-ddT23:00:00Z")); 
                             }
                             text = text.Replace("XXX5", item.siteCode);
-                            //TODO add camera type to metadata
+                            //TODO add camera serial to metadata
                             //text = text.Replace("XXX6", item.upload.cameraType.ToString());
 
                             System.IO.File.WriteAllText(metaFileName, text);
@@ -272,9 +404,6 @@ namespace UploadWebapp.Controllers
                             ProcessStartInfo procStartInfo2 = new ProcessStartInfo(phenofolder + "\\curl.exe", " /C -k --cookie cookies.txt -H \"Content-Type: application/json\" -X POST -d @\"" + metaFileName + "\" https://meta.icos-cp.eu/upload");
                             string reply = stuff(procStartInfo2, phenofolder, log, true);
                             log.WriteLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + " -- reply: " + reply);
-
-                            //TODO alles hierna nakijken!!! filenames/folders/locaties
-                            // dubbele // werkt niet?
 
                             string mpName = metaFileName.Replace("ZIP", "uploaded");
                             if (System.IO.File.Exists(mpName))
@@ -342,7 +471,7 @@ namespace UploadWebapp.Controllers
             {
                 return View(e.ToString());
             }
-        }
+        }       
 
         private static void CPuploadGetToken(StreamWriter curlLogger, string folder, string mail, string password)
         {

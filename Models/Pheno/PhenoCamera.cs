@@ -23,9 +23,12 @@ namespace UploadWebapp.Models.Pheno
     {
         public int ID { get; set; }
         public string name { get; set; }
+        public string oldName { get; set; }
         public phenoCamStatus status { get; set; }
+        public int expFileCount { get; set; }
         public DateTime? lastDate { get; set; }
         public DateTime? newDate { get; set; }
         public phenoCamType type { get; set; }
+        public string serial { get; set; }
     }
 }

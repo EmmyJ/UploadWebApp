@@ -14,11 +14,33 @@ namespace UploadWebapp.DB
         public static List<PhenoCamera> getPhenoCameras(DB db = null)
         {
             db = new DB();
-            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate], [type] FROM [dbo].[phenoCameras] WHERE [status] = 1");
+            var result = db.ExecuteReader("SELECT [ID], [name], [status], [lastDate], [type], [oldName], [expFileCount] FROM [dbo].[phenoCameras] WHERE [status] = 1");
 
             List<PhenoCamera> phenocams = FromPhenoCamerasData(result);
             db.Dispose();
             return phenocams;
+        }
+
+        public static PhenoUpload GetPhenoUpload(string name, DB db = null)
+        {
+            db = new DB();
+            var result = db.ExecuteReader(
+                "SELECT [ID], [phenoCameraID], [name], [status], [hash] FROM [dbo].[phenoUploads] WHERE [name] = @name",
+                new SqlParameter("name", name));
+            PhenoUpload upload = null;
+
+            if (result.Read())
+            {
+                upload = new PhenoUpload();
+                upload.ID = result.GetInt32(0);
+                upload.phenoCameraID = result.GetInt32(1);
+                upload.name = result.GetString(2);
+                upload.status = (phenoUploadStatus)(result.IsDBNull(3) ? (phenoUploadStatus?)null : (phenoUploadStatus)result.GetByte(3));
+                upload.hash = result.IsDBNull(4) ? null : result.GetString(4);
+            }
+
+            db.Dispose();
+            return upload;
         }
 
         public static void saveLastDates(List<PhenoCamera> phenoCameras, DB db = null)
@@ -48,6 +70,8 @@ namespace UploadWebapp.DB
                 phenocam.status = (phenoCamStatus)data.GetByte(2);
                 phenocam.lastDate = data.IsDBNull(3) ? (DateTime?)null : data.GetDateTime(3);
                 phenocam.type = (phenoCamType)data.GetByte(4);
+                phenocam.oldName = data.IsDBNull(5) ? "" : data.GetString(5);
+                phenocam.expFileCount = data.IsDBNull(6) ? 0 : data.GetInt16(6);
 
                 result.Add(phenocam);
             }
