@@ -108,14 +108,12 @@ namespace UploadWebapp.Controllers
         //
         // Required usings:
         //   System, System.Collections.Generic, System.Configuration, System.Diagnostics,
-        //   System.Globalization, System.IO, System.IO.Compression, System.Linq, System.Net,
-        //   System.Security.Cryptography, System.Text.RegularExpressions, System.Web.Mvc,
-        //   HtmlAgilityPack
+        //   System.Globalization, System.Threading, System.Threading.Tasks, System.IO, System.IO.Compression, System.Linq,
+        //   System.Security.Cryptography, System.Text.RegularExpressions, System.Web.Mvc
         //
         // Targets C# 6 / .NET Framework (no out-vars, no ValueTuples).
         // Assumes these members already exist in the controller / project:
-        //   RunProcess, WaitForFile        -> PhenocamHelpers.cs
-        //   LoginToIcos, HasCookie         -> PhenocamAuth.cs (replaces CPuploadGetToken)
+        //   RunProcess, LoginToIcos, HasCookie are defined further down in this file
         //   PhenoDA, PhenoCamera, PhenoUpload, Zipfile, phenoCamStatus, phenoUploadStatus
         // ---------------------------------------------------------------------------
 
@@ -125,8 +123,8 @@ namespace UploadWebapp.Controllers
         private const string IcosDataUploadUrl = "https://data.icos-cp.eu/objects/";
 
         // Only files captured inside this time-of-day window (from the file name, both ends inclusive) go into a ZIP.
-        private static readonly TimeSpan UploadWindowStart = new TimeSpan(6, 31, 0);
-        private static readonly TimeSpan UploadWindowEnd = new TimeSpan(20, 29, 0);
+        private static readonly TimeSpan UploadWindowStart = new TimeSpan(6, 45, 0);
+        private static readonly TimeSpan UploadWindowEnd = new TimeSpan(20, 15, 0);
 
         /// <summary>
         /// One regex for every supported camera file name (replaces the previous eight).
@@ -143,6 +141,15 @@ namespace UploadWebapp.Controllers
             @"\.(?<ext>(?i:jpe?g)|meta)$",
             RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+        /// <summary>
+        /// Files that an earlier run already renamed to the archive name (BE-Maa_PHEN_20250430224602_C01.jpg) but never
+        /// got into a ZIP because that run stopped in between. Without this they would sit in the camera folder forever.
+        /// </summary>
+        private static readonly Regex ArchivedFileRegex = new Regex(
+            @"^(?<site>[A-Za-z]{2}-[A-Za-z0-9]{3})_PHEN_(?<ir>IR_)?(?<year>[0-9]{4})(?<month>[0-9]{2})(?<day>[0-9]{2})" +
+            @"(?<time>[0-9]{6})_(?<new>C[0-9]{2})\.(?<ext>(?i:jpe?g)|meta)$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         /// <summary>The parsed pieces of a phenocam file name.</summary>
         private sealed class PhenoFileName
         {
@@ -152,6 +159,7 @@ namespace UploadWebapp.Controllers
             public bool IsOld;         // old camera naming (L01-F01)
             public bool IsIr;          // infrared image/metadata
             public bool IsMeta;        // .meta sidecar instead of an image
+            public bool IsArchived;    // already carries the archive name (left over from an interrupted run)
             public string Time;        // HHmmss
             public TimeSpan TimeOfDay; // the same time as a TimeSpan, for the window check
             public string Extension;   // including the dot, original casing
@@ -165,8 +173,14 @@ namespace UploadWebapp.Controllers
         private static bool TryParseName(string fileName, out PhenoFileName parsed)
         {
             parsed = null;
+            bool archived = false;
             Match m = PhenoFileRegex.Match(fileName);
-            if (!m.Success) return false;
+            if (!m.Success)
+            {
+                m = ArchivedFileRegex.Match(fileName);
+                if (!m.Success) return false;
+                archived = true;
+            }
 
             string ext = m.Groups["ext"].Value;
             bool isOld = m.Groups["old"].Success;
@@ -179,6 +193,7 @@ namespace UploadWebapp.Controllers
                 Suffix = m.Groups["new"].Value,
                 CameraId = site + "-" + (isOld ? m.Groups["old"].Value : m.Groups["new"].Value),
                 IsIr = m.Groups["ir"].Success,
+                IsArchived = archived,
                 IsMeta = ext == "meta",
                 Time = m.Groups["time"].Value,
                 TimeOfDay = new TimeSpan(int.Parse(m.Groups["time"].Value.Substring(0, 2)),
@@ -223,13 +238,29 @@ namespace UploadWebapp.Controllers
         /// <param name="folder">1 = FTP folder (default), anything else = SFTP folder.</param>
         public ActionResult CreateUploadPhenocamZips(int folder = 1)
         {
+            // Two overlapping runs work on the same files at the same time: source files vanish ("Could not find file")
+            // and targets are locked ("being used by another process"). The mutex lets only one run proceed;
+            // a second request (scheduler retry, browser refresh, long-running first run) is skipped.
+            // No "Global\\" prefix: all IIS worker processes share one session, and Global\ needs extra privileges.
+            using (var runLock = new Mutex(false, "PhenocamUpload_" + folder))
+            {
+                bool acquired;
+                try { acquired = runLock.WaitOne(0); }
+                catch (AbandonedMutexException) { acquired = true; } // a previous run died while holding it; we own it now
+
+                if (!acquired)
+                    return View("Another phenocam upload run is still in progress; this request was skipped.");
+
+                try { return RunPhenocamUpload(folder); }
+                finally { runLock.ReleaseMutex(); }
+            }
+        }
+
+        /// <summary>The actual work of <see cref="CreateUploadPhenocamZips"/>, guarded against overlapping runs.</summary>
+        private ActionResult RunPhenocamUpload(int folder)
+        {
             try
             {
-                // .NET Framework may default to SSL3/TLS 1.0, which ICOS rejects ("Could not create SSL/TLS secure channel").
-                // This is process-wide and only affects .NET HTTPS calls (HtmlWeb); curl.exe does its own TLS.
-                // Better long-term: set <httpRuntime targetFramework="4.7.2" /> in web.config and remove this line.
-                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-
                 string phenofolder = ConfigurationManager.AppSettings[folder == 1 ? "phenoFTPfolder" : "phenoSFTPfolder"];
                 string calcfolder = ConfigurationManager.AppSettings["calcfolder"];
                 string mail = ConfigurationManager.AppSettings["CPmail"];
@@ -246,6 +277,7 @@ namespace UploadWebapp.Controllers
                 using (var log = new StreamWriter(logFile, true) { AutoFlush = true })
                 {
                     Log(log, "Start Phenocam upload");
+                    var runTimer = Stopwatch.StartNew(); // shows how long a run takes, e.g. versus the trigger interval
 
                     // Only complete days are processed, so a still-running day is never zipped half-way.
                     DateTime yesterday = DateTime.Today.AddDays(-1);
@@ -263,8 +295,8 @@ namespace UploadWebapp.Controllers
                     {
                         try
                         {
-                            CreateZip(item, Path.Combine(phenofolder, "ZIP"));
-                            Log(log, item.fileName);
+                            int totalEntries = CreateZip(item, Path.Combine(phenofolder, "ZIP"));
+                            Log(log, item.fileName + ": " + item.dayfiles.Count + " files added, " + totalEntries + " in ZIP");
                             created.Add(item);
                         }
                         catch (Exception e)
@@ -304,6 +336,8 @@ namespace UploadWebapp.Controllers
                             Log(log, "Error: " + e);
                         }
                     }
+
+                    Log(log, "Finished in " + runTimer.Elapsed.ToString(@"hh\:mm\:ss"));
                 }
                 return View();
             }
@@ -324,7 +358,7 @@ namespace UploadWebapp.Controllers
         ///   3. renames old-format names to the current camera name,
         ///   4. renames to the ICOS archive name and groups it into a ZIP definition,
         ///      but only when the day is complete (date &lt;= yesterday) and the capture time is inside
-        ///      the upload window (files outside it are moved to \excluded).
+        ///      the upload window (UploadWindowStart-UploadWindowEnd) (files outside it are moved to \excluded).
         /// Errors are logged per file so one bad file never blocks the rest.
         /// </summary>
         /// <returns>ZIP definitions keyed by site|suffix|date.</returns>
@@ -340,93 +374,143 @@ namespace UploadWebapp.Controllers
             {
                 string dirName = new DirectoryInfo(dir).Name;
 
-                // Resolve the camera once per folder (it was looked up up to ~10x per file before).
-                PhenoCamera camera = activeCameras.SingleOrDefault(c => c.name == dirName || c.oldName == dirName);
-                if (camera == null) continue; // logs, backup, ZIP, ... or inactive cameras
-
-                foreach (string file in Directory.GetFiles(dir))
+                // One bad camera (e.g. two cameras sharing a name/oldName, or an unreadable folder) is logged and
+                // skipped; the other cameras are still processed.
+                try
                 {
-                    try
+
+                    // Resolve the camera once per folder (it was looked up up to ~10x per file before).
+                    PhenoCamera camera = activeCameras.SingleOrDefault(c => c.name == dirName || c.oldName == dirName);
+                    if (camera == null) continue; // logs, backup, ZIP, ... or inactive cameras
+
+                    int found = 0, tooRecent = 0, excluded = 0, added = 0, resumed = 0, errors = 0;
+
+                    foreach (string file in Directory.GetFiles(dir))
                     {
-                        var fi = new FileInfo(file);
-
-                        PhenoFileName parsed;
-                        if (!TryParseName(fi.Name, out parsed)) continue; // not a phenocam file
-
-                        // Safety copy before anything is renamed or moved.
-                        //fi.CopyTo(Path.Combine(backupFolder, fi.Name), true); 
-                        //also copy with year/month folders
-                        CopyToCalcFolder(fi, parsed, backupFolder);
-
-                        // Calc-folder copy happens BEFORE renaming and only for visible-light images.
-                        if (!parsed.IsMeta && !parsed.IsIr && parsed.Date <= yesterday)
-                            CopyToCalcFolder(fi, parsed, calcfolder);
-
-                        // Old camera naming -> current naming (done regardless of date).
-                        if (parsed.IsOld &&  parsed.Date <= yesterday)
+                        try
                         {
-                            fi.MoveTo(Path.Combine(dir, fi.Name.Replace(camera.oldName, camera.name)));
-                            if (!TryParseName(fi.Name, out parsed) || parsed.IsOld) continue; // unexpected name
-                        }
+                            var fi = new FileInfo(file);
 
-                        // Only complete days are zipped.
-                        if (parsed.Date > yesterday) continue;
+                            PhenoFileName parsed;
+                            if (!TryParseName(fi.Name, out parsed)) continue; // not a phenocam file
 
-                        // Outside the 06:31-20:29 window: keep it out of the ZIP. It is moved aside (not deleted) so it
-                        // is not picked up again on every run; it was already backed up above.
-                        if (parsed.TimeOfDay < UploadWindowStart || parsed.TimeOfDay > UploadWindowEnd)
-                        {
-                            MoveOverwrite(fi.FullName, Path.Combine(excludedFolder, fi.Name));
-                            continue;
-                        }
+                            found++;
 
-                        string target = Path.Combine(dir, BuildArchiveName(parsed));
-                        System.IO.File.Delete(target);
-                        fi.MoveTo(target);
-
-                        string key = parsed.Site + "|" + parsed.Suffix + "|" +
-                                     parsed.Date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-                        Zipfile zip;
-                        if (!zips.TryGetValue(key, out zip)) // O(1) instead of scanning a list 2-3x per file
-                        {
-                            zip = new Zipfile
+                            // A leftover with the archive name was already backed up/copied/renamed by an earlier run.
+                            if (parsed.IsArchived)
                             {
-                                siteCode = parsed.Site,
-                                suffix = parsed.Suffix,
-                                date = parsed.Date,
-                                dayfiles = new List<string>(),
-                                upload = new PhenoUpload
-                                {
-                                    phenoCameraID = camera.ID,
-                                    dateProblem = parsed.Date < camera.lastDate, // older than what was already sent
-                                    cameraType = camera.type
-                                }
-                            };
-                            zips.Add(key, zip);
-                        }
-                        zip.dayfiles.Add(target);
+                                resumed++;
+                            }
+                            else
+                            {
+                                // Safety copy (camera\year\month layout) before anything is renamed or moved.
+                                // Skipped when the backup already holds a file of the same size, so reruns over a
+                                // backlog or today's incomplete day don't copy everything again.
+                                CopyToDatedFolder(fi, parsed, backupFolder, skipIfSameSize: true);
 
-                        // Track the newest day seen for this camera.
-                        if (camera.newDate == null || parsed.Date > camera.newDate)
-                            camera.newDate = parsed.Date;
+                                // Calc-folder copy happens BEFORE renaming and only for visible-light images.
+                                if (!parsed.IsMeta && !parsed.IsIr && parsed.Date <= yesterday)
+                                    CopyToDatedFolder(fi, parsed, calcfolder, skipIfSameSize: false);
+
+                                // Old camera naming -> current naming (done regardless of date).
+                                if (parsed.IsOld && parsed.Date <= yesterday)
+                                {
+                                    fi.MoveTo(Path.Combine(dir, fi.Name.Replace(camera.oldName, camera.name)));
+                                    if (!TryParseName(fi.Name, out parsed) || parsed.IsOld) continue; // unexpected name
+                                }
+                            }
+
+                            // Only complete days are zipped.
+                            if (parsed.Date > yesterday) { tooRecent++; continue; }
+
+                            // Outside the upload window (UploadWindowStart-UploadWindowEnd): keep it out of the ZIP. It is moved aside (not deleted) so it
+                            // is not picked up again on every run; it was already backed up above.
+                            if (parsed.TimeOfDay < UploadWindowStart || parsed.TimeOfDay > UploadWindowEnd)
+                            {
+                                MoveOverwrite(fi.FullName, Path.Combine(excludedFolder, fi.Name));
+                                excluded++;
+                                continue;
+                            }
+
+                            string target = fi.FullName;
+                            if (!parsed.IsArchived)
+                            {
+                                target = Path.Combine(dir, BuildArchiveName(parsed));
+                                System.IO.File.Delete(target);
+                                fi.MoveTo(target);
+                            }
+
+                            string key = parsed.Site + "|" + parsed.Suffix + "|" +
+                                         parsed.Date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                            Zipfile zip;
+                            if (!zips.TryGetValue(key, out zip)) // O(1) instead of scanning a list 2-3x per file
+                            {
+                                zip = new Zipfile
+                                {
+                                    siteCode = parsed.Site,
+                                    suffix = parsed.Suffix,
+                                    date = parsed.Date,
+                                    dayfiles = new List<string>(),
+                                    upload = new PhenoUpload
+                                    {
+                                        phenoCameraID = camera.ID,
+                                        dateProblem = parsed.Date < camera.lastDate, // older than what was already sent
+                                        cameraType = camera.type
+                                    }
+                                };
+                                zips.Add(key, zip);
+                            }
+                            zip.dayfiles.Add(target);
+                            added++;
+
+                            // Track the newest day seen for this camera.
+                            if (camera.newDate == null || parsed.Date > camera.newDate)
+                                camera.newDate = parsed.Date;
+                        }
+                        catch (Exception e)
+                        {
+                            errors++;
+                            Log(log, "Error on " + Path.GetFileName(file) + ": " + e.Message); // the file name was missing before
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Log(log, "Error:" + e.Message);
-                    }
+
+                    // One line per camera: found = added + too recent + outside window + errors (+ skipped unexpected names).
+                    Log(log, dirName + ": " + found + " files found, " + added + " added to ZIPs (" + resumed +
+                             " left over from an earlier run), " + tooRecent + " too recent, " + excluded +
+                             " outside " + UploadWindowStart + "-" + UploadWindowEnd + ", " + errors + " errors");
+                }
+                catch (Exception e)
+                {
+                    Log(log, "Error in camera folder " + dirName + ": " + e.Message);
                 }
             }
             return zips;
         }
 
-        /// <summary>Copies an image to calcfolder\{camera}\{yyyy}\{MM}\, overwriting an existing copy.</summary>
-        private static void CopyToCalcFolder(FileInfo fi, PhenoFileName parsed, string calcfolder)
+        /// <summary>
+        /// Copies a file to root\{camera}\{yyyy}\{MM}\ (used for both the backup and the calc folder).
+        /// </summary>
+        /// <param name="skipIfSameSize">
+        /// true  = do nothing when the target already exists with the same length (one cheap stat call instead of
+        ///         a copy over the network share). A file that was rewritten with exactly the same size would not be
+        ///         re-copied; compare LastWriteTimeUtc as well if that can happen.
+        /// false = always copy, overwriting an existing file.
+        /// </param>
+        private static void CopyToDatedFolder(FileInfo fi, PhenoFileName parsed, string root, bool skipIfSameSize)
         {
-            string targetDir = Path.Combine(calcfolder, parsed.CameraId,
+            string targetDir = Path.Combine(root, parsed.CameraId,
                 parsed.Date.Year.ToString(CultureInfo.InvariantCulture),
                 parsed.Date.Month.ToString("00", CultureInfo.InvariantCulture));
+            string targetFile = Path.Combine(targetDir, fi.Name);
+
+            if (skipIfSameSize)
+            {
+                var existing = new FileInfo(targetFile);
+                if (existing.Exists && existing.Length == fi.Length) return; // already there; the folder exists too
+            }
+
             Directory.CreateDirectory(targetDir); // creates the whole chain in one call
-            fi.CopyTo(Path.Combine(targetDir, fi.Name), true);
+            fi.CopyTo(targetFile, true);
         }
 
         #endregion
@@ -437,7 +521,7 @@ namespace UploadWebapp.Controllers
         /// Registers the upload in the database, writes the ZIP and only then removes the source files,
         /// so a failure while zipping no longer loses images.
         /// </summary>
-        private static void CreateZip(Zipfile item, string zipFolder)
+        private static int CreateZip(Zipfile item, string zipFolder)
         {
             item.fileName = item.siteCode + "_PHEN_" + item.date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) +
                             "_" + item.suffix + ".zip";
@@ -446,18 +530,41 @@ namespace UploadWebapp.Controllers
             item.upload.status = phenoUploadStatus.start;
             item.upload.ID = PhenoDA.insertPhenoUpload(item.upload);
 
-            System.IO.File.Delete(item.fullName); // replace a leftover ZIP from an earlier run
+            // A ZIP with this name may still be in the ZIP folder (never confirmed as uploaded, or late files arriving
+            // for a day that was already zipped). Deleting it, as the old code did, silently threw its images away and left
+            // a ZIP with only the newest files. So add to it instead.
+            bool append = System.IO.File.Exists(item.fullName);
 
-            using (ZipArchive archive = ZipFile.Open(item.fullName, ZipArchiveMode.Create))
+            using (ZipArchive archive = ZipFile.Open(item.fullName, append ? ZipArchiveMode.Update : ZipArchiveMode.Create))
             {
                 foreach (string path in item.dayfiles)
-                    archive.CreateEntryFromFile(path, Path.GetFileName(path));
+                {
+                    string entryName = Path.GetFileName(path);
+                    if (append)
+                    {
+                        ZipArchiveEntry existing = archive.GetEntry(entryName);
+                        if (existing != null) existing.Delete(); // newer copy wins
+                    }
+                    archive.CreateEntryFromFile(path, entryName);
+                }
             }
+
+            // Verify before deleting anything: every file must really be inside the finished ZIP.
+            int totalEntries;
+            using (ZipArchive check = ZipFile.OpenRead(item.fullName))
+            {
+                foreach (string path in item.dayfiles)
+                    if (check.GetEntry(Path.GetFileName(path)) == null)
+                        throw new InvalidOperationException("Missing in " + item.fileName + ": " + Path.GetFileName(path));
+                totalEntries = check.Entries.Count;
+            }
+
             foreach (string path in item.dayfiles)
                 System.IO.File.Delete(path);
 
             item.upload.status = phenoUploadStatus.zipCreated;
-            PhenoDA.savePhenoUploadStatusAndCount(item.upload.ID, (int)item.upload.status, item.dayfiles.Count);
+            PhenoDA.savePhenoUploadStatusAndCount(item.upload.ID, (int)item.upload.status, totalEntries);
+            return totalEntries;
         }
 
         #endregion
@@ -513,18 +620,16 @@ namespace UploadWebapp.Controllers
             item.upload.status = phenoUploadStatus.startSent;
             PhenoDA.savePhenoUploadStatus(item.upload.ID, (int)item.upload.status);
 
-            // --- verify: the metadata landing page must show the object ---
+            // --- verify: the object id from the metadata reply must show up in the upload response ---
             string metaUrl = reply.Replace("data", "meta"); // computed once (was 6x)
-            //WaitForFile(item.fullName, maxWaitInSec: 180);   // wait until curl released the file
-            //string page = new HtmlWeb().Load(metaUrl).ParsedText;
-            //bool ok = page != null && page.Contains("btn-warning") && page.Contains(metaUrl);
             bool ok = false;
             string toBeSearched = "https://data.icos-cp.eu/objects/";
-            int ix = reply.IndexOf(toBeSearched);
+            int ix = reply.IndexOf(toBeSearched, StringComparison.Ordinal);
             if (ix != -1)
             {
-                string code = reply.Substring(ix + toBeSearched.Length);
-                ok = sent.Contains(code);
+                // Trim: curl output usually ends with a newline, which would make the Contains check fail.
+                string code = reply.Substring(ix + toBeSearched.Length).Trim();
+                ok = code.Length > 0 && sent.Contains(code); // an empty code would match anything
             }
 
             string destFolder = ok ? "uploaded" : "failed";
@@ -565,8 +670,7 @@ namespace UploadWebapp.Controllers
 
         #endregion
 
-
-        // Extra usings needed: System.Diagnostics, System.IO, System.Threading, System.Threading.Tasks
+        // Extra usings needed: System.Diagnostics, System.IO, System.Threading.Tasks
         // Uses the Log(StreamWriter, string) helper from PhenocamUpload.cs.
 
         /// <summary>
@@ -697,7 +801,6 @@ namespace UploadWebapp.Controllers
                        (line[0] != '#' || line.StartsWith("#HttpOnly_", StringComparison.Ordinal)));
         }
 
-
         public ActionResult dailyPhenoReport(DateTime? datetime)
         {
             string date = "";
@@ -712,4 +815,5 @@ namespace UploadWebapp.Controllers
             return View(list);
         }
     }
+
 }

@@ -51,7 +51,7 @@
 
         @foreach (var item in Model)
         {
-            <tr @if (item.expFileCount != item.actFileCount) { <text> style="color:red;" </text> }>
+            <tr @if (item.actFileCount == null || item.actFileCount < item.expFileCount*0.9) { <text> style="color:red;" </text> }>
                 <td>
                     @Html.DisplayFor(modelItem => item.cameraName)
                 </td>
