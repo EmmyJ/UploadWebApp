@@ -814,6 +814,170 @@ namespace UploadWebapp.Controllers
 
             return View(list);
         }
+
+
+        // ---------------------------------------------------------------------------
+        // Daily report by mail (same table as the dailyPhenoReport page), built with MimeKit and sent with MailKit.
+        //
+        // ---------------------------------------------------------------------------
+
+        private const string IcosObjectPageUrl = "https://meta.icos-cp.eu/objects/";
+
+        /// <summary>
+        /// Mails the daily phenocam report for the given day (default: yesterday), laid out like dailyPhenoReport:
+        /// Camera | Filename | Expected # Files | Actual # Files | Link, with rows in red when no files arrived or
+        /// fewer than 90% of the expected number. Call it from the scheduler after the upload run, e.g.
+        /// /sendDailyPhenoReport?datetime=2026-10-29
+        /// </summary>
+        public ActionResult sendDailyPhenoReport(DateTime? datetime)
+        {
+            try
+            {
+                DateTime date = (datetime ?? DateTime.Now.AddDays(-1)).Date;
+                List<PhenoReportItem> list = PhenoDA.getDailyPhenoReportItems(
+                    "%" + date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "%");
+
+                string to = ConfigurationManager.AppSettings["phenoReportTo"];
+                string from = ConfigurationManager.AppSettings["smtpFrom"];
+                if (string.IsNullOrWhiteSpace(to))
+                    throw new InvalidOperationException("AppSetting 'phenoReportTo' is not configured.");
+                if (string.IsNullOrWhiteSpace(from))
+                    throw new InvalidOperationException("AppSetting 'smtpFrom' is not configured.");
+
+                // Absolute link to the web version of the same report.
+                string reportUrl = Url.Action("dailyPhenoReport", null,
+                    new { datetime = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) }, Request.Url.Scheme);
+
+                int problems = list.Count(IsBelowExpected);
+                string subject = "Daily Phenocam Report: " + date.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture) +
+                                 (problems > 0 ? " - " + problems + " below expected" : "");
+
+                SendHtmlMail(from, to, subject, BuildDailyReportHtml(list, date, reportUrl), BuildDailyReportText(list, date, reportUrl));
+
+                return Content("Daily phenocam report for " + date.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture) +
+                               " sent to " + to);
+            }
+            catch (Exception e)
+            {
+                // 500 so a scheduler or monitor notices that the mail did not go out.
+                return new HttpStatusCodeResult(500, e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Builds a MimeKit message (HTML body with a plain-text alternative) and sends it through MailKit,
+        /// using the phenoSmtp* appSettings. Server certificates are validated normally.
+        /// </summary>
+        private static void SendHtmlMail(string from, string to, string subject, string html, string text)
+        {
+            string host = ConfigurationManager.AppSettings["smtpHost"];
+            if (string.IsNullOrWhiteSpace(host))
+                throw new InvalidOperationException("AppSetting 'smtpHost' is not configured.");
+
+            int port;
+            if (!int.TryParse(ConfigurationManager.AppSettings["smtpPort"], out port)) port = 25;
+
+            string securityText = ConfigurationManager.AppSettings["smtpSecurity"];
+            MailKit.Security.SecureSocketOptions security = string.IsNullOrWhiteSpace(securityText)
+                ? MailKit.Security.SecureSocketOptions.Auto
+                : (MailKit.Security.SecureSocketOptions)Enum.Parse(typeof(MailKit.Security.SecureSocketOptions), securityText, true);
+
+            var message = new MimeKit.MimeMessage();
+            message.From.Add(MimeKit.MailboxAddress.Parse(from));
+            foreach (string address in to.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                message.To.Add(MimeKit.MailboxAddress.Parse(address.Trim()));
+            message.Subject = subject;
+            message.Body = new MimeKit.BodyBuilder { HtmlBody = html, TextBody = text }.ToMessageBody();
+
+            using (var smtp = new MailKit.Net.Smtp.SmtpClient())
+            {
+                smtp.Connect(host, port, security);
+
+                string user = ConfigurationManager.AppSettings["smtpUser"];
+                if (!string.IsNullOrEmpty(user))
+                    smtp.Authenticate(user, ConfigurationManager.AppSettings["smtpPassword"]);
+
+                smtp.Send(message);
+                smtp.Disconnect(true);
+            }
+        }
+
+        /// <summary>Plain-text version of the report for mail clients that don't show HTML.</summary>
+        private static string BuildDailyReportText(IEnumerable<PhenoReportItem> items, DateTime date, string reportUrl)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Daily Phenocam Report: " + date.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture));
+            if (!string.IsNullOrEmpty(reportUrl)) sb.AppendLine(reportUrl);
+            sb.AppendLine();
+
+            int rows = 0;
+            foreach (PhenoReportItem item in items)
+            {
+                rows++;
+                sb.AppendLine((IsBelowExpected(item) ? "[!] " : "    ") + item.cameraName + " | " + item.fileName +
+                              " | expected " + Convert.ToString(item.expFileCount, CultureInfo.InvariantCulture) +
+                              " | actual " + Convert.ToString(item.actFileCount, CultureInfo.InvariantCulture) +
+                              (string.IsNullOrEmpty(item.hash) ? "" : " | " + IcosObjectPageUrl + item.hash));
+            }
+            if (rows == 0) sb.AppendLine("No uploads found for this date.");
+            else sb.AppendLine().AppendLine("[!] = no files, or fewer than 90% of the expected number.");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Same rule as the web report: red when no file count is known or it is below 90% of the expected count.
+        /// </summary>
+        private static bool IsBelowExpected(PhenoReportItem item)
+        {
+            return item.actFileCount == null || item.actFileCount < item.expFileCount * 0.9;
+        }
+
+        /// <summary>
+        /// Builds the e-mail body. Mail clients ignore style sheets and classes, so everything is inline-styled,
+        /// and every value is HTML-encoded.
+        /// </summary>
+        private static string BuildDailyReportHtml(IEnumerable<PhenoReportItem> items, DateTime date, string reportUrl)
+        {
+            Func<object, string> enc = o => System.Web.HttpUtility.HtmlEncode(Convert.ToString(o, CultureInfo.InvariantCulture));
+
+            const string th = "text-align:left;padding:4px 8px;border-bottom:2px solid #999;";
+            const string td = "padding:4px 8px;border-bottom:1px solid #ddd;";
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<html><body style=\"font-family:Arial,Helvetica,sans-serif;font-size:14px;\">");
+            sb.Append("<h2>Daily Phenocam Report: " + date.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture) + "</h2>");
+            if (!string.IsNullOrEmpty(reportUrl))
+                sb.Append("<p><a href=\"" + enc(reportUrl) + "\">Open this report in the browser</a></p>");
+
+            sb.Append("<table style=\"border-collapse:collapse;width:100%;max-width:1170px;\">");
+            sb.Append("<tr><th style=\"" + th + "\">Camera</th><th style=\"" + th + "\">Filename</th>" +
+                      "<th style=\"" + th + "\">Expected # Files</th><th style=\"" + th + "\">Actual # Files</th>" +
+                      "<th style=\"" + th + "\">Link</th></tr>");
+
+            int rows = 0;
+            foreach (PhenoReportItem item in items)
+            {
+                rows++;
+                sb.Append(IsBelowExpected(item) ? "<tr style=\"color:red;\">" : "<tr>");
+                sb.Append("<td style=\"" + td + "\">" + enc(item.cameraName) + "</td>");
+                sb.Append("<td style=\"" + td + "\">" + enc(item.fileName) + "</td>");
+                sb.Append("<td style=\"" + td + "\">" + enc(item.expFileCount) + "</td>");
+                sb.Append("<td style=\"" + td + "\">" + enc(item.actFileCount) + "</td>");
+                sb.Append("<td style=\"" + td + "\">");
+                if (!string.IsNullOrEmpty(item.hash))
+                    sb.Append("<a href=\"" + IcosObjectPageUrl + enc(item.hash) + "\">View on Carbon Portal</a>");
+                sb.Append("</td></tr>");
+            }
+            sb.Append("</table>");
+
+            if (rows == 0)
+                sb.Append("<p>No uploads found for this date.</p>");
+
+            sb.Append("</body></html>");
+            return sb.ToString();
+        }
+
+
     }
 
 }
